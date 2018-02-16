@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
+    v0.1beta
+    
+    Convierte una IR de DRC originada en REW Room EQ Wizard
+    en un archivo raw float32 (.pcm) adecuado para un convolver
+    como Brutefir
+
     OjO: Los impulsos IR .wav de REW vienen con el pico desplazado
          tantas muestras como el valor de la Fs del wav.
          por tanto haremos una doble conversion time > spectrum > time
@@ -21,7 +27,11 @@ def savepcm32(a):
 
 if __name__ == "__main__":
 
-    # taps de salida deseados
+    if len(sys.argv) = 1:
+        print __doc__
+        sys.exit()
+
+    # taps de salida deseados (PDTE PASAR COMO ARGUMENTO)
     m = 2 ** 15 
 
     # Archivos de entrada y de salida
