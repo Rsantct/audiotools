@@ -55,12 +55,12 @@ def lee_commandline(opcs):
     
         if fname.endswith('.wav'):
             fswav, imp = readWAV16(fname)
-            IRs.append( (fswav, imp) )
+            IRs.append( (fswav, imp, fname) )
             
         else:
             if fs:
                 imp = readPCM32(fname)
-                IRs.append( (fs, imp) )
+                IRs.append( (fs, imp, fname) )
             else:
                 print __doc__
                 sys.exit()
@@ -75,11 +75,14 @@ if __name__ == "__main__":
     else:
         IRs = lee_commandline(sys.argv[1:])
 
+
     for IR in IRs:
     
-        fs, imp = IR
+        fs, imp, info = IR
         fny = fs/2.0
-
+        l = imp.shape[0]
+        info += " " + str(l)
+        
         # bins de frecs logspaciadas que resolverá freqz
         w1 = 1 / fny * (2 * np.pi)
         w2 = 2 * np.pi
@@ -90,11 +93,10 @@ if __name__ == "__main__":
         # frecuencias trasladadas a Fs
         freqs = w / np.pi * fny
         magdB = 20 * np.log10(abs(h))
-        plt.plot(freqs, magdB)
+        plt.plot(freqs, magdB,label=info)
 
     plt.xscale('log')  
     plt.xlim(10,20000)
-    plt.ylim(-30,5)  
+    plt.ylim(-20,5)
+    plt.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
     plt.show()
-
-   
