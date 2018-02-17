@@ -12,6 +12,8 @@
     See also:  FIRtro_viewer.py
     
 """
+# Se deja de mostrar la curva de phase fuera 
+# de la banda de uso del driver (ver magThr)
 
 import sys
 import numpy as np
@@ -125,6 +127,9 @@ def limpia(pha, mag, th):
 
 if __name__ == "__main__":
 
+    # Umbral de descarte para pintar la fase
+    magThr = -40.0
+    
     # Por defecto
     fmin = 20; fmax = 20000
 
@@ -161,6 +166,7 @@ if __name__ == "__main__":
         # BETA Fase mínima ??
         H = signal.hilbert(mag)
         mpha = np.angle(H, deg=True)
+        mpha = limpia(pha=mpha, mag=mag, th=magThr)
         
         # Plot 
         axMag.plot(freq, mag, label=drivername)
@@ -174,7 +180,7 @@ if __name__ == "__main__":
             fpha = interpolate.interp1d(freq0, pha0, kind="linear", bounds_error=False)
             pha = fpha(freq)
             pha = pha * 180.0 / np.pi
-            #pha = limpia(pha=pha, mag=mag, th=-50.0)
+            pha = limpia(pha=pha, mag=mag, th=magThr)
             
             # Plot
             axPha.set_ylabel("pha / --- min pha (BETA)")
