@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+"""
+    v0.1
+    visor de impulsos IR wav
+    
+"""
 import sys
 import numpy as np
 from scipy.io import wavfile
@@ -9,20 +13,30 @@ from matplotlib import pyplot as plt
 
 if __name__ == "__main__":
 
-    fin  = sys.argv[1]
-
-    fs, x = wavfile.read(fin)
+    files  = sys.argv[1:]
     
-    x = x.astype('float32') / 32768.0
+    for file in files:
 
-    w, h = signal.freqz(x, worN=2**13, whole=False) 
+        fs, imp = wavfile.read(file)
+        fny = fs/2.0
+    
+        # el .wav es int16 normalized 
+        imp = imp.astype('float32') / 32768.0
 
-    freqs = w / np.pi * fs/2.0
-    magdB = 20 * np.log10(abs(h))
-    plt.plot(freqs, magdB)
+        # bins de frecs logspaciadas que resolverá freqz
+        w1 = 1 / fny * (2 * np.pi)
+        w2 = 2 * np.pi
+        bins = np.geomspace(w1, w2, 500)
+
+        # whole=False hasta Nyquist
+        w, h = signal.freqz(imp, worN=bins, whole=False)
+        # frecuencias trasladadas a Fs
+        freqs = w / np.pi * fny
+        magdB = 20 * np.log10(abs(h))
+        plt.plot(freqs, magdB)
+
     plt.xscale('log')  
-    plt.xlim(20,20000)
-    #plt.xticks(x, [20, 100, 1000, 10000])  
+    plt.xlim(10,20000)
     plt.ylim(-30,5)  
     plt.show()
 
