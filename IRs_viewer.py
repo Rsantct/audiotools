@@ -8,7 +8,7 @@
     
     Ejemplo de uso:
     
-    visor_IR.py drcREW_test1.wav drcREW_test1.pcm 44100
+    visor_IR.py  drcREW_test1.wav  drcREW_test1.pcm  44100
     
 """
 import sys
