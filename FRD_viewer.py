@@ -3,11 +3,13 @@
 """
     v0.1 BETA
     Visor de archivos de respuesta en frecuencia .FRD
+    Se muestra la fase si existe una tercera columna. 
+    Se estima la fase mínima (BETA)
     
     Uso:
-    frd_viewer.py [flow-fhigh] path/to/file1.frd [path/to/file2.frd ...]
+    FRD_viewer.py [flow-fhigh] path/to/file1.frd [path/to/file2.frd ...]
     
-    See also:  fir_viewer.py
+    See also:  FIRtro_viewer.py
     
 """
 
@@ -61,9 +63,11 @@ def prepara_graf():
     axPha = fig.add_subplot(grid[1,0])
     prepara_eje_frecuencias(axPha)
     axPha.set_ylim([-180.0,180.0])
-    axPha.set_yticks(range(-135, 180, 45))
+    #axPha.set_yticks(range(-135, 180, 45))
+    axPha.set_yticks(range(-180, 225, 45))
     axPha.grid(linestyle=":")
-    axPha.set_ylabel("phase / --- min phase (deg)")
+    # en principio pintaremos solo la pha min derivada de la mag
+    axPha.set_ylabel("--- min pha (BETA)")
     
     return axMag, axPha
 
@@ -138,14 +142,14 @@ if __name__ == "__main__":
         drivername = frdname.split("/")[-1].split(".")[:-1][0]
         frd =  readFRD(frdname)
         # Vemos si hay columna de phase
-        hay_fase = (frd.shape[1] == 3)
+        frd_con_fase = (frd.shape[1] == 3)
 
         # arrays de freq, mag y pha
         freq0 = frd[::, 0]
         mag0  = frd[::, 1]
 
         # Funcion de interpolacion con los datos leidos
-        fmag = interpolate.interp1d(freq0, mag0, kind="linear", bounds_error=False)
+        fmag = interpolate.interp1d(freq0, mag0, kind="cubic", bounds_error=False)
         # Interpolación sobre nuestro eje 'freq'
         mag = fmag(freq)
         # La bajamos por debajo de 0
@@ -154,7 +158,7 @@ if __name__ == "__main__":
             mag -= BPavg(mag)
             axMag.set_title("auto levels")
     
-        # Fase mínima ??
+        # BETA Fase mínima ??
         H = signal.hilbert(mag)
         mpha = np.angle(H, deg=True)
         
@@ -164,7 +168,7 @@ if __name__ == "__main__":
 
         axPha.plot(freq, mpha, "--", linewidth=1.0, color=color)        
 
-        if hay_fase:
+        if frd_con_fase:
         
             pha0  = frd[::, 2]
             fpha = interpolate.interp1d(freq0, pha0, kind="linear", bounds_error=False)
@@ -173,11 +177,10 @@ if __name__ == "__main__":
             #pha = limpia(pha=pha, mag=mag, th=-50.0)
             
             # Plot
+            axPha.set_ylabel("pha / --- min pha (BETA)")
             axPha.plot(freq, pha, "-", linewidth=1.0, color=color)
     
     axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
     axPha.legend(loc='lower left', prop={'size':'small', 'family':'monospace'})
     plt.show()
-
-
 
