@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-    v0.4 BETA
+    v0.4b
     
     Visor de archivos FIR xover y de archivos FRD (freq. response).
     Se muestra la magnitud y fase de los FIR.
@@ -21,11 +21,11 @@
     Acepta archivos FIR en formato PCM float32. Los archivos FRD de la respuesta
     del altavoz pueden tener hasta tres columnas (frecuencia, magnitud  y fase).
 
-    Archivo de configuración del ploteo: fir_viewer.cfg
+    Archivo de configuración del ploteo: FIRtro_viewer.cfg
 
     Uso:
     
-    fir_viewer.py [ini|xxx] path/to/filtro1.pcm  [path/to/filtro2.pcm ... ] [flow-fhigh]
+    FIRtro_viewer.py [ini|xxx] path/to/filtro1.pcm  [path/to/filtro2.pcm ... ] [flow-fhigh]
 
           ini:        Lee Fs y Gain en los archivos '.ini' asociados a '.pcm'
           xxx:        Toma xxxx como Fs y se ignoran los '.ini'
@@ -39,7 +39,7 @@
         gainext = 8.0      # Resto de ganancia incluyendo la potencia final
                              radiada en el eje de escucha.
                              
-    See also: frd_viewer.py
+    See also: frd_viewer.py, IRs_viewer
     
 """
 #
@@ -56,6 +56,9 @@
 #   Si están disponibles las FRDs de los altavoces se muestra el resultado del filtrado.
 #   Detecta clips en los FIR de xover
 #   Rango de frecuencias en linea de comandos opcional, útil para representar una sola vía.
+# v0.4b:
+#   El semiespectro se computa sobre frecuecias logespaciadas 
+#   para mejor resolución gráfica en graves.
 
 import sys
 import os.path
@@ -85,9 +88,9 @@ def readFRD(fname):
     return np.array(fr)
 
 def readConfig():
-    """ lee la gonfiguracion del ploteo desde fir_viewer.cfg"""
+    """ lee la gonfiguracion del ploteo desde FIRtro_viewer.cfg"""
     config = ConfigParser()
-    cfgfile = os.path.dirname(os.path.realpath(__file__)).replace("\\", "/") + "/fir_viewer.cfg"
+    cfgfile = os.path.dirname(os.path.realpath(__file__)).replace("\\", "/") + "/FIRtro_viewer.cfg"
     config.read(cfgfile)
     global DFTresol
     global frec_ticks, fig_size
@@ -179,21 +182,6 @@ def lee_params(pcmname):
         fs, gain, gainext = readPCMini(fini)
     return fs, gain, gainext
 
-def estima_N(taps):
-    # NOTA BETA: 
-    # Hacemos la DFT con un nº de bins potencia de 2 PERO sin incurrir en ¿aliasings?
-    # Experimentalmente no hay que superar taps/4, si no sale chungo.
-    n = 9 # 2^9 = 512 bins para empezar
-    while True:
-        N = 2 ** n
-        res = fs / N
-        if N >= taps / 4:
-            N = 2 ** (n-1)
-            #print "taps:", len(imp), "dftN:", N , "dftRes:", str(round(fs/N, 2))
-            break
-        n += 1
-    return N
-
 def frd_of_pcm(f):
     """ devuelve el nombre del .frd asociado al filtro .pcm (o .bin)
     """
@@ -281,7 +269,7 @@ def prepararaGraficas():
     axGD = axPha.twinx()
     axGD.grid(False)
     prepara_eje_frecuencias(axGD)
-    axGD.set_ylim(0, 1000)
+    axGD.set_ylim(-25, 75)
     axGD.set_ylabel(u"--- filter GD (ms)")
 
 if __name__ == "__main__":
@@ -309,15 +297,18 @@ if __name__ == "__main__":
         #--- Leemos el impulso IR y sus parámetros (Fs, gain)
         IR = readPCM32(pcmname)
         fs, gain, gainext = lee_params(pcmname)        
-        fNyq = fs / 2.0
+        fny = fs / 2.0 # Nyquist
 
-        #---Obtenemos la FR 'h' en N bins:
-        N = estima_N(taps=len(IR)) 
+        #---Obtenemos la FR 'h' en 500 bins de frecs logspaciadas
+        #   para que las resuelva freqz y group_delay
+        w1 = 1 / fny * (2 * np.pi)
+        w2 = 2 * np.pi
+        bins = np.geomspace(w1, w2, 500)
         #   usamos whole=False para computar hasta pi (Nyquist)
         #   devuelve: h - la FR  y w - las frec normalizadas hasta Nyquist
-        w, h = signal.freqz(IR, worN=N, whole=False)
+        w, h = signal.freqz(IR, worN=bins, whole=False)
         # convertimos las frecuencias normalizadas en reales según la Fs
-        freqs = (w / np.pi) * fNyq
+        freqs = (w / np.pi) * fny
 
         #--- Extraemos la MAG de la FR 'h'
         #    tomamos en cuenta la 'gain' del .ini que se aplicará como coeff del convolver
@@ -332,11 +323,9 @@ if __name__ == "__main__":
         np.copyto(firPhaseClean, firPhase, where=mask)
 
         #--- Obtenemos el GD 'gd' en N bins:
-        wgd, gd = signal.group_delay((IR, 1), N, whole=False)
-        # convertimos las frecuencias normalizadas en reales según la Fs
-        freqsgd = (wgd / np.pi) * fNyq
+        wgd, gd = signal.group_delay((IR, 1), w=bins, whole=False)
         # GD es en radianes los convertimos a en milisegundos
-        firGDms = gd / fs * 1000
+        firGDms = gd / fs * 1000 
         # Limpiamos con la misma mask de valores fuera de la banda de paso usada arriba
         firGDmsClean  = np.full((len(firGDms)), np.nan)
         np.copyto(firGDmsClean, firGDms, where=mask)
@@ -414,8 +403,8 @@ if __name__ == "__main__":
         #--- PHA
         axPha.plot(freqs, phase, "-", linewidth=1.0, color=color)
 
-        #--- GD
-        axGD.plot(freqs, gd, "--", linewidth=1.0, color=color)
+        #--- GD. Nota: quitamos el delay del pico desplazado
+        axGD.plot(freqs, gd - peakOffset*1e3, "--", linewidth=1.0, color=color)
 
         #--- IR. Nota: separamos los impulsos en columnas
         axIR = fig.add_subplot(grid[5, columnaIR])
