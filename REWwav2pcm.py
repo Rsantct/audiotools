@@ -19,15 +19,15 @@ from scipy import signal
 from matplotlib import pyplot as plt
 import pydsd as dsd
 
-def savepcm32(a):
+def savepcm32(raw, fout):
     # guardamos en raw binary float32
     f = open(fout, 'wb')
-    a.astype('float32').tofile(f)
+    raw.astype('float32').tofile(f)
     f.close()
 
 if __name__ == "__main__":
 
-    if len(sys.argv) = 1:
+    if len(sys.argv) == 1:
         print __doc__
         sys.exit()
 
@@ -57,5 +57,5 @@ if __name__ == "__main__":
     imp2 = dsd.semiblackman(m) * imp2[:m]
 
     # Y lo guardamos en formato pcm float 32
-    savepcm32(imp2)
+    savepcm32(raw=imp2, fout=fout)
    
