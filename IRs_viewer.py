@@ -20,22 +20,12 @@
 
 import sys
 import numpy as np
-from scipy.io import wavfile
 from scipy import signal
 from matplotlib import pyplot as plt
 from matplotlib import ticker   # Para rotular a medida
 from matplotlib import gridspec # Para ajustar disposición de los subplots
+import utils
 
-def readPCM32(fname):
-    """ lee un archivo pcm float32
-    """
-    #return np.fromfile(fname, dtype='float32')
-    return np.memmap(fname, dtype='float32', mode='r')
-
-def readWAV16(fname):
-    fs, imp = wavfile.read(fname)
-    return fs, imp.astype('float32') / 32768.0
-    
 def lee_commandline(opcs):
     global fmin, fmax
     
@@ -69,12 +59,12 @@ def lee_commandline(opcs):
     for fname in fnames:
     
         if fname.endswith('.wav'):
-            fswav, imp = readWAV16(fname)
+            fswav, imp = utils.readWAV16(fname)
             IRs.append( (fswav, imp, fname) )
             
         else:
             if fs:
-                imp = readPCM32(fname)
+                imp = utils.readPCM32(fname)
                 IRs.append( (fs, imp, fname) )
             else:
                 print __doc__
@@ -168,6 +158,7 @@ if __name__ == "__main__":
         # Semiespectro
         # whole=False --> hasta Nyquist
         w, h = signal.freqz(imp, worN=bins, whole=False)
+        
         # frecuencias trasladadas a Fs
         freqs = w / np.pi * fny
         

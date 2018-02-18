@@ -69,23 +69,7 @@ from matplotlib import pyplot as plt
 from matplotlib import ticker   # Para rotular a medida
 from matplotlib import gridspec # Para ajustar disposición de los subplots
 from ConfigParser import ConfigParser
-
-def readFRD(fname):
-    f = open(fname, 'r')
-    lineas = f.read().split("\n")
-    f.close()
-    fr = []
-    for linea in [x[:-1].replace("\t", " ").strip() for x in lineas if x]:
-        if linea[0].isdigit():
-            linea = linea.split()
-            f = []
-            for col in range(len(linea)):
-                dato = float(linea[col])
-                if col == 2: # hay columna de phases en deg
-                    dato = round(dato / 180.0 * np.pi, 4)
-                f.append(dato)
-            fr.append(f)
-    return np.array(fr)
+import utils
 
 def readConfig():
     """ lee la gonfiguracion del ploteo desde FIRtro_viewer.cfg"""
@@ -105,29 +89,6 @@ def readConfig():
     tmp             = config.get        ("plot", "frec_ticks").split()
     frec_ticks      = [int(x) for x in tmp]
     fig_size        = (fig_width, fig_height)
-
-def readPCM32(fname):
-    """ lee un archivo pcm float32
-    """
-    #return np.fromfile(fname, dtype='float32')
-    return np.memmap(fname, dtype='float32', mode='r')
-    
-def readPCMini(f):
-    """ lee el .ini asociado a un filtro .pcm de FIRtro
-    """
-    iniPcm = ConfigParser()
-    fs = 0
-    gain = 0.0
-    gainext = 0.0
-    if os.path.isfile(f):
-        iniPcm.read(f)
-        fs      = float(iniPcm.get("miscel", "fs"))
-        gain    = float(iniPcm.get("miscel", "gain"))
-        gainext = float(iniPcm.get("miscel", "gainext"))
-    else:
-        print "(!) no se puede accecer a " + f
-        sys.exit()
-    return fs, gain, gainext
 
 def prepara_eje_frecuencias(ax):
     """ según las opciones fmin, fmax, frec_ticks de fir_viewer.cgf """
@@ -175,11 +136,13 @@ def lee_params(pcmname):
     """ Lee ganancias y Fs indicadas el el .ini asociado al filtro .pcm """
     gain    = 0.0
     gainext = 0.0
+
     if fs_commandline:      # no se lee el .ini
         fs = fs_commandline
     else:                   # se lee el .ini
-        fini = "".join(pcmname.split(".")[:-1]) + ".ini"
-        fs, gain, gainext = readPCMini(fini)
+        fini = pcmname[:-4] + ".ini"
+        fs, gain, gainext = utils.readPCMini(fini)
+
     return fs, gain, gainext
 
 def frd_of_pcm(f):
@@ -192,16 +155,6 @@ def frd_of_pcm(f):
     else:
         path = "./" 
     return path + f[3:].replace(".pcm", ".frd").replace(".bin", ".frd")
-
-def KHz(f):
-    """ cutre formateo de frecuencias en Hz o KHz """
-    f = int(round(f, 0))
-    if f in range(1000):
-        f = str(f) + "Hz"
-    else:
-        f = round(f/1000.0, 1)
-        f = str(f) + "KHz"
-    return f.ljust(8)
     
 def BPavg(curve):
     """ cutre estimación del promedio de una curva de magnitudes dB en la banda de paso 
@@ -218,7 +171,7 @@ def hroomInfo(magdB, via):
     gmax = np.amax(magdB)
     fgmax = freqs[np.argmax(magdB)]
     tmp1 = str(round(gmax, 1)).rjust(5) + "dBFS"   # dBs maquillados
-    tmp2 = KHz(fgmax)                              # frec en Hz o KHz
+    tmp2 = utils.KHz(fgmax)                              # frec en Hz o KHz
     info = via[:12].ljust(12) + " max:" + tmp1 + "@ " + tmp2
     # Tenemos en cuenta la gain del .INI si se hubiera facilitado
     if gmax + gain > 0:
@@ -295,7 +248,7 @@ if __name__ == "__main__":
         via = tmp.split("/")[-1].replace(".pcm", "").replace(".bin", "")
 
         #--- Leemos el impulso IR y sus parámetros (Fs, gain)
-        IR = readPCM32(pcmname)
+        IR = utils.readPCM32(pcmname)
         fs, gain, gainext = lee_params(pcmname)        
         fny = fs / 2.0 # Nyquist
 
@@ -340,7 +293,7 @@ if __name__ == "__main__":
         frdname = frd_of_pcm(pcmname)
         if os.path.isfile(frdname):
             hay_FRDs = True
-            frd = readFRD(frdname)
+            frd = utils.readFRD(frdname)
             frdFreqs = frd[::, 0]
             frdMag = frd[::, 1]
             

@@ -22,23 +22,7 @@ from scipy.stats import mode
 from matplotlib import pyplot as plt
 from matplotlib import gridspec
 from matplotlib import ticker
-
-def readFRD(fname):
-    f = open(fname, 'r')
-    lineas = f.read().split("\n")
-    f.close()
-    fr = []
-    for linea in [x[:-1].replace("\t", " ").strip() for x in lineas if x]:
-        if linea[0].isdigit():
-            linea = linea.split()
-            f = []
-            for col in range(len(linea)):
-                dato = float(linea[col])
-                if col == 2: # hay columna de phases en deg
-                    dato = round(dato / 180.0 * np.pi, 4)
-                f.append(dato)
-            fr.append(f)
-    return np.array(fr)
+import utils
 
 def prepara_eje_frecuencias(ax):
     freq_ticks=[20, 100, 1000, 10000, 20000]
@@ -145,7 +129,7 @@ if __name__ == "__main__":
 
     for frdname in frdnames:
         drivername = frdname.split("/")[-1].split(".")[:-1][0]
-        frd =  readFRD(frdname)
+        frd = utils.readFRD(frdname)
         # Vemos si hay columna de phase
         frd_con_fase = (frd.shape[1] == 3)
 
@@ -189,4 +173,6 @@ if __name__ == "__main__":
     axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
     axPha.legend(loc='lower left', prop={'size':'small', 'family':'monospace'})
     plt.show()
+
+
 

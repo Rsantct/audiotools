@@ -15,16 +15,8 @@
 
 import sys
 import numpy as np
-from scipy.io import wavfile
-from scipy import signal
-from matplotlib import pyplot as plt
 import pydsd as dsd
-
-def savePCM32(raw, fout):
-    # guardamos en raw binary float32
-    f = open(fout, 'wb')
-    raw.astype('float32').tofile(f)
-    f.close()
+import utils
 
 if __name__ == "__main__":
 
@@ -40,11 +32,8 @@ if __name__ == "__main__":
     fout = fin.replace(".wav", ".pcm")
 
     # Leemos el impulso de entrada imp1
-    fs, imp1 = wavfile.read(fin)
+    fs, imp1 = utils.readWAV16(fin)
     
-    # normalizamos el impulso ya que REW lo ha normalizado a +- 32768
-    imp1 = imp1.astype('float32') / 32768.0
-
     # Espectro completo
     h = np.fft.fft(imp1)
     # Réplica del espectro completo en fase mínima
@@ -58,6 +47,6 @@ if __name__ == "__main__":
     imp2 = dsd.semiblackman(m) * imp2[:m]
 
     # Y lo guardamos en formato pcm float 32
-    savePCM32(raw=imp2, fout=fout)
+    utils.savePCM32(raw=imp2, fout=fout)
     print "Guardado en:", fout
    
