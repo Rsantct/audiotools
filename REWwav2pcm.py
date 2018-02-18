@@ -9,7 +9,8 @@
 
     OjO: Los impulsos IR .wav de REW vienen con el pico desplazado
          tantas muestras como el valor de la Fs del wav.
-         por tanto haremos una doble conversion time > spectrum > time
+         por tanto haremos una reconstrucción completa 
+         time domain > spectrum > time domain
 """
 
 import sys
@@ -19,7 +20,7 @@ from scipy import signal
 from matplotlib import pyplot as plt
 import pydsd as dsd
 
-def savepcm32(raw, fout):
+def savePCM32(raw, fout):
     # guardamos en raw binary float32
     f = open(fout, 'wb')
     raw.astype('float32').tofile(f)
@@ -57,5 +58,6 @@ if __name__ == "__main__":
     imp2 = dsd.semiblackman(m) * imp2[:m]
 
     # Y lo guardamos en formato pcm float 32
-    savepcm32(raw=imp2, fout=fout)
+    savePCM32(raw=imp2, fout=fout)
+    print "Guardado en:", fout
    
