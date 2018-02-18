@@ -8,7 +8,7 @@
     Adaptación del original trimwav2pcm.m del paquete DSD
     https://github.com/rripio/DSD
 
-    Se observa que el impulso wav de 128 Ktaps que proporciona REW, 
+    Se observa que el impulso wav de 128 Ktaps que proporciona REW
     tiene el pico desplazado 44100 muestras, por tanto el mecanismo 
     de trim desde el principio resulta en todo a cero.
         
