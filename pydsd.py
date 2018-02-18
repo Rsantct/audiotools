@@ -20,8 +20,6 @@
 import numpy as np
 from scipy import signal, interpolate
 
-errors=[]
-
 def semiblackman(m):
     """
     %% Obtiene la mitad derecha de una ventana Blackman de longitud m.
@@ -44,7 +42,7 @@ def minphsp(sp):
     """
 
     if not sp.ndim == 1:
-        errors.append("ssp must be a column vector")
+        raise ValueError("ssp must be a column vector")
 
     #%% exp(conj(hilbert(log(abs(sp)))));
     return np.exp(np.conj(signal.hilbert(np.log(abs(sp)))));
@@ -62,12 +60,12 @@ def wholespmp(ssp):
     """
 
     if not ssp.ndim == 1:
-        errors.append("ssp must be a column vector")
+        raise ValueError("ssp must be a column vector")
 
     m = len(ssp) 
     # Verifica que la longitud del espectro proporcionado sea impar 
     if m % 2 == 0:
-        errors.append("wholespmp: Spectrum length must be odd")
+        raise ValueError("wholespmp: Spectrum length must be odd")
 
     #%% nsp = flipud(conj(ssp(2:m-1)));
     nsp = np.conj(ssp[1:m-2])
@@ -86,9 +84,9 @@ def lininterp(F, mag, m, fs):
     """
 
     if not F.ndim == 1:
-        errors.append("F must be a column vector")
+        raise ValueError("F must be a column vector")
     if not m % 2 == 0:
-        errors.append("m must be even")
+        raise ValueError("m must be even")
 
     # Prepara el nuevo vector de frecuencias OjO lo genera de long impar m/2+1
     #%% fnew = (0:m/2)'*fs/m; % column vector
@@ -113,7 +111,4 @@ def lininterp(F, mag, m, fs):
 
     return maglin
 
-def pruebaraise(x):
-    if x == 1:
-        raise
         
