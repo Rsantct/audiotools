@@ -1,5 +1,5 @@
 # audiotools
 algunas herramientas
 
-### usefull links
+### useful links
 https://github.com/AudioHumLab/FIRtro
