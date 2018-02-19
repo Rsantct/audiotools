@@ -256,7 +256,9 @@ if __name__ == "__main__":
         #   para que las resuelva freqz y group_delay
         w1 = 1 / fny * (2 * np.pi)
         w2 = 2 * np.pi
-        bins = np.geomspace(w1, w2, 500)
+        #bins = np.geomspace(w1, w2, 500) # np.geomspace needs python >= 1.12
+        bins = freq = np.logspace(np.log10(w1), np.log10(w2), num=500)
+
         #   usamos whole=False para computar hasta pi (Nyquist)
         #   devuelve: h - la FR  y w - las frec normalizadas hasta Nyquist
         w, h = signal.freqz(IR, worN=bins, whole=False)

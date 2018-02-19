@@ -153,7 +153,8 @@ if __name__ == "__main__":
         # 500 bins de frecs logspaciadas para que las resuelva freqz
         w1 = 1 / fny * (2 * np.pi)
         w2 = 2 * np.pi
-        bins = np.geomspace(w1, w2, 500)
+        #bins = np.geomspace(w1, w2, 500) # np.geomspace needs numpy >= 1.12
+        bins = np.logspace(np.log10(w1), np.log10(w2), num=500)
 
         # Semiespectro
         # whole=False --> hasta Nyquist
