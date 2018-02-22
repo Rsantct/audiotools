@@ -1,22 +1,25 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
-    v0.2b
+    v0.2c
     visor de impulsos IR wav o raw (.pcm)
     
     Si se pasan impulsos raw (.pcm) se precisa pasar también la Fs
     
     Ejemplo de uso:
     
-    visor_IR.py  drcREW_test1.wav  drcREW_test1.pcm  44100 fmin-fmax
+    IR_viewer.py  drcREW_test1.wav  drcREW_test1.pcm  44100 fmin-fmax pha
     
     fmin-fmax (Hz) es opcional y permite visualizar un rango, útil para ver graves.
-    
+    pha pinta la fase
+
 """
 # v0.2
 #   Se añade un visor de la fase y otro pequeño visor de los impulsos
-# v0.2b
+# v0.2b 
 #   Opción del rango de frecuencias a visualizar
+# v0.2c
+#   Opcion de pintar la phase
 
 import sys
 import numpy as np
@@ -27,13 +30,14 @@ from matplotlib import gridspec # Para ajustar disposición de los subplots
 import utils
 
 def lee_commandline(opcs):
-    global fmin, fmax
+    global fmin, fmax, plotPha
     
     # impulsos que devolverá esta función
     IRs = []
     # archivos que leeremos
     fnames = []
     fs = 0
+    plotPha = False
 
     for opc in opcs:
         if opc in ("-h", "-help", "--help"):
@@ -47,6 +51,9 @@ def lee_commandline(opcs):
             fmin, fmax = opc.split("-")
             fmin = float(fmin)
             fmax = float(fmax)
+            
+        elif "-ph" in opc:
+            plotPha = True
 
         else:
             fnames.append(opc)
@@ -111,22 +118,24 @@ def preparaGraficas():
     axMag.set_ylim([top_dBs - range_dBs, top_dBs])
     axMag.set_ylabel("filter magnitude dB")
     
-    # --- SUBPLOT para pintar las PHASEs (alto 2 filas, ancho todas las columnas)
-    axPha = fig.add_subplot(grid[3:5, :])
-    axPha.grid(linestyle=":")
-    prepara_eje_frecuencias(axPha)
-    axPha.set_ylim([-180.0,180.0])
-    axPha.set_yticks(range(-135, 180, 45))
-    axPha.set_ylabel(u"filter phase")
- 
-    # --- SUBPLOT para pintar el GD (común con el de las phases)
+    # --- SUBPLOT para pintar el GD (alto 2 filas, ancho todas las columnas)
     # comparte el eje X (twinx) con el de la phase
     # https://matplotlib.org/gallery/api/two_scales.html
-    axGD = axPha.twinx()
+    axGD = fig.add_subplot(grid[3:5, :])
     axGD.grid(False)
     prepara_eje_frecuencias(axGD)
     axGD.set_ylim(-25, 75)
     axGD.set_ylabel(u"--- filter GD (ms)")
+    
+    # --- SUBPLOT para pintar las PHASEs (común con el de GD)
+    if plotPha:
+        axPha = axGD.twinx()
+        axPha.grid(linestyle=":")
+        prepara_eje_frecuencias(axPha)
+        axPha.set_ylim([-180.0,180.0])
+        axPha.set_yticks(range(-135, 180, 45))
+        axPha.set_ylabel(u"filter phase")
+ 
     
 if __name__ == "__main__":
 
@@ -176,8 +185,9 @@ if __name__ == "__main__":
         
         # PLOTEOS
         axMag.plot(freqs, magdB, label=info)
-        color = axMag.lines[-1].get_color() # anotamos el color de la última línea        
-        axPha.plot(freqs, phase, "-", linewidth=1.0, color=color)
+        color = axMag.lines[-1].get_color() # anotamos el color de la última línea  
+        if plotPha:
+            axPha.plot(freqs, phase, "-", linewidth=1.0, color=color)
         axGD.plot(freqs, gdms, "--", linewidth=1.0, color=color)
     
         # plot del IR. Nota: separamos los impulsos en columnas
