@@ -3,7 +3,7 @@
 """
     pydsd v0.1BETA  *** work in progress ***
     
-    Traslación a python/scipy de funciones del paquete DSD
+    Traslación a python/scipy de algunas funciones del paquete DSD
     
         %%%%%%%%%%%%%%  DSD  %%%%%%%%%%%%%%%%%
         %% https://github.com/rripio/DSD    %%
@@ -14,6 +14,8 @@
           
     DISCLAIMER: El autor de DSD no garantiza ni supervisa
                 esta traslación.
+                
+    ACHTUNG: El autor tampoco garantiza el correcto funcionamiento.
     
 """
 
@@ -92,7 +94,7 @@ def lininterp(F, mag, m, fs):
     #%% fnew = (0:m/2)'*fs/m; % column vector
     fnew = np.arange(0, m/2) * fs/m
     
-    # Se usa a la funcion estandar de interpolación:
+    # DSD usa a la funcion de interpolación interp1:
     # (nota: maglin es la variable resultado que entregará esta función)
     #%% maglin = interp1(F, mag, fnew, "spline");
     #   Traducción a scipy de la función de interpolación.
