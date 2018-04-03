@@ -8,10 +8,10 @@
     
     Ejemplo de uso:
     
-    IR_viewer.py  drcREW_test1.wav  drcREW_test1.pcm  44100 fmin-fmax pha
+    IR_viewer.py  drcREW_test1.wav  drcREW_test1.pcm  44100 [fmin-fmax] [-pha]
     
-    fmin-fmax (Hz) es opcional y permite visualizar un rango, útil para ver graves.
-    pha pinta la fase
+    fmin-fmax:  es opcional y permite visualizar un rango en Hz, útil para ver graves.
+    -pha:       opción que pinta la fase.
 
 """
 # v0.2
