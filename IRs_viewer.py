@@ -94,7 +94,7 @@ def prepara_eje_frecuencias(ax):
 def preparaGraficas():
     columnas = len(IRs)
     top_dBs = 5
-    range_dBs = 30
+    range_dBs = 60
     
     global fig, grid, axMag, axDrv, axPha, axGD, axIR
     #-------------------------------------------------------------------------------
