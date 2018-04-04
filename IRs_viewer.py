@@ -187,9 +187,9 @@ if __name__ == "__main__":
         wgd, gd = signal.group_delay((imp, 1), w=bins, whole=False)
         # Eliminamos (np.nan) los valores fuera de la banda de paso,
         # por ejemplo de magnitud por debajo de -80 dB
-        gdClean  = np.full((len(phase)), np.nan)
-        mask = (magdB > -80.0)
-        np.copyto(gdClean, gd, where=mask)
+        #gdClean  = np.full((len(phase)), np.nan)
+        #mask = (magdB > -80.0)
+        #np.copyto(gdClean, gd, where=mask)
         # GD es en radianes los convertimos a milisegundos
         gdms = gd / fs * 1000 - peakOffset * 1000
         
