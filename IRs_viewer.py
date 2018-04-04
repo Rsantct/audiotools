@@ -181,7 +181,7 @@ if __name__ == "__main__":
         # por ejemplo de magnitud por debajo de -80 dB
         phaseClean  = np.full((len(phase)), np.nan)
         mask = (magdB > -80.0)
-        np.copyto(phaseClean, phase, where=mask)
+        np.copyto(phase, phaseClean, where=mask)
 
         # Group Delay
         wgd, gd = signal.group_delay((imp, 1), w=bins, whole=False)
@@ -189,15 +189,15 @@ if __name__ == "__main__":
         # por ejemplo de magnitud por debajo de -80 dB
         gdClean  = np.full((len(gd)), np.nan)
         mask = (magdB > -80.0)
-        np.copyto(gdClean, gd, where=mask)
+        np.copyto(gd, gdClean, where=mask)
         # GD es en radianes los convertimos a milisegundos
-        gdms = gd / fs * 1000 - peakOffset * 1000
+        gdms = gdClean / fs * 1000 - peakOffset * 1000
         
         # PLOTEOS
         axMag.plot(freqs, magdB, label=info)
         color = axMag.lines[-1].get_color() # anotamos el color de la última línea  
         if plotPha:
-            axPha.plot(freqs, phase, "-", linewidth=1.0, color=color)
+            axPha.plot(freqs, phaseClean, "-", linewidth=1.0, color=color)
         axGD.plot(freqs, gdms, "--", linewidth=1.0, color=color)
     
         # plot del IR. Nota: separamos los impulsos en columnas
