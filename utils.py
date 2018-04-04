@@ -9,7 +9,7 @@ from ConfigParser import ConfigParser
 import numpy as np
 from scipy.io import wavfile
 
-def taps2Ktaps(x):
+def Ktaps(x):
     """ cutre conversor para mostrar la longitud de un FIR """
     if x >= 1024:
         return str(x / 1024) + " Ktaps"
