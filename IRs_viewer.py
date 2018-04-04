@@ -155,7 +155,6 @@ if __name__ == "__main__":
         fs, imp, info = IR
         fny = fs/2.0
         limp = imp.shape[0]
-        limpK = limp / 1024
         peakOffset = np.round(abs(imp).argmax() / fs, 3) # en segundos
 
         # 500 bins de frecs logspaciadas para que las resuelva freqz
@@ -191,7 +190,7 @@ if __name__ == "__main__":
     
         # plot del IR. Nota: separamos los impulsos en columnas
         axIR = fig.add_subplot(grid[5, columnaIR])
-        axIR.set_title(str(limpK) + " Ktaps - pk offset " + str(peakOffset) + " s")
+        axIR.set_title(utils.Ktaps(limp) + " - pk offset " + str(peakOffset) + " s")
         axIR.set_xticks(range(0,len(imp),10000))
         axIR.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
         axIR.plot(imp, "-", linewidth=1.0, color=color)
