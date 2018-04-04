@@ -177,11 +177,11 @@ if __name__ == "__main__":
 
         # Wrapped Phase
         phase = np.angle(h, deg=True)
-        # Eliminamos (np.nan) los valores de phase fuera de la banda de paso,
+        # Eliminamos (np.nan) los valores fuera de la banda de paso,
         # por ejemplo de magnitud por debajo de -80 dB
         phaseClean  = np.full((len(phase)), np.nan)
         mask = (magdB > -80.0)
-        np.copyto(phase, phaseClean, where=mask)
+        np.copyto(phaseClean, phase, where=mask)
 
         # Group Delay
         wgd, gd = signal.group_delay((imp, 1), w=bins, whole=False)
@@ -189,7 +189,7 @@ if __name__ == "__main__":
         # por ejemplo de magnitud por debajo de -80 dB
         gdClean  = np.full((len(gd)), np.nan)
         mask = (magdB > -80.0)
-        np.copyto(gd, gdClean, where=mask)
+        np.copyto(gdClean, gd, where=mask)
         # GD es en radianes los convertimos a milisegundos
         gdms = gdClean / fs * 1000 - peakOffset * 1000
         
