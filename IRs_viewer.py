@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
-    v0.2c
+    v0.2d
     visor de impulsos IR wav o raw (.pcm)
     
     Si se pasan impulsos raw (.pcm) se precisa pasar también la Fs
@@ -18,7 +18,12 @@
 # v0.2b 
 #   Opción del rango de frecuencias a visualizar
 # v0.2c
-#   Opcion -pha (oculta beta) para pintar la phase. ESTO NO ESTÁ CLARO DEBO INVESTIGARLO DEEPER
+#   Opcion -pha (oculta beta) para pintar la phase. ESTO NO ESTÁ CLARO PTE INVESTIGARLO DEEPER
+# v0.2d
+#   Dejamos de pintar phases o gd fuera de la banda de paso
+#   Se aumenta el rango hasta -60 dB
+# TO DO:
+#   RR: El GD hay que verlo también, debería recoger en la gráfica el delay del filtro
 
 import sys
 import numpy as np
@@ -94,7 +99,7 @@ def prepara_eje_frecuencias(ax):
 def preparaGraficas():
     columnas = len(IRs)
     top_dBs = 5
-    range_dBs = 30
+    range_dBs = 65
     
     global fig, grid, axMag, axDrv, axPha, axGD, axIR
     #-------------------------------------------------------------------------------
@@ -155,7 +160,6 @@ if __name__ == "__main__":
         fs, imp, info = IR
         fny = fs/2.0
         limp = imp.shape[0]
-        limpK = limp / 1024
         peakOffset = np.round(abs(imp).argmax() / fs, 3) # en segundos
 
         # 500 bins de frecs logspaciadas para que las resuelva freqz
@@ -176,22 +180,32 @@ if __name__ == "__main__":
 
         # Wrapped Phase
         phase = np.angle(h, deg=True)
+        # Eliminamos (np.nan) los valores fuera de la banda de paso,
+        # por ejemplo de magnitud por debajo de -80 dB
+        phaseClean  = np.full((len(phase)), np.nan)
+        mask = (magdB > -80.0)
+        np.copyto(phaseClean, phase, where=mask)
 
         # Group Delay
         wgd, gd = signal.group_delay((imp, 1), w=bins, whole=False)
+        # Eliminamos (np.nan) los valores fuera de la banda de paso,
+        # por ejemplo de magnitud por debajo de -80 dB
+        gdClean  = np.full((len(gd)), np.nan)
+        mask = (magdB > -80.0)
+        np.copyto(gdClean, gd, where=mask)
         # GD es en radianes los convertimos a milisegundos
-        gdms = gd / fs * 1000 - peakOffset * 1000
+        gdms = gdClean / fs * 1000 - peakOffset * 1000
         
         # PLOTEOS
         axMag.plot(freqs, magdB, label=info)
         color = axMag.lines[-1].get_color() # anotamos el color de la última línea  
         if plotPha:
-            axPha.plot(freqs, phase, "-", linewidth=1.0, color=color)
+            axPha.plot(freqs, phaseClean, "-", linewidth=1.0, color=color)
         axGD.plot(freqs, gdms, "--", linewidth=1.0, color=color)
     
         # plot del IR. Nota: separamos los impulsos en columnas
         axIR = fig.add_subplot(grid[5, columnaIR])
-        axIR.set_title(str(limpK) + " Ktaps - pk offset " + str(peakOffset) + " s")
+        axIR.set_title(utils.Ktaps(limp) + " - pk offset " + str(peakOffset) + " s")
         axIR.set_xticks(range(0,len(imp),10000))
         axIR.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
         axIR.plot(imp, "-", linewidth=1.0, color=color)
