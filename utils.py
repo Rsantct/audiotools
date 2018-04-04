@@ -13,7 +13,7 @@ def Ktaps(x):
     """ cutre conversor para mostrar la longitud de un FIR """
     if x >= 1024:
         return str(x / 1024) + " Ktaps"
-    else
+    else:
         return str(x) + " taps"
     
 def KHz(f):
