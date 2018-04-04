@@ -21,6 +21,7 @@
 #   Opcion -pha (oculta beta) para pintar la phase. ESTO NO ESTÁ CLARO PTE INVESTIGARLO DEEPER
 # v0.2d
 #   Dejamos de pintar phases o gd fuera de la banda de paso
+#   Se aumenta el rango hasta -60 dB
 # TO DO:
 #   RR: El GD hay que verlo también, debería recoger en la gráfica el delay del filtro
 
