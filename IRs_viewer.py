@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
-    v0.2c
+    v0.2d
     visor de impulsos IR wav o raw (.pcm)
     
     Si se pasan impulsos raw (.pcm) se precisa pasar también la Fs
@@ -19,6 +19,8 @@
 #   Opción del rango de frecuencias a visualizar
 # v0.2c
 #   Opcion -pha (oculta beta) para pintar la phase. ESTO NO ESTÁ CLARO DEBO INVESTIGARLO DEEPER
+# v0.2d
+#   Dejamos de pintar phases o gd fuera de la banda de paso
 
 import sys
 import numpy as np
@@ -175,9 +177,19 @@ if __name__ == "__main__":
 
         # Wrapped Phase
         phase = np.angle(h, deg=True)
+        # Eliminamos (np.nan) los valores de phase fuera de la banda de paso,
+        # por ejemplo de magnitud por debajo de -80 dB
+        phaseClean  = np.full((len(phase)), np.nan)
+        mask = (magdB > -80.0)
+        np.copyto(phaseClean, phase, where=mask)
 
         # Group Delay
         wgd, gd = signal.group_delay((imp, 1), w=bins, whole=False)
+        # Eliminamos (np.nan) los valores fuera de la banda de paso,
+        # por ejemplo de magnitud por debajo de -80 dB
+        gdClean  = np.full((len(phase)), np.nan)
+        mask = (magdB > -80.0)
+        np.copyto(gdClean, gd, where=mask)
         # GD es en radianes los convertimos a milisegundos
         gdms = gd / fs * 1000 - peakOffset * 1000
         
