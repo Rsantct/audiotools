@@ -101,9 +101,6 @@ def prepara_eje_frecuencias(ax):
 
 def preparaGraficas():
     columnas = len(IRs)
-    global top_dBs, range_dBs
-    top_dBs = 5
-    range_dBs = 65
     
     global fig, grid, axMag, axDrv, axPha, axGD, axIR
     #-------------------------------------------------------------------------------
@@ -146,6 +143,8 @@ def preparaGraficas():
  
 if __name__ == "__main__":
 
+    top_dBs   = 5  # inicial lugo se reajustará
+    range_dBs = 65
     fmin = 10
     fmax = 20000
     # umbral de magnitud en dB para dejar de pintar phases o gd
