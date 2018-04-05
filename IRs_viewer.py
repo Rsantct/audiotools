@@ -187,7 +187,7 @@ if __name__ == "__main__":
         # Wrapped Phase:
         phase = np.angle(h, deg=True)
         # Eliminamos (np.nan) los valores fuera de la banda de paso,
-        # por ejemplo de magnitud por debajo de -80 dB
+        # por ejemplo de magnitud por debajo de un umbral
         phaseClean  = np.full((len(phase)), np.nan)
         mask = (magdB > magThr)
         np.copyto(phaseClean, phase, where=mask)
@@ -195,7 +195,7 @@ if __name__ == "__main__":
         # Group Delay:
         wgd, gd = signal.group_delay((imp, 1), w=bins, whole=False)
         # Eliminamos (np.nan) los valores fuera de la banda de paso,
-        # por ejemplo de magnitud por debajo de cierto umbral
+        # por ejemplo de magnitud por debajo de un umbral
         gdClean  = np.full((len(gd)), np.nan)
         mask = (magdB < magThr)
         np.copyto(gd, gdClean, where=mask)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-    v0.4b
+    v0.4c
     
     Visor de archivos FIR xover y de archivos FRD (freq. response).
     Se muestra la magnitud y fase de los FIR.
@@ -59,6 +59,13 @@
 # v0.4b:
 #   El semiespectro se computa sobre frecuecias logespaciadas 
 #   para mejor resolución gráfica en graves.
+# v0.4c:
+#   Umbral para dejar de pintar la phase configurable, se entrega a -50dB 
+#   ya que parece más conveniente para FIRs cortos con rizado alto.
+#   PkOffset en ms
+#   RR: El GD debería recoger en la gráfica el delay del filtro.
+#       Ok, se muestra el GD real que incluye el retardo del impulso si es de linear phase
+
 
 import sys
 import os.path
@@ -78,8 +85,9 @@ def readConfig():
     config.read(cfgfile)
     global DFTresol
     global frec_ticks, fig_size
-    global top_dBs, range_dBs, fmin, fmax
+    global phaVsMagThr, top_dBs, range_dBs, fmin, fmax
 
+    phaVsMagThr     = config.getfloat   ("plot", "phaVsMagThr")
     top_dBs         = config.getfloat   ("plot", "top_dBs")
     range_dBs       = config.getfloat   ("plot", "range_dBs")
     fmin            = config.getfloat   ("plot", "fmin")
@@ -222,7 +230,7 @@ def prepararaGraficas():
     axGD = axPha.twinx()
     axGD.grid(False)
     prepara_eje_frecuencias(axGD)
-    axGD.set_ylim(-25, 75)
+    # axGD.set_ylim(-25, 75) # dejamos los límites del eje 'y' para cuando conozcamos el GD
     axGD.set_ylabel(u"--- filter GD (ms)")
 
 if __name__ == "__main__":
@@ -272,9 +280,9 @@ if __name__ == "__main__":
         #--- Extraemos la wrapped PHASE de la FR 'h'
         firPhase = np.angle(h, deg=True)
         # Eliminamos (np.nan) los valores de phase fuera de la banda de paso,
-        # por ejemplo de magnitud por debajo de -80 dB
+        # por ejemplo de magnitud por debajo de un umbral configurable
         firPhaseClean  = np.full((len(firPhase)), np.nan)
-        mask = (firMagdB > -80.0)
+        mask = (firMagdB > phaVsMagThr)
         np.copyto(firPhaseClean, firPhase, where=mask)
 
         #--- Obtenemos el GD 'gd' en N bins:
@@ -284,12 +292,21 @@ if __name__ == "__main__":
         # Limpiamos con la misma mask de valores fuera de la banda de paso usada arriba
         firGDmsClean  = np.full((len(firGDms)), np.nan)
         np.copyto(firGDmsClean, firGDms, where=mask)
+        # Computamos el GD promedio (en ms) para mostrarlo en la gráfica
+        #   1. Vemos un primer promedio
+        gdmsAvg = np.round(np.nanmean(firGDmsClean), 1)
+        #   2. limpiamos las desviaciones > 5 ms respecto del promedio (wod: without deviations)
+        gdmswod = np.full((len(firGDmsClean)), np.nan)
+        mask = (firGDmsClean < (gdmsAvg + 5.0) )
+        np.copyto(gdmswod, firGDmsClean, where=mask)
+        #   2. Promedio recalculado sobre los valores without deviations
+        gdmsAvg = np.round(np.nanmean(firGDmsClean), 1)
 
         #--- Info del headroom dBFs en la convolución de este filtro pcm
         ihroom = hroomInfo(magdB = firMagdB, via=via)
 
         curva = {'via':via, 'IR':IR, 'mag':firMagdB, 'pha':firPhaseClean,
-                           'gd':firGDmsClean, 'hroomInfo':ihroom}
+                           'gd':firGDmsClean, 'gdAvg':gdmsAvg, 'hroomInfo':ihroom}
 
         #--- Curvas de los .FRD de los altavoces (si existieran)
         frdname = frd_of_pcm(pcmname)
@@ -339,17 +356,19 @@ if __name__ == "__main__":
     #----------------------------------------------------------------
     # PLOTEOS
     #----------------------------------------------------------------
+    GDavgs    = [] # los promedios de GD de cada impulso, para mostrarlos por separado
     columnaIR = 0
-
     for curva in vias:
 
         imp         = curva['IR']
         magdB       = curva['mag']
         phase       = curva['pha']
         gd          = curva['gd']
+        gdAvg       = curva['gdAvg']
         info        = curva['hroomInfo']
 
-        peakOffset = np.round(abs(imp).argmax() / fs, 3) # en segundos
+        limp = imp.shape[0]
+        peakOffsetms = np.round(abs(imp).argmax() / fs * 1000, 1) # en ms
 
         #--- MAG
         axMag.plot(freqs, magdB, "-", linewidth=1.0, label=info)
@@ -358,12 +377,16 @@ if __name__ == "__main__":
         #--- PHA
         axPha.plot(freqs, phase, "-", linewidth=1.0, color=color)
 
-        #--- GD. Nota: quitamos el delay del pico desplazado
-        axGD.plot(freqs, gd - peakOffset*1e3, "--", linewidth=1.0, color=color)
+        #--- GD con autoajuste del top
+        ymin = peakOffsetms - 25
+        ymax = peakOffsetms + 75
+        axGD.set_ylim(bottom = ymin, top = ymax)
+        axGD.plot(freqs, gd, "--", linewidth=1.0, color=color)
+        GDavgs.append(gdAvg)
 
         #--- IR. Nota: separamos los impulsos en columnas
         axIR = fig.add_subplot(grid[5, columnaIR])
-        axIR.set_title("\npk offset " + str(peakOffset) + " s")
+        axIR.set_title(str(limp) + " taps - pk offset " + str(peakOffsetms) + " ms")
         axIR.set_xticks(range(0,len(imp),10000))
         axIR.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
         axIR.plot(imp, "-", linewidth=1.0, color=color)
@@ -383,6 +406,10 @@ if __name__ == "__main__":
     # Finalmente mostramos las gráficas por pantalla.
     # La leyenda mostrará las label indicadas en el ploteo de cada curva en 'axMag'
     axMag.legend(loc='lower left', prop={'size':'small', 'family':'monospace'})
+    # Y los GDs de cada impulso
+    GDtitle = 'GD avg: ' + ', '.join([str(x) for x in GDavgs]) + ' ms'
+    axGD.set_title(GDtitle)
+
     plt.show()
 
     #----------------------------------------------------------------
