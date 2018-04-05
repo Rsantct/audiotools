@@ -16,6 +16,7 @@ import utils
 if __name__ == "__main__":
 
     m = 16384 # por defecto
+    mK = int(np.log2(m))
 
     if len(sys.argv) == 1:
         print __doc__
