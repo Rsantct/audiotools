@@ -22,10 +22,9 @@
 # v0.2d
 #   Dejamos de pintar phases o gd fuera de la banda de paso, 
 #   con nuevo umbral a -50dB parece más conveniente para FIRs cortos con rizado alto.
-#   Se aumenta el rango hasta -60 dB
-#   TO DO:
-#       mostrar el pkOffset en ms
-#       RR: El GD hay que verlo también, debería recoger en la gráfica el delay del filtro
+#   Se aumenta el rango de magnitudes hasta -60 dB
+#   Muestra el pkOffset en ms
+#   RR: El GD debería recoger en la gráfica el delay del filtro.
 
 import sys
 import numpy as np
@@ -130,7 +129,7 @@ def preparaGraficas():
     axGD = fig.add_subplot(grid[3:5, :])
     axGD.grid(False)
     prepara_eje_frecuencias(axGD)
-    #axGD.set_ylim(-25, 75)
+    #axGD.set_ylim(-25, 75) # dejamos los límites del eje y para cuando conozcamos el GD
     axGD.set_ylabel(u"--- filter GD (ms)")
     
     # --- SUBPLOT para pintar las PHASEs (común con el de GD)
@@ -198,6 +197,9 @@ if __name__ == "__main__":
         np.copyto(gdClean, gd, where=mask)
         # GD es en radianes los convertimos a milisegundos
         gdms = gdClean / fs * 1000 # dejamos de compensar el peakOffsetms
+        # Observamos si el GD promedio no es cero, para avisar en la gráfica
+        gdmsAvg = np.nanmean(gdms)
+        print "gdmsAvg", gdmsAvg
         
         # PLOTEOS
         axMag.plot(freqs, magdB, label=info)
@@ -206,10 +208,10 @@ if __name__ == "__main__":
         if plotPha:
             axPha.plot(freqs, phaseClean, "-", linewidth=1.0, color=color)
 
-        # GD autoscale
-        ymin = peakOffsetms / 1000.0 - 25
+        # GD(ms) autoscale
+        ymin = peakOffsetms - 25
         ymax = peakOffsetms / 1000.0 + 75
-        axGD.set_ylim(ymin, ymax)
+        axGD.set_ylim(bottom = ymin, top = ymax)
         axGD.plot(freqs, gdms, "--", linewidth=1.0, color=color)
     
         # plot del IR. Nota: separamos los impulsos en columnas
