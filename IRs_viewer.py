@@ -206,9 +206,9 @@ if __name__ == "__main__":
         gdmsAvg = np.round(np.nanmean(gdms), 1)
         #   2. limpiamos las desviaciones > 5 ms respecto del promedio (wod: without deviations)
         gdmswod = np.full((len(gdms)), np.nan)
-        mask = (gdms < (gdmsAvg + 5.0) )
+        mask = (gdms < (gdmsAvg + 5.0) ) # nota: python mostrará aquí un Warning porque ahora evalúa valores np.nan
         np.copyto(gdmswod, gdms, where=mask)
-        #   2. Promedio recalculado sobre los valores without deviations
+        #   3. Promedio recalculado sobre los valores without deviations
         gdmsAvg = np.round(np.nanmean(gdms), 1)
         GDavgs.append(gdmsAvg)
         
