@@ -358,8 +358,8 @@ if __name__ == "__main__":
         #--- PHA
         axPha.plot(freqs, phase, "-", linewidth=1.0, color=color)
 
-        #--- GD. Nota: quitamos el delay del pico desplazado
-        axGD.plot(freqs, gd - peakOffset*1e3, "--", linewidth=1.0, color=color)
+        #--- GD
+        axGD.plot(freqs, gd, "--", linewidth=1.0, color=color)
 
         #--- IR. Nota: separamos los impulsos en columnas
         axIR = fig.add_subplot(grid[5, columnaIR])
