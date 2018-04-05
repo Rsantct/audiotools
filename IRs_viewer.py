@@ -25,6 +25,7 @@
 #   Se aumenta el rango de magnitudes hasta -60 dB
 #   Muestra el pkOffset en ms
 #   RR: El GD debería recoger en la gráfica el delay del filtro.
+#       Ok, se muestra el GD real que incluye el retardo del impulso si es de linear phase
 
 import sys
 import numpy as np
@@ -141,12 +142,12 @@ def preparaGraficas():
         axPha.set_yticks(range(-135, 180, 45))
         axPha.set_ylabel(u"filter phase")
  
-    
 if __name__ == "__main__":
 
     fmin = 10
     fmax = 20000
-    magThr = -50.0 # umbral de magnitud en dB para dejar de pintar phases
+    # umbral de magnitud en dB para dejar de pintar phases o gd
+    magThr = -50.0 
 
     if len(sys.argv) == 1:
         print __doc__
@@ -193,11 +194,18 @@ if __name__ == "__main__":
         # Eliminamos (np.nan) los valores fuera de la banda de paso,
         # por ejemplo de magnitud por debajo de cierto umbral
         gdClean  = np.full((len(gd)), np.nan)
-        mask = (magdB > magThr)
-        np.copyto(gdClean, gd, where=mask)
+        mask = (magdB < magThr)
+        np.copyto(gd, gdClean, where=mask)
         # GD es en radianes los convertimos a milisegundos
-        gdms = gdClean / fs * 1000 # dejamos de compensar el peakOffsetms
+        gdms = gd / fs * 1000
         # Computamos el GD promedio (en ms) para mostrarlo en la gráfica
+        #   1. Vemos un primer promedio
+        gdmsAvg = np.round(np.nanmean(gdms), 1)
+        #   2. limpiamos las desviaciones respecto del promedio (wod: without deviations)
+        gdmswod = np.full((len(gdms)), np.nan)
+        mask = (gdms < gdmsAvg + 5 )
+        np.copyto(gdmswod, gdms, where=mask)
+        #   2. Promedio recalculado sobre los valores without deviations
         gdmsAvg = np.round(np.nanmean(gdms), 1)
         
         # PLOTEOS
