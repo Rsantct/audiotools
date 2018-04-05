@@ -39,16 +39,15 @@ if __name__ == "__main__":
     # Leemos el impulso de entrada imp1
     imp1 = utils.readPCM32(fin)
     
-    # Espectro completo
+    # Espectro completo en dominio de f
     h = np.fft.fft(imp1)
-    # Réplica del espectro completo en fase mínima
-    hmp = dsd.minphsp(h)
 
-    # Convertimos el espectro completo mp en un IR, se toma la parte real.
-    imp2 = np.fft.ifft( hmp )
+    # Volvemos al dominio de t: convertimos el espectro completo en un IR,
+    # y se toma la parte real.
+    imp2 = np.fft.ifft(h)
     imp2 = np.real(imp2)
 
-    # Lo cortamos a la longitud deseada y aplicamos una ventana:
+    # Lo cortamos a la longitud deseada aplicando una ventana:
     imp2 = dsd.semiblackman(m) * imp2[:m]
 
     # Y lo guardamos en formato pcm float 32
