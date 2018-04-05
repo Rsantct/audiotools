@@ -197,8 +197,8 @@ if __name__ == "__main__":
         np.copyto(gdClean, gd, where=mask)
         # GD es en radianes los convertimos a milisegundos
         gdms = gdClean / fs * 1000 # dejamos de compensar el peakOffsetms
-        # Computamos el GD promedio para mostrarlo en la gráfica
-        gdmsAvg = np.nanmean(gdms)
+        # Computamos el GD promedio (en ms) para mostrarlo en la gráfica
+        gdmsAvg = np.round(np.nanmean(gdms), 1)
         
         # PLOTEOS
         axMag.plot(freqs, magdB, label=info)
