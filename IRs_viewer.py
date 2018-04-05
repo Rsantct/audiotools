@@ -101,8 +101,6 @@ def prepara_eje_frecuencias(ax):
 
 def preparaGraficas():
     columnas = len(IRs)
-    top_dBs = 5
-    range_dBs = 65
     
     global fig, grid, axMag, axDrv, axPha, axGD, axIR
     #-------------------------------------------------------------------------------
@@ -145,6 +143,8 @@ def preparaGraficas():
  
 if __name__ == "__main__":
 
+    top_dBs   = 5  # inicial lugo se reajustará
+    range_dBs = 65
     fmin = 10
     fmax = 20000
     # umbral de magnitud en dB para dejar de pintar phases o gd
@@ -179,10 +179,10 @@ if __name__ == "__main__":
         # frecuencias trasladadas a Fs
         freqs = w / np.pi * fny
         
-        # Magnitud
+        # Magnitud:
         magdB = 20 * np.log10(abs(h))
 
-        # Wrapped Phase
+        # Wrapped Phase:
         phase = np.angle(h, deg=True)
         # Eliminamos (np.nan) los valores fuera de la banda de paso,
         # por ejemplo de magnitud por debajo de -80 dB
@@ -190,7 +190,7 @@ if __name__ == "__main__":
         mask = (magdB > magThr)
         np.copyto(phaseClean, phase, where=mask)
 
-        # Group Delay
+        # Group Delay:
         wgd, gd = signal.group_delay((imp, 1), w=bins, whole=False)
         # Eliminamos (np.nan) los valores fuera de la banda de paso,
         # por ejemplo de magnitud por debajo de cierto umbral
@@ -202,18 +202,18 @@ if __name__ == "__main__":
         # Computamos el GD promedio (en ms) para mostrarlo en la gráfica
         #   1. Vemos un primer promedio
         gdmsAvg = np.round(np.nanmean(gdms), 1)
-        #   2. limpiamos las desviaciones respecto del promedio (wod: without deviations)
+        #   2. limpiamos las desviaciones > 5 ms respecto del promedio (wod: without deviations)
         gdmswod = np.full((len(gdms)), np.nan)
-        mask = (gdms < gdmsAvg + 5 )
+        mask = (gdms < (gdmsAvg + 5.0) )
         np.copyto(gdmswod, gdms, where=mask)
         #   2. Promedio recalculado sobre los valores without deviations
         gdmsAvg = np.round(np.nanmean(gdms), 1)
         
-        # PLOTEOS
+        # --- PLOTEOS ---
 
         # ploteo de la Magnitud con autoajuste del top
-        tmp = np.max(axMag)
-        top_dBs = int(tmp + 5 - tmp % 5.0)
+        tmp = np.max(magdB)
+        top_dBs = int(tmp + 5.0 - (tmp % 5.0))
         axMag.set_ylim(bottom = top_dBs - range_dBs, top = top_dBs)
         axMag.plot(freqs, magdB, label=info)
         color = axMag.lines[-1].get_color() # anotamos el color de la última línea  
