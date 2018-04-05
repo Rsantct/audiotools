@@ -213,7 +213,7 @@ if __name__ == "__main__":
         # --- PLOTEOS ---
 
         # ploteo de la Magnitud con autoajuste del top
-        tmp = np.max(axMag)
+        tmp = np.max(magdB)
         top_dBs = tmp + 5.0 - tmp % 5.0
         axMag.set_ylim(bottom = top_dBs - range_dBs, top = top_dBs)
         axMag.plot(freqs, magdB, label=info)
