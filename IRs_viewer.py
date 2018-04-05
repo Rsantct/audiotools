@@ -160,7 +160,7 @@ if __name__ == "__main__":
         fs, imp, info = IR
         fny = fs/2.0
         limp = imp.shape[0]
-        peakOffsetms = np.round(abs(imp).argmax() / fs * 1000, 3) # en ms
+        peakOffsetms = np.round(abs(imp).argmax() / fs * 1000, 1) # en ms
 
         # 500 bins de frecs logspaciadas para que las resuelva freqz
         w1 = 1 / fny * (2 * np.pi)
