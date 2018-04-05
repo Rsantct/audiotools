@@ -15,19 +15,28 @@ import utils
 
 if __name__ == "__main__":
 
+    m = 16384 # por defecto
+
     if len(sys.argv) == 1:
         print __doc__
         sys.exit()
 
-    # taps de salida deseados (PDTE PASAR COMO ARGUMENTO)
-    m = 2 ** 15 
+    for opc in sys.argv[1:]:
 
-    # Archivos de entrada y de salida
-    fin  = sys.argv[1]
-    fout = fin.replace(".wav", ".pcm")
+        if "-t" in opc
+            m = int(opc.replace('-t', ''))
+            mK = int(np.log2(m))
+            if mK - int(mK) <> 0:
+                print __doc__
+            sys.exit()
+            
+        else
+            fin = opc
+
+    fout = str(mK) + "K_" + fin
 
     # Leemos el impulso de entrada imp1
-    fs, imp1 = utils.readWAV16(fin)
+    fs, imp1 = utils.readPCM32(fin)
     
     # Espectro completo
     h = np.fft.fft(imp1)
