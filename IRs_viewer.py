@@ -160,7 +160,7 @@ if __name__ == "__main__":
         fs, imp, info = IR
         fny = fs/2.0
         limp = imp.shape[0]
-        peakOffset = np.round(abs(imp).argmax() / fs, 3) # en segundos
+        peakOffsetms = np.round(abs(imp).argmax() / fs * 1000, 3) # en ms
 
         # 500 bins de frecs logspaciadas para que las resuelva freqz
         w1 = 1 / fny * (2 * np.pi)
@@ -194,7 +194,7 @@ if __name__ == "__main__":
         mask = (magdB > -80.0)
         np.copyto(gdClean, gd, where=mask)
         # GD es en radianes los convertimos a milisegundos
-        gdms = gdClean / fs * 1000 - peakOffset * 1000
+        gdms = gdClean / fs * 1000 - peakOffsetms
         
         # PLOTEOS
         axMag.plot(freqs, magdB, label=info)
@@ -205,7 +205,7 @@ if __name__ == "__main__":
     
         # plot del IR. Nota: separamos los impulsos en columnas
         axIR = fig.add_subplot(grid[5, columnaIR])
-        axIR.set_title(utils.Ktaps(limp) + " - pk offset " + str(peakOffset) + " s")
+        axIR.set_title(utils.Ktaps(limp) + " - pk offset " + str(peakOffsetms) + " ms")
         axIR.set_xticks(range(0,len(imp),10000))
         axIR.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
         axIR.plot(imp, "-", linewidth=1.0, color=color)
