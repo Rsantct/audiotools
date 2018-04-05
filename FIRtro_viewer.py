@@ -306,7 +306,7 @@ if __name__ == "__main__":
         ihroom = hroomInfo(magdB = firMagdB, via=via)
 
         curva = {'via':via, 'IR':IR, 'mag':firMagdB, 'pha':firPhaseClean,
-                           'gd':firGDmsClean, 'gdAvg':gdmsAvg 'hroomInfo':ihroom}
+                           'gd':firGDmsClean, 'gdAvg':gdmsAvg, 'hroomInfo':ihroom}
 
         #--- Curvas de los .FRD de los altavoces (si existieran)
         frdname = frd_of_pcm(pcmname)
