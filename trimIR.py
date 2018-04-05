@@ -3,7 +3,7 @@
 """
     v0.1beta
     
-    Recorta un FIR mediante una reconstrucción completa 
+    Recorta un IR mediante una reconstrucción completa 
          time domain > spectrum > time domain
     
 """
@@ -30,6 +30,9 @@ if __name__ == "__main__":
             if mK - int(mK) <> 0:
                 print __doc__
             sys.exit()
+            
+        elif "-fs" in opc:
+            fs = int(opc.replace('-fs', ''))
             
         else:
             fin = opc
