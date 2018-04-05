@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-    v0.4b
+    v0.4c
     
     Visor de archivos FIR xover y de archivos FRD (freq. response).
     Se muestra la magnitud y fase de los FIR.
@@ -59,6 +59,13 @@
 # v0.4b:
 #   El semiespectro se computa sobre frecuecias logespaciadas 
 #   para mejor resolución gráfica en graves.
+# v0.4c:
+#   Umbral para dejar de pintar la phase configurable, se entrega a -50dB 
+#   ya que parece más conveniente para FIRs cortos con rizado alto.
+#   PkOffset en ms
+#   RR: El GD debería recoger en la gráfica el delay del filtro.
+#       Ok, se muestra el GD real que incluye el retardo del impulso si es de linear phase
+
 
 import sys
 import os.path
@@ -78,8 +85,9 @@ def readConfig():
     config.read(cfgfile)
     global DFTresol
     global frec_ticks, fig_size
-    global top_dBs, range_dBs, fmin, fmax
+    global phaVsMagThr, top_dBs, range_dBs, fmin, fmax
 
+    phaVsMagThr     = config.getfloat   ("plot", "phaVsMagThr")
     top_dBs         = config.getfloat   ("plot", "top_dBs")
     range_dBs       = config.getfloat   ("plot", "range_dBs")
     fmin            = config.getfloat   ("plot", "fmin")
@@ -272,9 +280,9 @@ if __name__ == "__main__":
         #--- Extraemos la wrapped PHASE de la FR 'h'
         firPhase = np.angle(h, deg=True)
         # Eliminamos (np.nan) los valores de phase fuera de la banda de paso,
-        # por ejemplo de magnitud por debajo de -80 dB
+        # por ejemplo de magnitud por debajo de un umbral configurable
         firPhaseClean  = np.full((len(firPhase)), np.nan)
-        mask = (firMagdB > -80.0)
+        mask = (firMagdB > phaVsMagThr)
         np.copyto(firPhaseClean, firPhase, where=mask)
 
         #--- Obtenemos el GD 'gd' en N bins:
@@ -349,7 +357,8 @@ if __name__ == "__main__":
         gd          = curva['gd']
         info        = curva['hroomInfo']
 
-        peakOffset = np.round(abs(imp).argmax() / fs, 3) # en segundos
+        limp = imp.shape[0]
+        peakOffsetms = np.round(abs(imp).argmax() / fs * 1000, 1) # en ms
 
         #--- MAG
         axMag.plot(freqs, magdB, "-", linewidth=1.0, label=info)
@@ -363,7 +372,7 @@ if __name__ == "__main__":
 
         #--- IR. Nota: separamos los impulsos en columnas
         axIR = fig.add_subplot(grid[5, columnaIR])
-        axIR.set_title("\npk offset " + str(peakOffset) + " s")
+        axIR.set_title(str(limp) + " taps - pk offset " + str(peakOffsetms) + " ms")
         axIR.set_xticks(range(0,len(imp),10000))
         axIR.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
         axIR.plot(imp, "-", linewidth=1.0, color=color)
