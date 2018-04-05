@@ -3,9 +3,8 @@
 """
     v0.01beta
     
-    Recorta un IR mediante una reconstrucción completa 
-         time domain > spectrum > time domain
-    
+    Recorta un IR aplicando una ventana
+
     Uso:
         python trimIR.py IRfile.pcm -tX
         X: taps de salida (sin espacios)
@@ -29,8 +28,7 @@ if __name__ == "__main__":
 
         if "-t" in opc:
             m = int(opc.replace('-t', ''))
-            mExp = int(np.log2(m))
-            if mExp - int(mExp) <> 0:
+            if not utils.isPowerOf2(m):
                 print __doc__
                 sys.exit()
 
@@ -46,14 +44,6 @@ if __name__ == "__main__":
     # Leemos el impulso de entrada imp1
     imp1 = utils.readPCM32(fin)
     
-    ## Espectro completo en dominio de f
-    #h = np.fft.fft(imp1)
-    #
-    ## Volvemos al dominio de t: convertimos el espectro completo en un IR,
-    ## y se toma la parte real.
-    #imp2 = np.fft.ifft(h)
-    #imp2 = np.real(imp2)
-
     # Lo cortamos a la longitud deseada aplicando una ventana:
     imp2 = dsd.semiblackman(m) * imp1[:m]
 
