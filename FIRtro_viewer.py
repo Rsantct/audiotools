@@ -230,7 +230,7 @@ def prepararaGraficas():
     axGD = axPha.twinx()
     axGD.grid(False)
     prepara_eje_frecuencias(axGD)
-    axGD.set_ylim(-25, 75)
+    # axGD.set_ylim(-25, 75) # dejamos los límites del eje 'y' para cuando conozcamos el GD
     axGD.set_ylabel(u"--- filter GD (ms)")
 
 if __name__ == "__main__":
@@ -377,7 +377,10 @@ if __name__ == "__main__":
         #--- PHA
         axPha.plot(freqs, phase, "-", linewidth=1.0, color=color)
 
-        #--- GD
+        #--- GD con autoajuste del top
+        ymin = peakOffsetms - 25
+        ymax = peakOffsetms + 75
+        axGD.set_ylim(bottom = ymin, top = ymax)
         axGD.plot(freqs, gd, "--", linewidth=1.0, color=color)
         GDavgs.append(gdAvg)
 
