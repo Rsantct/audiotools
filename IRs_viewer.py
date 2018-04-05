@@ -197,13 +197,17 @@ if __name__ == "__main__":
         mask = (magdB > magThr)
         np.copyto(gdClean, gd, where=mask)
         # GD es en radianes los convertimos a milisegundos
-        gdms = gdClean / fs * 1000 #- peakOffsetms
+        gdms = gdClean / fs * 1000 # dejamos de compensar el peakOffsetms
         
         # PLOTEOS
         axMag.plot(freqs, magdB, label=info)
         color = axMag.lines[-1].get_color() # anotamos el color de la última línea  
+
         if plotPha:
             axPha.plot(freqs, phaseClean, "-", linewidth=1.0, color=color)
+
+        # GD autoscale
+        axGD.set_ylim((peakOffsetms*1e3)-25, (peakOffsetms*1e3)+75)
         axGD.plot(freqs, gdms, "--", linewidth=1.0, color=color)
     
         # plot del IR. Nota: separamos los impulsos en columnas
