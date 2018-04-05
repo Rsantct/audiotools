@@ -27,6 +27,7 @@
 #   RR: El GD debería recoger en la gráfica el delay del filtro.
 #       Ok, se muestra el GD real que incluye el retardo del impulso si es de linear phase
 #   Autoescala magnitudes.
+#   Se dejan de mostrar los taps en Ktaps
 
 import sys
 import numpy as np, math
@@ -230,7 +231,7 @@ if __name__ == "__main__":
     
         # plot del IR. Nota: separamos los impulsos en columnas
         axIR = fig.add_subplot(grid[5, columnaIR])
-        axIR.set_title(utils.Ktaps(limp) + " - pk offset " + str(peakOffsetms) + " ms")
+        axIR.set_title(str(limp) + " taps - pk offset " + str(peakOffsetms) + " ms")
         axIR.set_xticks(range(0,len(imp),10000))
         axIR.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
         axIR.plot(imp, "-", linewidth=1.0, color=color)
