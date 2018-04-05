@@ -197,9 +197,8 @@ if __name__ == "__main__":
         np.copyto(gdClean, gd, where=mask)
         # GD es en radianes los convertimos a milisegundos
         gdms = gdClean / fs * 1000 # dejamos de compensar el peakOffsetms
-        # Observamos si el GD promedio no es cero, para avisar en la gráfica
+        # Computamos el GD promedio para mostrarlo en la gráfica
         gdmsAvg = np.nanmean(gdms)
-        print "gdmsAvg", gdmsAvg
         
         # PLOTEOS
         axMag.plot(freqs, magdB, label=info)
@@ -210,8 +209,9 @@ if __name__ == "__main__":
 
         # GD(ms) autoscale
         ymin = peakOffsetms - 25
-        ymax = peakOffsetms / 1000.0 + 75
+        ymax = peakOffsetms + 75
         axGD.set_ylim(bottom = ymin, top = ymax)
+        axGD.set_title("GD average: " + str(gdmsAvg) + " ms")
         axGD.plot(freqs, gdms, "--", linewidth=1.0, color=color)
     
         # plot del IR. Nota: separamos los impulsos en columnas
