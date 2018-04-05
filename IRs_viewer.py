@@ -26,6 +26,7 @@
 #   Muestra el pkOffset en ms
 #   RR: El GD debería recoger en la gráfica el delay del filtro.
 #       Ok, se muestra el GD real que incluye el retardo del impulso si es de linear phase
+#   Autoescala magnitudes.
 
 import sys
 import numpy as np
@@ -121,7 +122,7 @@ def preparaGraficas():
     axMag = fig.add_subplot(grid[0:3, :])
     axMag.grid(linestyle=":")
     prepara_eje_frecuencias(axMag)
-    axMag.set_ylim([top_dBs - range_dBs, top_dBs])
+    # axMag.set_ylim([top_dBs - range_dBs, top_dBs]) # dejamos esto para cuando conozcamos la mag
     axMag.set_ylabel("filter magnitude dB")
     
     # --- SUBPLOT para pintar el GD (alto 2 filas, ancho todas las columnas)
@@ -209,13 +210,18 @@ if __name__ == "__main__":
         gdmsAvg = np.round(np.nanmean(gdms), 1)
         
         # PLOTEOS
+
+        # ploteo de la Magnitud con autoajuste del top
+        tmp = np.max(axMag)
+        top_dBs = int(tmp + 5 - tmp % 5.0)
+        axMag.set_ylim(bottom = top_dBs - range_dBs, top = top_dBs)
         axMag.plot(freqs, magdB, label=info)
         color = axMag.lines[-1].get_color() # anotamos el color de la última línea  
 
         if plotPha:
             axPha.plot(freqs, phaseClean, "-", linewidth=1.0, color=color)
 
-        # GD(ms) autoscale
+        # ploteo del GD con autoajuste del top
         ymin = peakOffsetms - 25
         ymax = peakOffsetms + 75
         axGD.set_ylim(bottom = ymin, top = ymax)
