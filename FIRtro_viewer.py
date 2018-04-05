@@ -364,7 +364,7 @@ if __name__ == "__main__":
         magdB       = curva['mag']
         phase       = curva['pha']
         gd          = curva['gd']
-        gdAvg       = curva['gdmsAvg']
+        gdAvg       = curva['gdAvg']
         info        = curva['hroomInfo']
 
         limp = imp.shape[0]
