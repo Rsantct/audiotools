@@ -30,17 +30,14 @@ if __name__ == "__main__":
             if mK - int(mK) <> 0:
                 print __doc__
             sys.exit()
-            
-        elif "-fs" in opc:
-            fs = int(opc.replace('-fs', ''))
-            
+
         else:
             fin = opc
 
     fout = str(mK) + "K_" + fin
 
     # Leemos el impulso de entrada imp1
-    fs, imp1 = utils.readPCM32(fin)
+    imp1 = utils.readPCM32(fin)
     
     # Espectro completo
     h = np.fft.fft(imp1)
