@@ -214,7 +214,7 @@ if __name__ == "__main__":
 
         # ploteo de la Magnitud con autoajuste del top
         tmp = np.max(axMag)
-        top_dBs = int(tmp + 5 - tmp % 5.0)
+        top_dBs = tmp + 5.0 - tmp % 5.0
         axMag.set_ylim(bottom = top_dBs - range_dBs, top = top_dBs)
         axMag.plot(freqs, magdB, label=info)
         color = axMag.lines[-1].get_color() # anotamos el color de la última línea  
