@@ -130,7 +130,7 @@ def preparaGraficas():
     axGD = fig.add_subplot(grid[3:5, :])
     axGD.grid(False)
     prepara_eje_frecuencias(axGD)
-    axGD.set_ylim(-25, 75)
+    #axGD.set_ylim(-25, 75)
     axGD.set_ylabel(u"--- filter GD (ms)")
     
     # --- SUBPLOT para pintar las PHASEs (común con el de GD)
@@ -207,7 +207,9 @@ if __name__ == "__main__":
             axPha.plot(freqs, phaseClean, "-", linewidth=1.0, color=color)
 
         # GD autoscale
-        axGD.set_ylim( (peakOffsetms/1e3)-25, (peakOffsetms/1e3)+75 )
+        ymin = peakOffsetms / 1000.0 - 25
+        ymax = peakOffsetms / 1000.0 + 75
+        axGD.set_ylim( (ymin, ymax)
         axGD.plot(freqs, gdms, "--", linewidth=1.0, color=color)
     
         # plot del IR. Nota: separamos los impulsos en columnas
