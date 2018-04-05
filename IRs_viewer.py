@@ -209,7 +209,7 @@ if __name__ == "__main__":
         # GD autoscale
         ymin = peakOffsetms / 1000.0 - 25
         ymax = peakOffsetms / 1000.0 + 75
-        axGD.set_ylim( (ymin, ymax)
+        axGD.set_ylim(ymin, ymax)
         axGD.plot(freqs, gdms, "--", linewidth=1.0, color=color)
     
         # plot del IR. Nota: separamos los impulsos en columnas
