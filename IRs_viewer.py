@@ -209,7 +209,7 @@ if __name__ == "__main__":
         #   2. Promedio recalculado sobre los valores without deviations
         gdmsAvg = np.round(np.nanmean(gdms), 1)
         
-        # --- PLOTEOS ---
+        # ---- PLOTEOS ----
 
         # ploteo de la Magnitud con autoajuste del top
         tmp = np.max(magdB)
