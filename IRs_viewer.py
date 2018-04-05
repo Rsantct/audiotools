@@ -207,7 +207,7 @@ if __name__ == "__main__":
             axPha.plot(freqs, phaseClean, "-", linewidth=1.0, color=color)
 
         # GD autoscale
-        axGD.set_ylim((peakOffsetms*1e3)-25, (peakOffsetms*1e3)+75)
+        axGD.set_ylim( (peakOffsetms/1e3)-25, (peakOffsetms/1e3)+75 )
         axGD.plot(freqs, gdms, "--", linewidth=1.0, color=color)
     
         # plot del IR. Nota: separamos los impulsos en columnas
