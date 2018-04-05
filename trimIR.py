@@ -6,8 +6,8 @@
     Recorta un IR aplicando una ventana
 
     Uso:
-        python trimIR.py IRfile.pcm -tX
-        X: taps de salida (sin espacios)
+        python trimIR.py IRfile.pcm -tN
+        N: taps de salida potencia de 2 (sin espacios)
     
 """
 
