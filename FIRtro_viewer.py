@@ -405,7 +405,7 @@ if __name__ == "__main__":
 
     # Finalmente mostramos las gráficas por pantalla.
     # La leyenda mostrará las label indicadas en el ploteo de cada curva en 'axMag'
-    axMag.legend(loc='lower left', prop={'size':'small', 'family':'monospace'})
+    axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
     # Y los GDs de cada impulso
     GDtitle = 'GD avg: ' + ', '.join([str(x) for x in GDavgs]) + ' ms'
     axGD.set_title(GDtitle)
