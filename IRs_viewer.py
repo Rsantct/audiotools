@@ -240,7 +240,7 @@ if __name__ == "__main__":
         axIR.plot(imp, "-", linewidth=1.0, color=color)
         columnaIR += 1
 
-    GDtitle = 'GD avg: ' + ', '.join([str(x) for x in GDavgs) + ' ms'
+    GDtitle = 'GD avg: ' + ', '.join([str(x) for x in GDavgs]) + ' ms'
     axGD.set_title(GDtitle)
     
     axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
