@@ -179,10 +179,10 @@ if __name__ == "__main__":
         # frecuencias trasladadas a Fs
         freqs = w / np.pi * fny
         
-        # Magnitud
+        # Magnitud:
         magdB = 20 * np.log10(abs(h))
 
-        # Wrapped Phase
+        # Wrapped Phase:
         phase = np.angle(h, deg=True)
         # Eliminamos (np.nan) los valores fuera de la banda de paso,
         # por ejemplo de magnitud por debajo de -80 dB
@@ -190,7 +190,7 @@ if __name__ == "__main__":
         mask = (magdB > magThr)
         np.copyto(phaseClean, phase, where=mask)
 
-        # Group Delay
+        # Group Delay:
         wgd, gd = signal.group_delay((imp, 1), w=bins, whole=False)
         # Eliminamos (np.nan) los valores fuera de la banda de paso,
         # por ejemplo de magnitud por debajo de cierto umbral
@@ -209,7 +209,7 @@ if __name__ == "__main__":
         #   2. Promedio recalculado sobre los valores without deviations
         gdmsAvg = np.round(np.nanmean(gdms), 1)
         
-        # PLOTEOS
+        # --- PLOTEOS ---
 
         # ploteo de la Magnitud con autoajuste del top
         tmp = np.max(axMag)
