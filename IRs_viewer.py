@@ -20,10 +20,12 @@
 # v0.2c
 #   Opcion -pha (oculta beta) para pintar la phase. ESTO NO ESTÁ CLARO PTE INVESTIGARLO DEEPER
 # v0.2d
-#   Dejamos de pintar phases o gd fuera de la banda de paso
+#   Dejamos de pintar phases o gd fuera de la banda de paso, 
+#   con nuevo umbral a -50dB parece más conveniente para FIRs cortos con rizado alto.
 #   Se aumenta el rango hasta -60 dB
-# TO DO:
-#   RR: El GD hay que verlo también, debería recoger en la gráfica el delay del filtro
+#   TO DO:
+#       mostrar el pkOffset en ms
+#       RR: El GD hay que verlo también, debería recoger en la gráfica el delay del filtro
 
 import sys
 import numpy as np
@@ -145,6 +147,7 @@ if __name__ == "__main__":
 
     fmin = 10
     fmax = 20000
+    magThr = -50.0 # umbral de magnitud en dB para dejar de pintar phases
 
     if len(sys.argv) == 1:
         print __doc__
@@ -183,18 +186,18 @@ if __name__ == "__main__":
         # Eliminamos (np.nan) los valores fuera de la banda de paso,
         # por ejemplo de magnitud por debajo de -80 dB
         phaseClean  = np.full((len(phase)), np.nan)
-        mask = (magdB > -80.0)
+        mask = (magdB > magThr)
         np.copyto(phaseClean, phase, where=mask)
 
         # Group Delay
         wgd, gd = signal.group_delay((imp, 1), w=bins, whole=False)
         # Eliminamos (np.nan) los valores fuera de la banda de paso,
-        # por ejemplo de magnitud por debajo de -80 dB
+        # por ejemplo de magnitud por debajo de cierto umbral
         gdClean  = np.full((len(gd)), np.nan)
-        mask = (magdB > -80.0)
+        mask = (magdB > magThr)
         np.copyto(gdClean, gd, where=mask)
         # GD es en radianes los convertimos a milisegundos
-        gdms = gdClean / fs * 1000 - peakOffsetms
+        gdms = gdClean / fs * 1000 #- peakOffsetms
         
         # PLOTEOS
         axMag.plot(freqs, magdB, label=info)
