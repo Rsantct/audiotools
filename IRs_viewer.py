@@ -158,7 +158,7 @@ if __name__ == "__main__":
     IRs = lee_commandline(sys.argv[1:])
         
     preparaGraficas()
-
+    
     columnaIR = 0
     for IR in IRs:
     
@@ -214,7 +214,9 @@ if __name__ == "__main__":
 
         # ploteo de la Magnitud con autoajuste del top
         tmp = np.max(magdB)
-        top_dBs = math.ceil(tmp/5.0) * 5.0 + 5.0
+        tmp = math.ceil(tmp/5.0) * 5.0 + 5.0
+        if tmp > top_dBs:
+            top_dBs = tmp
         axMag.set_ylim(bottom = top_dBs - range_dBs, top = top_dBs)
         axMag.plot(freqs, magdB, label=info)
         color = axMag.lines[-1].get_color() # anotamos el color de la última línea  
