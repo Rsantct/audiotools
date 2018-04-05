@@ -290,14 +290,23 @@ if __name__ == "__main__":
         # GD es en radianes los convertimos a en milisegundos
         firGDms = gd / fs * 1000 
         # Limpiamos con la misma mask de valores fuera de la banda de paso usada arriba
-        #firGDmsClean  = np.full((len(firGDms)), np.nan)
-        #np.copyto(firGDmsClean, firGDms, where=mask)
+        firGDmsClean  = np.full((len(firGDms)), np.nan)
+        np.copyto(firGDmsClean, firGDms, where=mask)
+        # Computamos el GD promedio (en ms) para mostrarlo en la gráfica
+        #   1. Vemos un primer promedio
+        gdmsAvg = np.round(np.nanmean(firGDmsClean), 1)
+        #   2. limpiamos las desviaciones > 5 ms respecto del promedio (wod: without deviations)
+        gdmswod = np.full((len(firGDmsClean)), np.nan)
+        mask = (firGDmsClean < (gdmsAvg + 5.0) )
+        np.copyto(gdmswod, firGDmsClean, where=mask)
+        #   2. Promedio recalculado sobre los valores without deviations
+        gdmsAvg = np.round(np.nanmean(firGDmsClean), 1)
 
         #--- Info del headroom dBFs en la convolución de este filtro pcm
         ihroom = hroomInfo(magdB = firMagdB, via=via)
 
         curva = {'via':via, 'IR':IR, 'mag':firMagdB, 'pha':firPhaseClean,
-                           'gd':firGDmsClean, 'hroomInfo':ihroom}
+                           'gd':firGDmsClean, 'gdAvg':gdmsAvg 'hroomInfo':ihroom}
 
         #--- Curvas de los .FRD de los altavoces (si existieran)
         frdname = frd_of_pcm(pcmname)
@@ -347,14 +356,15 @@ if __name__ == "__main__":
     #----------------------------------------------------------------
     # PLOTEOS
     #----------------------------------------------------------------
+    GDavgs    = [] # los promedios de GD de cada impulso, para mostrarlos por separado
     columnaIR = 0
-
     for curva in vias:
 
         imp         = curva['IR']
         magdB       = curva['mag']
         phase       = curva['pha']
         gd          = curva['gd']
+        gdAvg       = curva['gdmsAvg']
         info        = curva['hroomInfo']
 
         limp = imp.shape[0]
@@ -369,6 +379,7 @@ if __name__ == "__main__":
 
         #--- GD
         axGD.plot(freqs, gd, "--", linewidth=1.0, color=color)
+        GDavgs.append(gdAvg)
 
         #--- IR. Nota: separamos los impulsos en columnas
         axIR = fig.add_subplot(grid[5, columnaIR])
@@ -392,6 +403,10 @@ if __name__ == "__main__":
     # Finalmente mostramos las gráficas por pantalla.
     # La leyenda mostrará las label indicadas en el ploteo de cada curva en 'axMag'
     axMag.legend(loc='lower left', prop={'size':'small', 'family':'monospace'})
+    # Y los GDs de cada impulso
+    GDtitle = 'GD avg: ' + ', '.join([str(x) for x in GDavgs]) + ' ms'
+    axGD.set_title(GDtitle)
+
     plt.show()
 
     #----------------------------------------------------------------
