@@ -159,6 +159,7 @@ if __name__ == "__main__":
         
     preparaGraficas()
     
+    GDavgs = [] # los promedios de GD de cada impulso, para mostrarlos por separado
     columnaIR = 0
     for IR in IRs:
     
@@ -209,6 +210,7 @@ if __name__ == "__main__":
         np.copyto(gdmswod, gdms, where=mask)
         #   2. Promedio recalculado sobre los valores without deviations
         gdmsAvg = np.round(np.nanmean(gdms), 1)
+        GDavgs.append(gdmsAvg)
         
         # ---- PLOTEOS ----
 
@@ -228,7 +230,6 @@ if __name__ == "__main__":
         ymin = peakOffsetms - 25
         ymax = peakOffsetms + 75
         axGD.set_ylim(bottom = ymin, top = ymax)
-        axGD.set_title("GD average: " + str(gdmsAvg) + " ms")
         axGD.plot(freqs, gdms, "--", linewidth=1.0, color=color)
     
         # plot del IR. Nota: separamos los impulsos en columnas
@@ -239,6 +240,9 @@ if __name__ == "__main__":
         axIR.plot(imp, "-", linewidth=1.0, color=color)
         columnaIR += 1
 
+    GDtitle = 'GD avg: ' + ', '.join([str(x) for x in GDavgs]) + ' ms'
+    axGD.set_title(GDtitle)
+    
     axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
     plt.show()
 
