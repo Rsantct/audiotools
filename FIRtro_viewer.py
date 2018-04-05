@@ -290,8 +290,8 @@ if __name__ == "__main__":
         # GD es en radianes los convertimos a en milisegundos
         firGDms = gd / fs * 1000 
         # Limpiamos con la misma mask de valores fuera de la banda de paso usada arriba
-        firGDmsClean  = np.full((len(firGDms)), np.nan)
-        np.copyto(firGDmsClean, firGDms, where=mask)
+        #firGDmsClean  = np.full((len(firGDms)), np.nan)
+        #np.copyto(firGDmsClean, firGDms, where=mask)
 
         #--- Info del headroom dBFs en la convolución de este filtro pcm
         ihroom = hroomInfo(magdB = firMagdB, via=via)
