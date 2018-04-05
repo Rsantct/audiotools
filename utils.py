@@ -9,6 +9,9 @@ from ConfigParser import ConfigParser
 import numpy as np
 from scipy.io import wavfile
 
+def isPowerOf2(n):
+    return np.floor(np.log2(n)) == np.ceil(np.log2(n))
+
 def Ktaps(x):
     """ cutre conversor para mostrar la longitud de un FIR """
     if x >= 1024:
