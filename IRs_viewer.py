@@ -20,10 +20,12 @@
 # v0.2c
 #   Opcion -pha (oculta beta) para pintar la phase. ESTO NO ESTÁ CLARO PTE INVESTIGARLO DEEPER
 # v0.2d
-#   Dejamos de pintar phases o gd fuera de la banda de paso
-#   Se aumenta el rango hasta -60 dB
-# TO DO:
-#   RR: El GD hay que verlo también, debería recoger en la gráfica el delay del filtro
+#   Dejamos de pintar phases o gd fuera de la banda de paso, 
+#   con nuevo umbral a -50dB parece más conveniente para FIRs cortos con rizado alto.
+#   Se aumenta el rango de magnitudes hasta -60 dB
+#   Muestra el pkOffset en ms
+#   RR: El GD debería recoger en la gráfica el delay del filtro.
+#       Ok, se muestra el GD real que incluye el retardo del impulso si es de linear phase
 
 import sys
 import numpy as np
@@ -128,7 +130,7 @@ def preparaGraficas():
     axGD = fig.add_subplot(grid[3:5, :])
     axGD.grid(False)
     prepara_eje_frecuencias(axGD)
-    axGD.set_ylim(-25, 75)
+    #axGD.set_ylim(-25, 75) # dejamos los límites del eje y para cuando conozcamos el GD
     axGD.set_ylabel(u"--- filter GD (ms)")
     
     # --- SUBPLOT para pintar las PHASEs (común con el de GD)
@@ -140,11 +142,12 @@ def preparaGraficas():
         axPha.set_yticks(range(-135, 180, 45))
         axPha.set_ylabel(u"filter phase")
  
-    
 if __name__ == "__main__":
 
     fmin = 10
     fmax = 20000
+    # umbral de magnitud en dB para dejar de pintar phases o gd
+    magThr = -50.0 
 
     if len(sys.argv) == 1:
         print __doc__
@@ -160,7 +163,7 @@ if __name__ == "__main__":
         fs, imp, info = IR
         fny = fs/2.0
         limp = imp.shape[0]
-        peakOffset = np.round(abs(imp).argmax() / fs, 3) # en segundos
+        peakOffsetms = np.round(abs(imp).argmax() / fs * 1000, 1) # en ms
 
         # 500 bins de frecs logspaciadas para que las resuelva freqz
         w1 = 1 / fny * (2 * np.pi)
@@ -183,29 +186,45 @@ if __name__ == "__main__":
         # Eliminamos (np.nan) los valores fuera de la banda de paso,
         # por ejemplo de magnitud por debajo de -80 dB
         phaseClean  = np.full((len(phase)), np.nan)
-        mask = (magdB > -80.0)
+        mask = (magdB > magThr)
         np.copyto(phaseClean, phase, where=mask)
 
         # Group Delay
         wgd, gd = signal.group_delay((imp, 1), w=bins, whole=False)
         # Eliminamos (np.nan) los valores fuera de la banda de paso,
-        # por ejemplo de magnitud por debajo de -80 dB
+        # por ejemplo de magnitud por debajo de cierto umbral
         gdClean  = np.full((len(gd)), np.nan)
-        mask = (magdB > -80.0)
-        np.copyto(gdClean, gd, where=mask)
+        mask = (magdB < magThr)
+        np.copyto(gd, gdClean, where=mask)
         # GD es en radianes los convertimos a milisegundos
-        gdms = gdClean / fs * 1000 - peakOffset * 1000
+        gdms = gd / fs * 1000
+        # Computamos el GD promedio (en ms) para mostrarlo en la gráfica
+        #   1. Vemos un primer promedio
+        gdmsAvg = np.round(np.nanmean(gdms), 1)
+        #   2. limpiamos las desviaciones respecto del promedio (wod: without deviations)
+        gdmswod = np.full((len(gdms)), np.nan)
+        mask = (gdms < gdmsAvg + 5 )
+        np.copyto(gdmswod, gdms, where=mask)
+        #   2. Promedio recalculado sobre los valores without deviations
+        gdmsAvg = np.round(np.nanmean(gdms), 1)
         
         # PLOTEOS
         axMag.plot(freqs, magdB, label=info)
         color = axMag.lines[-1].get_color() # anotamos el color de la última línea  
+
         if plotPha:
             axPha.plot(freqs, phaseClean, "-", linewidth=1.0, color=color)
+
+        # GD(ms) autoscale
+        ymin = peakOffsetms - 25
+        ymax = peakOffsetms + 75
+        axGD.set_ylim(bottom = ymin, top = ymax)
+        axGD.set_title("GD average: " + str(gdmsAvg) + " ms")
         axGD.plot(freqs, gdms, "--", linewidth=1.0, color=color)
     
         # plot del IR. Nota: separamos los impulsos en columnas
         axIR = fig.add_subplot(grid[5, columnaIR])
-        axIR.set_title(utils.Ktaps(limp) + " - pk offset " + str(peakOffset) + " s")
+        axIR.set_title(utils.Ktaps(limp) + " - pk offset " + str(peakOffsetms) + " ms")
         axIR.set_xticks(range(0,len(imp),10000))
         axIR.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
         axIR.plot(imp, "-", linewidth=1.0, color=color)
