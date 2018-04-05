@@ -203,9 +203,9 @@ if __name__ == "__main__":
         # Computamos el GD promedio (en ms) para mostrarlo en la gráfica
         #   1. Vemos un primer promedio
         gdmsAvg = np.round(np.nanmean(gdms), 1)
-        #   2. limpiamos las desviaciones respecto del promedio (wod: without deviations)
+        #   2. limpiamos las desviaciones > 5 ms respecto del promedio (wod: without deviations)
         gdmswod = np.full((len(gdms)), np.nan)
-        mask = (gdms < gdmsAvg + 5 )
+        mask = (gdms < (gdmsAvg + 5.0) )
         np.copyto(gdmswod, gdms, where=mask)
         #   2. Promedio recalculado sobre los valores without deviations
         gdmsAvg = np.round(np.nanmean(gdms), 1)
@@ -214,7 +214,7 @@ if __name__ == "__main__":
 
         # ploteo de la Magnitud con autoajuste del top
         tmp = np.max(magdB)
-        top_dBs = tmp + 5.0 - tmp % 5.0
+        top_dBs = int(tmp + 5.0 - (tmp % 5.0))
         axMag.set_ylim(bottom = top_dBs - range_dBs, top = top_dBs)
         axMag.plot(freqs, magdB, label=info)
         color = axMag.lines[-1].get_color() # anotamos el color de la última línea  
