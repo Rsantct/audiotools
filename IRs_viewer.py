@@ -29,7 +29,7 @@
 #   Autoescala magnitudes.
 
 import sys
-import numpy as np
+import numpy as np, math
 from scipy import signal
 from matplotlib import pyplot as plt
 from matplotlib import ticker   # Para rotular a medida
@@ -213,7 +213,7 @@ if __name__ == "__main__":
 
         # ploteo de la Magnitud con autoajuste del top
         tmp = np.max(magdB)
-        top_dBs = int(tmp + 5.0 - (tmp % 5.0))
+        top_dBs = math.ceil(tmp/5.0) * 5.0 + 5.0
         axMag.set_ylim(bottom = top_dBs - range_dBs, top = top_dBs)
         axMag.plot(freqs, magdB, label=info)
         color = axMag.lines[-1].get_color() # anotamos el color de la última línea  
