@@ -8,9 +8,10 @@
     
     Ejemplo de uso:
     
-    IR_viewer.py  drcREW_test1.wav  drcREW_test2.pcm   44100  fmin-fmax
+    IR_viewer.py  drcREW_test1.wav  drcREW_test2.pcm   44100  fmin-fmax -1
     
-    fmin-fmax:  es opcional y permite visualizar un rango en Hz, útil para ver graves.
+    fmin-fmax:  opción que permite visualizar un rango en Hz, útil para ver graves.
+    -1:         opción para mostrar las gráficas de los impulsos en una fila única.
 
 """
 # v0.2
@@ -30,6 +31,7 @@ version = 'v0.2d'
 #   Autoescala magnitudes.
 #   Se dejan de mostrar los taps en Ktaps
 #   Se muestra la versión del programa al pie de las gráficas.
+#   Axes de impulsos en una fila opcinalmente
 
 import sys
 import numpy as np, math
@@ -41,6 +43,8 @@ import utils
 
 def lee_commandline(opcs):
     global fmin, fmax, plotPha
+    global plotIRsInOneRow
+    plotIRsInOneRow = False
     
     # impulsos que devolverá esta función
     IRs = []
@@ -64,6 +68,9 @@ def lee_commandline(opcs):
             
         elif "-ph" in opc:
             plotPha = True
+            
+        elif opc == "-1":
+            plotIRsInOneRow = True
 
         else:
             fnames.append(opc)
@@ -103,13 +110,20 @@ def prepara_eje_frecuencias(ax):
     ax.set_xlim([fmin2, fmax2])
 
 def preparaGraficas():
-    columnas = len(IRs)
-    
+    numIRs = len(IRs)
     global fig, grid, axMag, axDrv, axPha, axGD, axIR
+    
     #-------------------------------------------------------------------------------
     # Preparamos el área de las gráficas 'fig'
     #-------------------------------------------------------------------------------
-    fig = plt.figure(figsize=(10,7))
+    if plotIRsInOneRow:
+        fig = plt.figure(figsize=(9, 6))
+    else:
+        fig = plt.figure(figsize=(9, 5 + numIRs))
+
+    # Tamaño de la fuente usada en los títulos de los axes
+    plt.rcParams.update({'axes.titlesize': 'medium'})
+
     # Para que no se solapen los rótulos
     fig.set_tight_layout(True)
 
@@ -117,8 +131,12 @@ def preparaGraficas():
     # Usamos GridSpec que permite construir un array chachi.
     # Las gráficas de MAG ocupan 3 filas, la de PHA ocupa 2 filas,
     # y la de IR será de altura simple, por tanto declaramos 6 filas.
-    grid = gridspec.GridSpec(nrows=6, ncols=columnas)
 
+    if plotIRsInOneRow:
+        grid = gridspec.GridSpec(nrows = 6, ncols = numIRs)
+    else:
+        grid = gridspec.GridSpec(nrows = 5 + numIRs, ncols = 1)
+        
     # --- SUBPLOT para pintar las FRs (alto 3 filas, ancho todas las columnas)
     axMag = fig.add_subplot(grid[0:3, :])
     axMag.grid(linestyle=":")
@@ -162,7 +180,7 @@ if __name__ == "__main__":
     preparaGraficas()
     
     GDavgs = [] # los promedios de GD de cada impulso, para mostrarlos por separado
-    columnaIR = 0
+    IRnum = 0
     for IR in IRs:
     
         fs, imp, info = IR
@@ -234,13 +252,17 @@ if __name__ == "__main__":
         axGD.set_ylim(bottom = ymin, top = ymax)
         axGD.plot(freqs, gdms, "--", linewidth=1.0, color=color)
     
-        # plot del IR. Nota: separamos los impulsos en columnas
-        axIR = fig.add_subplot(grid[5, columnaIR])
+        # plot del IR. 
+        # nota: opcionalmente podremos pintar los impulsos en una sola fila
+        if plotIRsInOneRow:
+            axIR = fig.add_subplot(grid[5, IRnum])
+        else:
+            axIR = fig.add_subplot(grid[5 + IRnum, :])
+        IRnum += 1
         axIR.set_title(str(limp) + " taps - pk offset " + str(peakOffsetms) + " ms")
         axIR.set_xticks(range(0,len(imp),10000))
         axIR.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
         axIR.plot(imp, "-", linewidth=1.0, color=color)
-        columnaIR += 1
 
     # Mostramos los valores de GD avg de cada impulso:
     GDtitle = 'GD avg: ' + ', '.join([str(x) for x in GDavgs]) + ' ms'
@@ -252,7 +274,7 @@ if __name__ == "__main__":
     # Y un footer con la versión:
     progname = sys.argv[0].split("/")[-1]
     footer = "AudioHumLab " + progname + " " + version
-    plt.gcf().text(0.01, 0.01, footer)
+    plt.gcf().text(0.01, 0.01, footer, size='smaller')
 
     plt.show()
 
