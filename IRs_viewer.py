@@ -116,7 +116,11 @@ def preparaGraficas():
     #-------------------------------------------------------------------------------
     # Preparamos el área de las gráficas 'fig'
     #-------------------------------------------------------------------------------
-    fig = plt.figure(figsize=(10, 6 + numIRs))
+    if plotIRsInOneRow:
+        fig = plt.figure(figsize=(9, 6))
+    else:
+        fig = plt.figure(figsize=(9, 5 + numIRs))
+
     # Para que no se solapen los rótulos
     fig.set_tight_layout(True)
 
