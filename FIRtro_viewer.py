@@ -65,7 +65,7 @@
 #   PkOffset en ms
 #   RR: El GD debería recoger en la gráfica el delay del filtro.
 #       Ok, se muestra el GD real que incluye el retardo del impulso si es de linear phase
-
+#   Se deja opcional pintar la phase
 
 import sys
 import os.path
@@ -111,7 +111,8 @@ def prepara_eje_frecuencias(ax):
     ax.set_xlim([fmin2, fmax2])
 
 def lee_command_line():
-    global fs_commandline, lee_inis, pcmnames, fmin, fmax
+    global fs_commandline, lee_inis, pcmnames, fmin, fmax, plotPha
+    plotPha = False
     fs_commandline = ""
     lee_inis = False
     pcmnames = []
@@ -132,6 +133,8 @@ def lee_command_line():
                 fmin, fmax = opc.split("-")
                 fmin = float(fmin)
                 fmax = float(fmax)
+            elif "-ph" in opc:
+                plotPha = True
             else:
                 pcmnames.append(opc)
 
@@ -215,23 +218,24 @@ def prepararaGraficas():
     axDrv.set_ylim([top_dBs - range_dBs + 10, top_dBs + 10])
     prepara_eje_frecuencias(axDrv)
 
-    # --- SUBPLOT para pintar las PHASEs (alto 2 filas, ancho todas las columnas)
-    axPha = fig.add_subplot(grid[3:5, :])
-    axPha.grid(linestyle=":")
-    prepara_eje_frecuencias(axPha)
-    axPha.set_ylim([-180.0,180.0])
-    axPha.set_yticks(range(-135, 180, 45))
-    axPha.set_ylabel(u"filter phase")
-    #axPha.set_title("filter phase and GD:")
-
-    # --- SUBPLOT para pintar el GD (común con el de las phases)
+    # --- SUBPLOT para pintar el GD 
     # comparte el eje X (twinx) con el de la phase
     # https://matplotlib.org/gallery/api/two_scales.html
-    axGD = axPha.twinx()
+    axGD = fig.add_subplot(grid[3:5, :])
     axGD.grid(False)
     prepara_eje_frecuencias(axGD)
     # axGD.set_ylim(-25, 75) # dejamos los límites del eje 'y' para cuando conozcamos el GD
     axGD.set_ylabel(u"--- filter GD (ms)")
+
+    # --- SUBPLOT para pintar las PHASEs (alto 2 filas, ancho todas las columnas)
+    #     (común con el del GD)
+    if plotPha:
+        axPha = axGD.twinx()
+        axPha.grid(linestyle=":")
+        prepara_eje_frecuencias(axPha)
+        axPha.set_ylim([-180.0,180.0])
+        axPha.set_yticks(range(-135, 180, 45))
+        axPha.set_ylabel(u"filter phase")
 
 if __name__ == "__main__":
 
@@ -375,7 +379,8 @@ if __name__ == "__main__":
         color = axMag.lines[-1].get_color() # anotamos el color de la última línea
 
         #--- PHA
-        axPha.plot(freqs, phase, "-", linewidth=1.0, color=color)
+        if plotPha:
+            axPha.plot(freqs, phase, "-", linewidth=1.0, color=color)
 
         #--- GD con autoajuste del top
         ymin = peakOffsetms - 25
