@@ -256,14 +256,14 @@ if __name__ == "__main__":
         else:
             axIR = fig.add_subplot(grid[5 + IRnum, :])
         IRnum += 1
-        axIR.set_title(str(limp) + " taps - pk offset " + str(peakOffsetms) + " ms", prop={'size':'small'})
+        axIR.set_title(str(limp) + " taps - pk offset " + str(peakOffsetms) + " ms")
         axIR.set_xticks(range(0,len(imp),10000))
         axIR.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
         axIR.plot(imp, "-", linewidth=1.0, color=color)
 
     # Mostramos los valores de GD avg de cada impulso:
     GDtitle = 'GD avg: ' + ', '.join([str(x) for x in GDavgs]) + ' ms'
-    axGD.set_title(GDtitle, prop={'size':'small'})
+    axGD.set_title(GDtitle)
     
     # Leyenda con los nombres de los impulsos en el gráfico de magnitudes
     axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
@@ -273,6 +273,7 @@ if __name__ == "__main__":
     footer = "AudioHumLab " + progname + " " + version
     plt.gcf().text(0.01, 0.01, footer)
 
+    plt.rcParams.update({'axes.titlesize': 'small'})
     plt.show()
 
     print "Bye!"
