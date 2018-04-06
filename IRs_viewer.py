@@ -273,7 +273,7 @@ if __name__ == "__main__":
     # Y un footer con la versión:
     progname = sys.argv[0].split("/")[-1]
     footer = "AudioHumLab " + progname + " " + version
-    plt.gcf().text(0.01, 0.01, footer)
+    plt.gcf().text(0.01, 0.01, footer, size='smaller')
 
     plt.show()
 
