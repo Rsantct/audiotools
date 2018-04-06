@@ -244,6 +244,10 @@ if __name__ == "__main__":
     axGD.set_title(GDtitle)
     
     axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
+    # footer con la versión:
+    plt.annotate("esto debera ser un footer")
+    # Leyenda con los nombres de los impulsos en el gráfico de magnitudes
+    axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
     plt.show()
 
    
