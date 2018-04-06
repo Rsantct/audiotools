@@ -148,7 +148,7 @@ if __name__ == "__main__":
     range_dBs = 65
     fmin = 10
     fmax = 20000
-    # umbral de magnitud en dB para dejar de pintar phases o gd
+    # Umbral de la magnitud en dB para dejar de pintar phases o gd
     magThr = -50.0 
 
     if len(sys.argv) == 1:
@@ -186,16 +186,16 @@ if __name__ == "__main__":
 
         # Wrapped Phase:
         phase = np.angle(h, deg=True)
-        # Eliminamos (np.nan) los valores fuera de la banda de paso,
-        # por ejemplo de magnitud por debajo de un umbral
+        # Eliminamos (np.nan) los valores de phase fuera de 
+        # la banda de paso, por debajo de un umbral configurable.
         phaseClean  = np.full((len(phase)), np.nan)
         mask = (magdB > magThr)
         np.copyto(phaseClean, phase, where=mask)
 
         # Group Delay:
         wgd, gd = signal.group_delay((imp, 1), w=bins, whole=False)
-        # Eliminamos (np.nan) los valores fuera de la banda de paso,
-        # por ejemplo de magnitud por debajo de un umbral
+        # Eliminamos (np.nan) los valores fuera de 
+        # la banda de paso, por debajo de un umbral configurable.
         gdClean  = np.full((len(gd)), np.nan)
         mask = (magdB < magThr)
         np.copyto(gd, gdClean, where=mask)
