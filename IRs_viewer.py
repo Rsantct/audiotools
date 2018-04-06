@@ -19,6 +19,7 @@
 #   Opción del rango de frecuencias a visualizar
 # v0.2c
 #   Opcion -pha (oculta beta) para pintar la phase. ESTO NO ESTÁ CLARO PTE INVESTIGARLO DEEPER
+
 version = 'v0.2d'
 #   Dejamos de pintar phases o gd fuera de la banda de paso, 
 #   con nuevo umbral a -50dB parece más conveniente para FIRs cortos con rizado alto.
@@ -28,6 +29,7 @@ version = 'v0.2d'
 #       Ok, se muestra el GD real que incluye el retardo del impulso si es de linear phase
 #   Autoescala magnitudes.
 #   Se dejan de mostrar los taps en Ktaps
+#   Se muestra la versión del programa al pie de las gráficas.
 
 import sys
 import numpy as np, math
