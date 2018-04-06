@@ -121,7 +121,8 @@ def preparaGraficas():
     else:
         fig = plt.figure(figsize=(9, 5 + numIRs))
 
-    plt.rcParams.update({'axes.titlesize': 'small'})
+    # Tamaño de la fuente usada en los títulos de los axes
+    plt.rcParams.update({'axes.titlesize': 'medium'})
 
     # Para que no se solapen los rótulos
     fig.set_tight_layout(True)
