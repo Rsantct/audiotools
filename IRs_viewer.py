@@ -11,6 +11,7 @@
     IR_viewer.py  drcREW_test1.wav  drcREW_test2.pcm   44100  fmin-fmax
     
     fmin-fmax:  es opcional y permite visualizar un rango en Hz, útil para ver graves.
+           -1:  muestra las gráficas de los impulsos en 1 única fila
 
 """
 # v0.2
@@ -30,6 +31,7 @@ version = 'v0.2d'
 #   Autoescala magnitudes.
 #   Se dejan de mostrar los taps en Ktaps
 #   Se muestra la versión del programa al pie de las gráficas.
+#   Axis de impulsos en varias filas o en una fila opcinalmente
 
 import sys
 import numpy as np, math
@@ -66,6 +68,9 @@ def lee_commandline(opcs):
             
         elif "-ph" in opc:
             plotPha = True
+            
+        elif opc == "-1":
+            plotIRsInOneRow = True
 
         else:
             fnames.append(opc)
@@ -245,7 +250,7 @@ if __name__ == "__main__":
         if plotIRsInOneRow:
             axIR = fig.add_subplot(grid[5, IRnum])
         else:
-            axIR = fig.add_subplot(grid[6 + IRnum, :])
+            axIR = fig.add_subplot(grid[5 + IRnum, :])
         IRnum += 1
         axIR.set_title(str(limp) + " taps - pk offset " + str(peakOffsetms) + " ms")
         axIR.set_xticks(range(0,len(imp),10000))
