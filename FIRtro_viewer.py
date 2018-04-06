@@ -415,7 +415,8 @@ if __name__ == "__main__":
     axGD.set_title(GDtitle)
 
     # Y un footer con la versión:
-    footer = "AudioHumLab IRs_viewer.py " + version
+    progname = sys.argv[0].split("/")[-1]
+    footer = "AudioHumLab " + progname + " " + version
     plt.gcf().text(0.01, 0.01, footer)
 
     # Finalmente mostramos las gráficas por pantalla.
