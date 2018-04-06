@@ -25,11 +25,12 @@
 
     Uso:
     
-    FIRtro_viewer.py [ini|xxx] path/to/filtro1.pcm  [path/to/filtro2.pcm ... ] [flow-fhigh]
+    FIRtro_viewer.py [ini|xxx] path/to/filtro1.pcm  [path/to/filtro2.pcm ... ] [flow-fhigh] [-1]
 
           ini:        Lee Fs y Gain en los archivos '.ini' asociados a '.pcm'
           xxx:        Toma xxxx como Fs y se ignoran los '.ini'
           flow-fhigh: Rango de frecuencias de la gráfica (opcional, util para un solo fir)
+          -1:         Para mostrar las gráficas de los impulsos en una fila única.
 
     Ejemplo de archivo 'viaX.ini':
 
@@ -66,6 +67,7 @@ version = 'v0.4c'
 #   RR: El GD debería recoger en la gráfica el delay del filtro.
 #       Ok, se muestra el GD real que incluye el retardo del impulso si es de linear phase
 #   Se deja opcional pintar la phase
+#   Axes de impulsos en una fila opcinalmente
 
 import sys
 import os.path
@@ -112,6 +114,8 @@ def prepara_eje_frecuencias(ax):
 
 def lee_command_line():
     global fs_commandline, lee_inis, pcmnames, fmin, fmax, plotPha
+    global plotIRsInOneRow
+    plotIRsInOneRow = False
     plotPha = False
     fs_commandline = ""
     lee_inis = False
@@ -135,6 +139,8 @@ def lee_command_line():
                 fmax = float(fmax)
             elif "-ph" in opc:
                 plotPha = True
+            elif opc == "-1":
+                plotIRsInOneRow = True
             else:
                 pcmnames.append(opc)
 
@@ -191,10 +197,19 @@ def hroomInfo(magdB, via):
 
 def prepararaGraficas():
     global fig, grid, axMag, axDrv, axPha, axGD, axIR
+    numIRs = len(pcmnames)
+    
     #-------------------------------------------------------------------------------
     # Preparamos el área de las gráficas 'fig'
     #-------------------------------------------------------------------------------
-    fig = plt.figure(figsize=fig_size)
+    if plotIRsInOneRow:
+        fig = plt.figure(figsize=(9, 6))
+    else:
+        fig = plt.figure(figsize=(9, 5 + numIRs)) 
+        
+    # Tamaño de la fuente usada en los títulos de los axes
+    plt.rcParams.update({'axes.titlesize': 'medium'})
+    
     # Para que no se solapen los rótulos
     fig.set_tight_layout(True)
 
@@ -202,8 +217,11 @@ def prepararaGraficas():
     # Usamos GridSpec que permite construir un array chachi.
     # Las gráficas de MAG ocupan 3 filas, la de PHA ocupa 2 filas,
     # y la de IR será de altura simple, por tanto declaramos 6 filas.
-    grid = gridspec.GridSpec(nrows=6, ncols=len(pcmnames))
-
+    if plotIRsInOneRow:
+        grid = gridspec.GridSpec(nrows = 6, ncols = numIRs)
+    else:
+        grid = gridspec.GridSpec(nrows = 5 + numIRs, ncols = 1)
+        
     # --- SUBPLOT para pintar las FRs (alto 3 filas, ancho todas las columnas)
     axMag = fig.add_subplot(grid[0:3, :])
     axMag.grid(linestyle=":")
@@ -360,8 +378,8 @@ if __name__ == "__main__":
     #----------------------------------------------------------------
     # PLOTEOS
     #----------------------------------------------------------------
-    GDavgs    = [] # los promedios de GD de cada impulso, para mostrarlos por separado
-    columnaIR = 0
+    GDavgs = [] # los promedios de GD de cada impulso, para mostrarlos por separado
+    IRnum  = 0
     for curva in vias:
 
         imp         = curva['IR']
@@ -389,13 +407,16 @@ if __name__ == "__main__":
         axGD.plot(freqs, gd, "--", linewidth=1.0, color=color)
         GDavgs.append(gdAvg)
 
-        #--- IR. Nota: separamos los impulsos en columnas
-        axIR = fig.add_subplot(grid[5, columnaIR])
+        #--- IR (opcionalmente podremos pintar los impulsos en una sola fila)
+        if plotIRsInOneRow:
+            axIR = fig.add_subplot(grid[5, IRnum])
+        else:
+            axIR = fig.add_subplot(grid[5 + IRnum, :])
+        IRnum += 1
         axIR.set_title(str(limp) + " taps - pk offset " + str(peakOffsetms) + " ms")
         axIR.set_xticks(range(0,len(imp),10000))
         axIR.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
         axIR.plot(imp, "-", linewidth=1.0, color=color)
-        columnaIR += 1
 
         if curva.has_key('driver'):
             driver      = curva['driver']
@@ -417,7 +438,7 @@ if __name__ == "__main__":
     # Y un footer con la versión:
     progname = sys.argv[0].split("/")[-1]
     footer = "AudioHumLab " + progname + " " + version
-    plt.gcf().text(0.01, 0.01, footer)
+    plt.gcf().text(0.01, 0.01, footer, size='smaller')
 
     # Finalmente mostramos las gráficas por pantalla.
     plt.show()
