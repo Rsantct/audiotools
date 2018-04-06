@@ -283,8 +283,8 @@ if __name__ == "__main__":
 
         #--- Extraemos la wrapped PHASE de la FR 'h'
         firPhase = np.angle(h, deg=True)
-        # Eliminamos (np.nan) los valores de phase fuera de la banda de paso,
-        # por ejemplo de magnitud por debajo de un umbral configurable
+        # Eliminamos (np.nan) los valores de phase fuera de 
+        # la banda de paso, por debajo de un umbral configurable.
         firPhaseClean  = np.full((len(firPhase)), np.nan)
         mask = (firMagdB > phaVsMagThr)
         np.copyto(firPhaseClean, firPhase, where=mask)
