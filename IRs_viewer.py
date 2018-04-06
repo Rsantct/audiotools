@@ -248,7 +248,7 @@ if __name__ == "__main__":
     axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
 
     # Y un footer con la versión:
-    plt.annotate("Visor de IRs " + version, xy = (-10,-10) )
+    plt.annotate("Visor de IRs " + version, xy = (10,10) )
 
     plt.show()
 
