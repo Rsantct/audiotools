@@ -8,10 +8,10 @@
     
     Ejemplo de uso:
     
-    IR_viewer.py  drcREW_test1.wav  drcREW_test2.pcm   44100  fmin-fmax
+    IR_viewer.py  drcREW_test1.wav  drcREW_test2.pcm   44100  fmin-fmax 1row
     
     fmin-fmax:  es opcional y permite visualizar un rango en Hz, útil para ver graves.
-           -1:  muestra las gráficas de los impulsos en 1 única fila
+         1row:  muestra las gráficas de los impulsos en 1 única fila
 
 """
 # v0.2
@@ -69,7 +69,7 @@ def lee_commandline(opcs):
         elif "-ph" in opc:
             plotPha = True
             
-        elif opc == "-1":
+        elif opc == "1row":
             plotIRsInOneRow = True
 
         else:
