@@ -250,7 +250,8 @@ if __name__ == "__main__":
     axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
 
     # Y un footer con la versión:
-    footer = "AudioHumLab IRs_viewer.py " + version
+    progname = sys.argv[0].split("/")[-1]
+    footer = "AudioHumLab " + progname + " " + version
     plt.gcf().text(0.01, 0.01, footer)
 
     plt.show()
