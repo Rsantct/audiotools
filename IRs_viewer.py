@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
-    v0.2d
     visor de impulsos IR wav o raw (.pcm)
     
     Si se pasan impulsos raw (.pcm) se precisa pasar también la Fs
@@ -20,8 +19,7 @@
 #   Opción del rango de frecuencias a visualizar
 # v0.2c
 #   Opcion -pha (oculta beta) para pintar la phase. ESTO NO ESTÁ CLARO PTE INVESTIGARLO DEEPER
-
-version = 'v0.2d'
+# v0.2d
 #   Dejamos de pintar phases o gd fuera de la banda de paso, 
 #   con nuevo umbral a -50dB parece más conveniente para FIRs cortos con rizado alto.
 #   Se aumenta el rango de magnitudes hasta -60 dB
@@ -31,6 +29,7 @@ version = 'v0.2d'
 #   Autoescala magnitudes.
 #   Se dejan de mostrar los taps en Ktaps
 #   Se muestra la versión del programa al pie de las gráficas.
+version = 'v0.2e'
 #   Axes de impulsos en una fila opcinalmente
 
 import sys
