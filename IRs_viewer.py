@@ -19,7 +19,7 @@
 #   Opción del rango de frecuencias a visualizar
 # v0.2c
 #   Opcion -pha (oculta beta) para pintar la phase. ESTO NO ESTÁ CLARO PTE INVESTIGARLO DEEPER
-# v0.2d
+version = 'v0.2d'
 #   Dejamos de pintar phases o gd fuera de la banda de paso, 
 #   con nuevo umbral a -50dB parece más conveniente para FIRs cortos con rizado alto.
 #   Se aumenta el rango de magnitudes hasta -60 dB
@@ -240,14 +240,16 @@ if __name__ == "__main__":
         axIR.plot(imp, "-", linewidth=1.0, color=color)
         columnaIR += 1
 
+    # Mostramos los valores de GD avg de cada impulso:
     GDtitle = 'GD avg: ' + ', '.join([str(x) for x in GDavgs]) + ' ms'
     axGD.set_title(GDtitle)
     
-    axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
-    # footer con la versión:
-    plt.annotate("esto debera ser un footer")
     # Leyenda con los nombres de los impulsos en el gráfico de magnitudes
     axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
+
+    # Y un footer con la versión:
+    plt.annotate("Visor de IRs " + version, xy = (-10,-10) )
+
     plt.show()
 
    
