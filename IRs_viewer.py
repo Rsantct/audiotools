@@ -255,5 +255,5 @@ if __name__ == "__main__":
 
     plt.show()
 
-    print "Bye!"
+    print "Bye!\n"
    
