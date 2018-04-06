@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-    v0.4c
-    
     Visor de archivos FIR xover y de archivos FRD (freq. response).
     Se muestra la magnitud y fase de los FIR.
 
@@ -40,7 +38,7 @@
         gainext = 8.0      # Resto de ganancia incluyendo la potencia final
                              radiada en el eje de escucha.
                              
-    See also: frd_viewer.py, IRs_viewer
+    See also: FRD_viewer.py, IRs_viewer.py
     
 """
 #
@@ -60,13 +58,14 @@
 # v0.4b
 #   El semiespectro se computa sobre frecuecias logespaciadas 
 #   para mejor resolución gráfica en graves.
-version = 'v0.4c'
+# v0.4c
 #   Umbral para dejar de pintar la phase configurable, se entrega a -50dB 
 #   ya que parece más conveniente para FIRs cortos con rizado alto.
 #   PkOffset en ms
 #   RR: El GD debería recoger en la gráfica el delay del filtro.
 #       Ok, se muestra el GD real que incluye el retardo del impulso si es de linear phase
 #   Se deja opcional pintar la phase
+version = 'v0.4d'
 #   Axes de impulsos en una fila opcinalmente
 
 import sys
