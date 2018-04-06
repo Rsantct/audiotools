@@ -31,7 +31,7 @@ version = 'v0.2d'
 #   Autoescala magnitudes.
 #   Se dejan de mostrar los taps en Ktaps
 #   Se muestra la versión del programa al pie de las gráficas.
-#   Axis de impulsos en una fila opcinalmente
+#   Axes de impulsos en una fila opcinalmente
 
 import sys
 import numpy as np, math
