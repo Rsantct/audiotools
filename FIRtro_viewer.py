@@ -433,4 +433,4 @@ if __name__ == "__main__":
     warnings.filterwarnings("ignore")
     fig.savefig("filters.pdf", bbox_inches='tight')
 
-    print "Bye!\n"
+    print "Bye!"
