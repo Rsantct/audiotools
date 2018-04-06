@@ -121,6 +121,8 @@ def preparaGraficas():
     else:
         fig = plt.figure(figsize=(9, 5 + numIRs))
 
+    plt.rcParams.update({'axes.titlesize': 'small'})
+
     # Para que no se solapen los rótulos
     fig.set_tight_layout(True)
 
@@ -273,7 +275,6 @@ if __name__ == "__main__":
     footer = "AudioHumLab " + progname + " " + version
     plt.gcf().text(0.01, 0.01, footer)
 
-    plt.rcParams.update({'axes.titlesize': 'small'})
     plt.show()
 
     print "Bye!"
