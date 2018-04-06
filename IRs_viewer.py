@@ -111,12 +111,12 @@ def prepara_eje_frecuencias(ax):
 
 def preparaGraficas():
     numIRs = len(IRs)
-    
     global fig, grid, axMag, axDrv, axPha, axGD, axIR
+    
     #-------------------------------------------------------------------------------
     # Preparamos el área de las gráficas 'fig'
     #-------------------------------------------------------------------------------
-    fig = plt.figure(figsize=(10,7))
+    fig = plt.figure(figsize=(10, 6 + numIRs))
     # Para que no se solapen los rótulos
     fig.set_tight_layout(True)
 
