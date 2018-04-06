@@ -43,23 +43,23 @@
     
 """
 #
-# v0.1:
+# v0.1
 #   Límites de ploteo en .cfg
 #   Lee 'filterN.ini' asociado a 'filterN.pcm'
 #   Fs opcional en command line
-# v0.2:
+# v0.2
 #   Uso de scipy.signal.freqz
 #   Gráficas de magnitud y phase de los fltros xover '.pcm'
-# v0.3:
+# v0.3
 #   Descartar el ploteo de la phase fuera de la banda de paso de los filtros.
-# v0.4:
+# v0.4
 #   Si están disponibles las FRDs de los altavoces se muestra el resultado del filtrado.
 #   Detecta clips en los FIR de xover
 #   Rango de frecuencias en linea de comandos opcional, útil para representar una sola vía.
-# v0.4b:
+# v0.4b
 #   El semiespectro se computa sobre frecuecias logespaciadas 
 #   para mejor resolución gráfica en graves.
-# v0.4c:
+version = 'v0.4c'
 #   Umbral para dejar de pintar la phase configurable, se entrega a -50dB 
 #   ya que parece más conveniente para FIRs cortos con rizado alto.
 #   PkOffset en ms
@@ -408,13 +408,17 @@ if __name__ == "__main__":
     if hay_FRDs:
         axMag.plot(freqs, mezclaTot, color="black", linewidth=1.0, label="estimated")
 
-    # Finalmente mostramos las gráficas por pantalla.
     # La leyenda mostrará las label indicadas en el ploteo de cada curva en 'axMag'
     axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
     # Y los GDs de cada impulso
     GDtitle = 'GD avg: ' + ', '.join([str(x) for x in GDavgs]) + ' ms'
     axGD.set_title(GDtitle)
 
+    # Y un footer con la versión:
+    footer = "AudioHumLab IRs_viewer.py " + version
+    plt.gcf().text(0.01, 0.01, footer)
+
+    # Finalmente mostramos las gráficas por pantalla.
     plt.show()
 
     #----------------------------------------------------------------
