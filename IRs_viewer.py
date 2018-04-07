@@ -267,7 +267,7 @@ if __name__ == "__main__":
             # Cada IR en una fila de altura doble:
             axIR = fig.add_subplot(grid[5+2*IRnum:5+2*IRnum+2, :])
             # Rotulamos dentro del axe:        
-            axIR.annotate(rotuloIR, xy=(.6,.8), xycoords='axes fraction') # coords referidas al espac$
+            axIR.annotate(rotuloIR, xy=(.6,.8), xycoords='axes fraction') # coords referidas al area gráfica
         IRnum += 1
         axIR.set_xticks(range(0,len(imp),10000))
         axIR.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
@@ -285,6 +285,7 @@ if __name__ == "__main__":
     footer = "AudioHumLab " + progname + " " + version
     plt.gcf().text(0.01, 0.01, footer, size='smaller')
 
+    # Finalmente mostramos las gráficas por pantalla.
     plt.show()
 
     print "Bye!"
