@@ -259,7 +259,7 @@ if __name__ == "__main__":
             axIR.set_title(rotuloIR)
         else:
             axIR = fig.add_subplot(grid[5+IRnum:5+IRnum+2, :])
-            axIR.annotate(rotuloIR, xy=(.8,.8), xycoords='axes fraction')
+            axIR.annotate(rotuloIR, xy=(.6,.8), xycoords='axes fraction') # coords referidas al espacio del axe
         IRnum += 1
         axIR.set_xticks(range(0,len(imp),10000))
         axIR.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
