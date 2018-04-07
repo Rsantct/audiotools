@@ -256,7 +256,7 @@ if __name__ == "__main__":
         if plotIRsInOneRow:
             axIR = fig.add_subplot(grid[6, IRnum])          # grid[rangoVocupado, rangoHocupado]
         else:
-            axIR = fig.add_subplot(grid[6+IRnum:6+IRnum+1, :])
+            axIR = fig.add_subplot(grid[6+IRnum:6+IRnum+2, :])
         IRnum += 1
         axIR.set_title(str(limp) + " taps - pk offset " + str(peakOffsetms) + " ms")
         axIR.set_xticks(range(0,len(imp),10000))
