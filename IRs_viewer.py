@@ -118,7 +118,7 @@ def preparaGraficas():
     if plotIRsInOneRow:
         fig = plt.figure(figsize=(9, 6))
     else:
-        fig = plt.figure(figsize=(9, 5 + 2*numIRs))
+        fig = plt.figure(figsize=(9, 5 + numIRs))
 
     # Tamaño de la fuente usada en los títulos de los axes
     plt.rcParams.update({'axes.titlesize': 'medium'})
@@ -134,7 +134,7 @@ def preparaGraficas():
     if plotIRsInOneRow:
         grid = gridspec.GridSpec(nrows = 6, ncols = numIRs)
     else:
-        grid = gridspec.GridSpec(nrows = 5 + numIRs, ncols = 1)
+        grid = gridspec.GridSpec(nrows = 5 + 2*numIRs, ncols = 1)
         
     # --- SUBPLOT para pintar las FRs (alto 3 filas, ancho todas las columnas)
     axMag = fig.add_subplot(grid[0:3, :])
