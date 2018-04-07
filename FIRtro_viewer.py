@@ -199,12 +199,12 @@ def prepararaGraficas():
     numIRs = len(pcmnames)
     
     #-------------------------------------------------------------------------------
-    # Preparamos el área de las gráficas 'fig'
+    # Preparamos el tamaño de las gráficas 'fig'
     #-------------------------------------------------------------------------------
     if plotIRsInOneRow:
         fig = plt.figure(figsize=(9, 6))
     else:
-        fig = plt.figure(figsize=(9, 5 + numIRs)) 
+        fig = plt.figure(figsize=(9, 8 + numIRs)) 
         
     # Tamaño de la fuente usada en los títulos de los axes
     plt.rcParams.update({'axes.titlesize': 'medium'})
