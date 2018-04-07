@@ -126,10 +126,14 @@ def preparaGraficas():
     # Para que no se solapen los rótulos
     fig.set_tight_layout(True)
 
+    #-------------------------------------------------------------------------------
     # Preparamos una matriz de Axes (gráficas).
     # Usamos GridSpec que permite construir un array chachi.
     # Las gráficas de MAG ocupan 3 filas, la de PHA ocupa 2 filas,
-    # y la de IR será de altura simple, por tanto declaramos 6 filas.
+    # y gráfica de IR según la opcion elegida:                      
+    #   - en una fila única simple declaramos 6 filas y numIRs columnas
+    #   - en filas independientes de altura doble declaramos 5 + 2*numIRs filas.
+    #-------------------------------------------------------------------------------
 
     if plotIRsInOneRow:
         grid = gridspec.GridSpec(nrows = 6, ncols = numIRs)
@@ -233,7 +237,7 @@ if __name__ == "__main__":
         
         # ---- PLOTEOS ----
 
-        # ploteo de la Magnitud con autoajuste del top
+        # Ploteo de la Magnitud con autoajuste del top
         tmp = np.max(magdB)
         tmp = math.ceil(tmp/5.0) * 5.0 + 5.0
         if tmp > top_dBs:
@@ -245,21 +249,25 @@ if __name__ == "__main__":
         if plotPha:
             axPha.plot(freqs, phaseClean, "-", linewidth=1.0, color=color)
 
-        # ploteo del GD con autoajuste del top
+        # Ploteo del GD con autoajuste del top
         ymin = peakOffsetms - 25
         ymax = peakOffsetms + 75
         axGD.set_ylim(bottom = ymin, top = ymax)
         axGD.plot(freqs, gdms, "--", linewidth=1.0, color=color)
     
-        # plot del IR. 
-        # nota: opcionalmente podremos pintar los impulsos en una sola fila
+        # Plot del IR 
+        # (i) Opcionalmente podemos pintar los impulsos en una sola fila
         rotuloIR = str(limp) + " taps - pk offset " + str(peakOffsetms) + " ms"
         if plotIRsInOneRow:
-            axIR = fig.add_subplot(grid[5, IRnum])          # grid[rangoVocupado, rangoHocupado]
+            # Todos los IRs en una fila de altura simple, en columnas separadas:
+            axIR = fig.add_subplot(grid[5, IRnum]) # (i) grid[rangoVocupado, rangoHocupado]
+            # Rotulamos en el espacio de título:
             axIR.set_title(rotuloIR)
         else:
-            axIR = fig.add_subplot(grid[5+IRnum:5+IRnum+2, :])
-            axIR.annotate(rotuloIR, xy=(.6,.8), xycoords='axes fraction') # coords referidas al espacio del axe
+            # Cada IR en una fila de altura doble:
+            axIR = fig.add_subplot(grid[5+2*IRnum:5+2*IRnum+2, :])
+            # Rotulamos dentro del axe:        
+            axIR.annotate(rotuloIR, xy=(.6,.8), xycoords='axes fraction') # coords referidas al espac$
         IRnum += 1
         axIR.set_xticks(range(0,len(imp),10000))
         axIR.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
