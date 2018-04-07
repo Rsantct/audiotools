@@ -254,7 +254,7 @@ if __name__ == "__main__":
         # plot del IR. 
         # nota: opcionalmente podremos pintar los impulsos en una sola fila
         if plotIRsInOneRow:
-            axIR = fig.add_subplot(grid[6, IRnum])          # grid[rangoVocupado, rangoHocupado]
+            axIR = fig.add_subplot(grid[5, IRnum])          # grid[rangoVocupado, rangoHocupado]
         else:
             axIR = fig.add_subplot(grid[5+IRnum:5+IRnum+2, :])
         IRnum += 1
