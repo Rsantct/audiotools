@@ -24,13 +24,15 @@
 #   con nuevo umbral a -50dB parece más conveniente para FIRs cortos con rizado alto.
 #   Se aumenta el rango de magnitudes hasta -60 dB
 #   Muestra el pkOffset en ms
-#   RR: El GD debería recoger en la gráfica el delay del filtro.
-#       Ok, se muestra el GD real que incluye el retardo del impulso si es de linear phase
+#   El GD recoge en la gráfica el delay del pico del filtro.
 #   Autoescala magnitudes.
-#   Se dejan de mostrar los taps en Ktaps
-#   Se muestra la versión del programa al pie de las gráficas.
+#   Se deja de mostrar los taps en 'Ktaps'
 version = 'v0.2e'
 #   Axes de impulsos en una fila opcinalmente
+#   Se muestra la versión del programa al pie de las gráficas.
+# TO DO:
+#   Revisar la gráfica de fases
+#   Revisar la información mostrada "GD avg" que pretende ser la moda de los valores
 
 import sys
 import numpy as np, math
@@ -113,12 +115,12 @@ def preparaGraficas():
     global fig, grid, axMag, axDrv, axPha, axGD, axIR
     
     #-------------------------------------------------------------------------------
-    # Preparamos el área de las gráficas 'fig'
+    # Preparamos el tamaño de las gráficas 'fig'
     #-------------------------------------------------------------------------------
     if plotIRsInOneRow:
         fig = plt.figure(figsize=(9, 6))
     else:
-        fig = plt.figure(figsize=(9, 5 + numIRs))
+        fig = plt.figure(figsize=(9, 8 + numIRs))
 
     # Tamaño de la fuente usada en los títulos de los axes
     plt.rcParams.update({'axes.titlesize': 'medium'})
@@ -126,15 +128,19 @@ def preparaGraficas():
     # Para que no se solapen los rótulos
     fig.set_tight_layout(True)
 
+    #-------------------------------------------------------------------------------
     # Preparamos una matriz de Axes (gráficas).
     # Usamos GridSpec que permite construir un array chachi.
     # Las gráficas de MAG ocupan 3 filas, la de PHA ocupa 2 filas,
-    # y la de IR será de altura simple, por tanto declaramos 6 filas.
+    # y gráfica de IR según la opcion elegida:                      
+    #   - en una fila única simple declaramos 6 filas y numIRs columnas
+    #   - en filas independientes de altura doble declaramos 5 + 2*numIRs filas.
+    #-------------------------------------------------------------------------------
 
     if plotIRsInOneRow:
         grid = gridspec.GridSpec(nrows = 6, ncols = numIRs)
     else:
-        grid = gridspec.GridSpec(nrows = 5 + numIRs, ncols = 1)
+        grid = gridspec.GridSpec(nrows = 5 + 2*numIRs, ncols = 1)
         
     # --- SUBPLOT para pintar las FRs (alto 3 filas, ancho todas las columnas)
     axMag = fig.add_subplot(grid[0:3, :])
@@ -233,7 +239,7 @@ if __name__ == "__main__":
         
         # ---- PLOTEOS ----
 
-        # ploteo de la Magnitud con autoajuste del top
+        # Ploteo de la Magnitud con autoajuste del top
         tmp = np.max(magdB)
         tmp = math.ceil(tmp/5.0) * 5.0 + 5.0
         if tmp > top_dBs:
@@ -245,26 +251,32 @@ if __name__ == "__main__":
         if plotPha:
             axPha.plot(freqs, phaseClean, "-", linewidth=1.0, color=color)
 
-        # ploteo del GD con autoajuste del top
+        # Ploteo del GD con autoajuste del top
         ymin = peakOffsetms - 25
         ymax = peakOffsetms + 75
         axGD.set_ylim(bottom = ymin, top = ymax)
         axGD.plot(freqs, gdms, "--", linewidth=1.0, color=color)
     
-        # plot del IR. 
-        # nota: opcionalmente podremos pintar los impulsos en una sola fila
+        # Plot del IR 
+        # (i) Opcionalmente podemos pintar los impulsos en una sola fila
+        rotuloIR = str(limp) + " taps - pk offset " + str(peakOffsetms) + " ms"
         if plotIRsInOneRow:
-            axIR = fig.add_subplot(grid[5, IRnum])
+            # Todos los IRs en una fila de altura simple, en columnas separadas:
+            axIR = fig.add_subplot(grid[5, IRnum]) # (i) grid[rangoVocupado, rangoHocupado]
+            # Rotulamos en el espacio de título:
+            axIR.set_title(rotuloIR)
         else:
-            axIR = fig.add_subplot(grid[5 + IRnum, :])
+            # Cada IR en una fila de altura doble:
+            axIR = fig.add_subplot(grid[5+2*IRnum:5+2*IRnum+2, :])
+            # Rotulamos dentro del axe:        
+            axIR.annotate(rotuloIR, xy=(.6,.8), xycoords='axes fraction') # coords referidas al area gráfica
         IRnum += 1
-        axIR.set_title(str(limp) + " taps - pk offset " + str(peakOffsetms) + " ms")
         axIR.set_xticks(range(0,len(imp),10000))
         axIR.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
         axIR.plot(imp, "-", linewidth=1.0, color=color)
 
     # Mostramos los valores de GD avg de cada impulso:
-    GDtitle = 'GD avg: ' + ', '.join([str(x) for x in GDavgs]) + ' ms'
+    GDtitle = 'GD avg:    ' + '    '.join([str(x) for x in GDavgs]) + ' (ms)'
     axGD.set_title(GDtitle)
     
     # Leyenda con los nombres de los impulsos en el gráfico de magnitudes
@@ -275,6 +287,7 @@ if __name__ == "__main__":
     footer = "AudioHumLab " + progname + " " + version
     plt.gcf().text(0.01, 0.01, footer, size='smaller')
 
+    # Finalmente mostramos las gráficas por pantalla.
     plt.show()
 
     print "Bye!"
