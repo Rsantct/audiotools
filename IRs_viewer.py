@@ -24,13 +24,15 @@
 #   con nuevo umbral a -50dB parece más conveniente para FIRs cortos con rizado alto.
 #   Se aumenta el rango de magnitudes hasta -60 dB
 #   Muestra el pkOffset en ms
-#   RR: El GD debería recoger en la gráfica el delay del filtro.
-#       Ok, se muestra el GD real que incluye el retardo del impulso si es de linear phase
+#   El GD recoge en la gráfica el delay del pico del filtro.
 #   Autoescala magnitudes.
-#   Se dejan de mostrar los taps en Ktaps
-#   Se muestra la versión del programa al pie de las gráficas.
+#   Se deja de mostrar los taps en 'Ktaps'
 version = 'v0.2e'
 #   Axes de impulsos en una fila opcinalmente
+#   Se muestra la versión del programa al pie de las gráficas.
+# TO DO:
+#   Revisar la gráfica de fases
+#   Revisar la información mostrada "GD avg" que pretende ser la moda de los valores
 
 import sys
 import numpy as np, math
