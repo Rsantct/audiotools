@@ -118,7 +118,7 @@ def preparaGraficas():
     if plotIRsInOneRow:
         fig = plt.figure(figsize=(9, 6))
     else:
-        fig = plt.figure(figsize=(9, 5 + numIRs))
+        fig = plt.figure(figsize=(9, 5 + 2*numIRs))
 
     # Tamaño de la fuente usada en los títulos de los axes
     plt.rcParams.update({'axes.titlesize': 'medium'})
@@ -254,9 +254,9 @@ if __name__ == "__main__":
         # plot del IR. 
         # nota: opcionalmente podremos pintar los impulsos en una sola fila
         if plotIRsInOneRow:
-            axIR = fig.add_subplot(grid[5, IRnum])
+            axIR = fig.add_subplot(grid[6, IRnum])          # grid[rangoVocupado, rangoHocupado]
         else:
-            axIR = fig.add_subplot(grid[5 + IRnum, :])
+            axIR = fig.add_subplot(grid[6+IRnum, :])
         IRnum += 1
         axIR.set_title(str(limp) + " taps - pk offset " + str(peakOffsetms) + " ms")
         axIR.set_xticks(range(0,len(imp),10000))
