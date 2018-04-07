@@ -274,7 +274,7 @@ if __name__ == "__main__":
         axIR.plot(imp, "-", linewidth=1.0, color=color)
 
     # Mostramos los valores de GD avg de cada impulso:
-    GDtitle = 'GD avg: ' + '    '.join([str(x) for x in GDavgs]) + ' (ms)'
+    GDtitle = 'GD avg:    ' + '    '.join([str(x) for x in GDavgs]) + ' (ms)'
     axGD.set_title(GDtitle)
     
     # Leyenda con los nombres de los impulsos en el gráfico de magnitudes
