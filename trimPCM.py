@@ -3,10 +3,10 @@
 """
     v0.02beta
     
-    Recorta un IR pcm float 32 aplicando una ventana
+    Recorta un FIR pcm float 32 aplicando una ventana
 
     Uso:
-        python trimIR.py IRfile.pcm -tN
+        python trimPCM.py  file.pcm  -tN  [-o]
          N: taps de salida potencia de 2 (sin espacios)
         -o: sobreescribe el original
 """
