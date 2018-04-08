@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-    v0.01beta
+    v0.02beta
     
-    Recorta un IR aplicando una ventana
+    Recorta un IR pcm float 32 aplicando una ventana
 
     Uso:
         python trimIR.py IRfile.pcm -tN
-        N: taps de salida potencia de 2 (sin espacios)
-    
+         N: taps de salida potencia de 2 (sin espacios)
+        -o: sobreescribe el original
 """
 
 import sys
@@ -23,6 +23,7 @@ if __name__ == "__main__":
         sys.exit()
 
     m = 0
+    overwriteFile = False
 
     for opc in sys.argv[1:]:
 
@@ -32,6 +33,13 @@ if __name__ == "__main__":
                 print __doc__
                 sys.exit()
 
+        if "-h" in opc:
+            print __doc__
+            sys.exit()
+            
+        if "-o" in opc:
+            overwriteFile = True
+            
         else:
             fin = opc
 
@@ -39,8 +47,11 @@ if __name__ == "__main__":
         print __doc__
         sys.exit()
 
-    fout = str(m) + "taps_" + fin
-
+    if not overwriteFile:
+        fout = str(m) + "taps_" + fin
+    else:
+        fout = fin
+        
     # Leemos el impulso de entrada imp1
     imp1 = utils.readPCM32(fin)
     
