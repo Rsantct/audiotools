@@ -7,8 +7,8 @@
 
     Uso:
         python trimPCM.py  file.pcm  -tN  [-o]
-         N: taps de salida potencia de 2 (sin espacios)
-        -o: sobreescribe el original
+        -tN: N taps de salida potencia de 2 (sin espacios)
+        -o:  sobreescribe el original
 """
 
 import sys
@@ -33,7 +33,7 @@ if __name__ == "__main__":
                 print __doc__
                 sys.exit()
 
-        if "-h" in opc:
+        if opc == '-h':
             print __doc__
             sys.exit()
             
