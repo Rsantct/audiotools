@@ -4,7 +4,8 @@ function help {
   echo v0.01beta
   echo cutre script para obtener copias de FIRs a otra Fs
   echo
-  echo Uso:
+  echo Ejemplo de uso:
+  echo
   echo    resamplePCM.sh 44100 48000
   echo
   echo    Se procesan todos los pcm de la carpeta actual,
