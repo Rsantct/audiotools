@@ -47,4 +47,4 @@ for fname in *pcm; do
 done
 
 # 3. Fin
-echo Done, resampled files under $2/
+echo Done, resampled files under $Fs2/
