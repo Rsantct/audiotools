@@ -25,19 +25,20 @@ if __name__ == "__main__":
     m = 0
     overwriteFile = False
 
+    # Leemos opciones
     for opc in sys.argv[1:]:
 
-        if "-t" in opc:
+        if opc.startswith('-t'):
             m = int(opc.replace('-t', ''))
             if not utils.isPowerOf2(m):
                 print __doc__
                 sys.exit()
 
-        if opc == '-h':
+        elif opc == '-h' or opc == '--help':
             print __doc__
             sys.exit()
-            
-        if "-o" in opc:
+
+        elif opc == '-o':
             overwriteFile = True
             
         else:
@@ -46,6 +47,7 @@ if __name__ == "__main__":
     if not m:
         print __doc__
         sys.exit()
+
 
     if not overwriteFile:
         fout = str(m) + "taps_" + fin
