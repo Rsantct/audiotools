@@ -35,8 +35,8 @@ for fname in *pcm; do
 done
 
 # 2. Recorte de los nuevos PCM a la misma longitud que el original.
-#    No obstante Brutefir descartaría el exceso de taps respecto a los configurados
-#    en filter_lenght / blocks
+#    No obstante Brutefir descartaría el exceso de taps respecto a 
+#    lo que tenga configurado en filter_lenght / blocks
 for fname in *pcm; do
     # Longitud en bytes del pcm original
     fsize=$(wc -c < $fname)
