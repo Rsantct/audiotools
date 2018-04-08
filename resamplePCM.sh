@@ -20,7 +20,7 @@ if [[ ! $Fs1 || ! $Fs2 ]]; then
     exit -1
 fi
 
-mkdir -p $fs_out/
+mkdir -p $Fs1
 
 # 1.Resampling con SoX
 for fname in *pcm; do
