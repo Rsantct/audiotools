@@ -43,7 +43,7 @@ for fname in *pcm; do
     # Longitud en taps, en float32 se emplean 4 bytes ( 4*8=32 bits)
     ftaps=$(( $fsize / 4 ))
     # Recortamos
-    python ~/audiotools-master/trimPCM.py $Fs2/$fname -t$ftaps -o
+    python ~/audiotools/trimPCM.py $Fs2/$fname -t$ftaps -o
 done
 
 # 3. Fin
