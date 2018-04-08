@@ -1,14 +1,14 @@
 #!/bin/bash
 
 function help {
-  echo v0.01beta
-  echo cutre script para obtener copias de FIRs a otra Fs
+  echo "v0.01beta"
+  echo "  Cutre script para obtener copias de FIRs a otra Fs"
   echo
-  echo Ejemplo de uso:  resamplePCM.sh 44100 48000
+  echo "  Ejemplo de uso:  resamplePCM.sh 44100 48000"
   echo
-  echo Se procesan todos los pcm de la carpeta actual ./, 
-  echo se tratarán como Fs original 44100,
-  echo y los resultados en la carpeta ./48000/
+  echo "  Se procesan todos los pcm de la carpeta actual ./"
+  echo "  que se tratarán como Fs original 44100"
+  echo "  y los resultados se dejarán en la carpeta ./48000"
   echo
 }
 
