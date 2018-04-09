@@ -25,5 +25,5 @@ chmod +x audiotools/*
 profileFile=$(ls -a .*profile*)
 if ! grep -q "bin" "$profileFile"; then
     export PATH=$PATH:$HOME/audiotools
-    echo "export PATH=$PATH:$HOME/audiotools >> profileFile"
+    echo "export PATH=$PATH:$HOME/audiotools" >> profileFile
 fi
