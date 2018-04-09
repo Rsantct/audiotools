@@ -8,9 +8,9 @@ function help {
   echo
   echo "  Ejemplo de uso:  resamplePCM.sh 44100 48000"
   echo
-  echo "  Se procesan todos los *.pcm de la carpeta actual"
-  echo "  que se tratarán como Fs original 44100"
-  echo "  y los resultados se dejan en la carpeta 48000/"
+  echo "  Se procesan todos los *.pcm del directorio actual"
+  echo "  que se tratarán como Fs original 44100."
+  echo "  Los resultados se dejan en carpeta_actual/48000/"
   echo
 }
 
