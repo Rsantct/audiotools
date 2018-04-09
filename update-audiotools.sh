@@ -20,7 +20,9 @@ mv ~/audiotools-master ~/audiotools
 chmod +x ~/audiotools/*
 
 # Incluimos auditools en el profile del usuario
+#   Buscamos el archivo del profile
 profileFile=$(ls -a .*profile*)
+#   Si no tiene incluido el path a audiotools, lo incluimos
 if ! grep -q "audiotools" "$profileFile"; then
     echo "export PATH=${PATH}:${HOME}/audiotools" >> $profileFile
     export PATH=$PATH:$HOME/audiotools
