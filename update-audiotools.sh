@@ -27,7 +27,7 @@ mv ~/audiotools-$branch ~/audiotools
 chmod +x ~/audiotools/*
 
 # Dejamos una marca indicando la branch contenida
-touch ~/audiotools/THIS\ BRANCH\ IS\ $branch
+touch ~/audiotools/THIS_BRANCH_IS_$branch
 
 # Incluimos auditools en el profile del usuario
 #   Buscamos el archivo del profile
