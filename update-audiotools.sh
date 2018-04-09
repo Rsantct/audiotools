@@ -14,7 +14,7 @@ unzip -o master.zip
 rm -rf ~/audiotools
 
 # Y renombramos el directorio descomprimido
-mv ~/audiotools-master /audiotools
+mv ~/audiotools-master ~/audiotools
 
 # Hacemos ejecutables los archivos
 chmod +x ~/audiotools/*
