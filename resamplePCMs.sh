@@ -38,8 +38,8 @@ done
 
 # 2. Si hemos hecho upsampling, los nuevos pcm son más largos que los originales.
 #    Entonces los recortamos a la misma longitud que los originales.
-#    No obstante Brutefir descartaría el exceso de taps respecto a 
-#    lo que tenga configurado en filter_lenght/blocks.
+#    No obstante Brutefir descartaría el exceso de taps respecto
+#    a lo que tenga configurado en filter_lenght/blocks.
 for fname in *pcm; do
     # Longitud en bytes del pcm original
     fsize1=$(wc -c < $fname)
