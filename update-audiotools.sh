@@ -20,3 +20,10 @@ mv audiotools-master audiotools
 
 # Hacemos ejecutables los archivos
 chmod +x audiotools/*
+
+# Incluimos auditools en el profile del usuario
+profileFile=$(ls -a .*profile*)
+if ! grep -q "bin" "$profileFile"; then
+    export PATH=$PATH:$HOME/audiotools
+    echo "export PATH=$PATH:$HOME/audiotools >> profileFile"
+fi
