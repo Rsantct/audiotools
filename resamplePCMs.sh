@@ -44,10 +44,12 @@ for fname in *pcm; do
     fsize1=$(wc -c < $fname)
     # Longitud en bytes del nuevo pcm resampled
     fsize2=$(wc -c < $Fs2/$fname)
+    # Recortamos los nuevos pcm si son más largos 
+    # que los originales debido a upsampling.
     if [ "$fsize2" -gt  "$fsize1" ]; then 
         # Longitud en taps, en float32 se emplean 4 bytes ( 4*8=32 bits)
         ftaps=$(( $fsize1 / 4 ))
-        # Recortamos
+        # Recortamos con la herramienta trimPCM.py sobreescribiendo los nuevos pcm
         python ~/audiotools/trimPCM.py $Fs2/$fname -t$ftaps -o
     fi
 done
