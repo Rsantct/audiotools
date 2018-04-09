@@ -3,9 +3,7 @@
 cd ~/
 
 # Borramos si hubiera algun master.zip
-if [[ -f master.zip ]]; then
-    rm master.zip*
-fi
+rm -f master.zip*
 
 # Bajamos el zip de GitHUb
 wget https://github.com/Rsantct/audiotools/archive/master.zip
