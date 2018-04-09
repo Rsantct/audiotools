@@ -22,7 +22,7 @@ if [[ ! $Fs1 || ! $Fs2 ]]; then
     exit -1
 fi
 
-mkdir -p $Fs1
+mkdir -p $Fs2
 
 # 1.Resampling con SoX
 for fname in *pcm; do
@@ -44,7 +44,7 @@ for fname in *pcm; do
     fsize1=$(wc -c < $fname)
     # Longitud en bytes del nuevo pcm resampled
     fsize2=$(wc -c < $fnamef32)
-    if [[ $((  $fsize2 >  $fsize1)) ]]; then 
+    if [[ $(  $fsize2 >  $fsize1) ]]; then 
         # Longitud en taps, en float32 se emplean 4 bytes ( 4*8=32 bits)
         ftaps=$(( $fsize1 / 4 ))
         # Recortamos
