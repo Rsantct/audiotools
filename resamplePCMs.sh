@@ -41,11 +41,15 @@ done
 #    lo que tenga configurado en filter_lenght / blocks
 for fname in *pcm; do
     # Longitud en bytes del pcm original
-    fsize=$(wc -c < $fname)
-    # Longitud en taps, en float32 se emplean 4 bytes ( 4*8=32 bits)
-    ftaps=$(( $fsize / 4 ))
-    # Recortamos
-    python ~/audiotools/trimPCM.py $Fs2/$fname -t$ftaps -o
+    fsize1=$(wc -c < $fname)
+    # Longitud en bytes del nuevo pcm resampled
+    fsize2=$(wc -c < $fnamef32)
+    if [[ $((  $fsize2 >  $fsize1)) ]]; then 
+        # Longitud en taps, en float32 se emplean 4 bytes ( 4*8=32 bits)
+        ftaps=$(( $fsize1 / 4 ))
+        # Recortamos
+        python ~/audiotools/trimPCM.py $Fs2/$fname -t$ftaps -o
+    fi
 done
 
 # 3. Fin
