@@ -4,7 +4,7 @@ Algunas herramientas, orientadas al manejo de FIRs para FIRtro
 
 ### Install:
 
-    wget https://github.com/Rsantct/audiotools/blob/master/update-audiotools.sh
+    wget https://raw.githubusercontent.com/Rsantct/audiotools/master/update-audiotools.sh
     sh update-audiotools.sh
     export PATH=$PATH:$HOME/audiotools
     rm update-audiotools.sh
