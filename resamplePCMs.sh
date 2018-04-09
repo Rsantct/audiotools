@@ -10,7 +10,7 @@ function help {
   echo
   echo "  Se procesan todos los *.pcm del directorio actual"
   echo "  que se tratarán como Fs original 44100."
-  echo "  Los resultados se dejan en carpeta_actual/48000/"
+  echo "  Los resultados se dejan en: 'directorio_actual/48000/'"
   echo
 }
 
