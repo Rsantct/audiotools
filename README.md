@@ -4,14 +4,14 @@ Algunas herramientas, orientadas al manejo de FIRs para FIRtro
 
 ### Install:
 
-    wget https://github.com/Rsantct/audiotools/blob/master/update-master.sh
-    sh update-master.sh
+    wget https://github.com/Rsantct/audiotools/blob/master/update-audiotools.sh
+    sh update-audiotools.sh
     export PATH=$PATH:$HOME/audiotools
-    rm update-master.sh
+    rm update-audiotools.sh
 
 ### Update:
 
-    sh ~/audiotools/update-master.sh
+    sh ~/audiotools/update-audiotools.sh
 
 ### Useful link:
 https://github.com/AudioHumLab/FIRtro
