@@ -3,9 +3,10 @@
 # admite actualizar otra branch distinta de 'master'
 
 branch=master
-if $1; then
+if [ "$1" != "" ]; then
     branch=$1
 fi
+
 cd ~/
 
 # Borramos si hubiera algun master.zip
