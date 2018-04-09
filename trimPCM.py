@@ -62,4 +62,4 @@ if __name__ == "__main__":
 
     # Y lo guardamos en formato pcm float 32
     utils.savePCM32(raw=imp2, fout=fout)
-    print "Guardado en:", fout
+    print "pcm recortado a " + str(m) + " taps en: " + fout
