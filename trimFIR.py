@@ -68,12 +68,30 @@ if __name__ == "__main__":
     lee_opciones()
    
     # Leemos el impulso de entrada imp1
-    imp1 = utils.readPCM32(f_in)
+    if   f_in[-3] == '.pcm'
+        imp1 = utils.readPCM32(f_in)
+    elif f_in[-3] == '.wav'
+        fs, imp1 = utils.readWAV16(f_in)
+
+    # Buscamos el pico:
+    pkpos = abs(imp1).argmax()
+
+    # Enventanado simétrico
+    if not sym:
+        # Hacemos dos ventanas, una muy corta por delante para pillar bien el impulso
+        # y otra larga por detrás hasta completar los taps finales deseados:
+        nleft  = int(frac * m)
+        nright = m - nleft
+
+    # Enventanado NO simétrico
+    else:
+        #   !!!!!  WIP   !!!!!!!
+        pass
     
-    # Lo cortamos a la longitud deseada aplicando una ventana:
-    imp2 = dsd.semiblackman(m) * imp1[:m]
+    imp2L = imp1[pkpos-nleft:pkpos]  * dsd.semiblackman(nleft)[::-1]
+    imp2R = imp1[pkpos:pkpos+nright] * dsd.semiblackman(nright)
 
     # Y lo guardamos en formato pcm float 32
-    utils.savePCM32(raw=imp2, fout=f_out)
+    utils.savePCM32(np.concatenate([imp2L, imp2R]), f_out)
     print "pcm recortado a " + str(m) + " taps en: " + f_out
 
