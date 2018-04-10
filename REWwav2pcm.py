@@ -7,10 +7,12 @@
     en un archivo raw float32 (.pcm) adecuado para un convolver
     como Brutefir
 
-    OjO: Los impulsos IR .wav de REW vienen con el pico desplazado
-         tantas muestras como el valor de la Fs del wav.
-         por tanto haremos una reconstrucción completa 
-         time domain > spectrum > time domain
+    NOTA:   Los impulsos IR .wav de REW vienen con el pico desplazado
+            tantas muestras como el valor de la Fs del wav.
+            Aquí haremos una reconstrucción completa:
+            time domain > spectrum > time domain, tomando la 
+            minimum phase descartamos el exceso de phase si lo hubiera, 
+            resultando en un impulso con el pico al inicio.
 """
 
 import sys
