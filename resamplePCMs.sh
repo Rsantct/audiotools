@@ -3,7 +3,7 @@
 # DISCLAIMER ATCHUNG: WORK IN PROGRESS - BETA TOTAL
 
 # TO DO:
-# - Validar si lo que aquí se hace es adecuado...
+# - (!!!) OjO los trimFIR deben hacerse diferentes con lp o con mp
 # - Esto se empezó en plan sencillo, convendría abandonar bash y 
 # trasladarlo a python usando pySoX
 
