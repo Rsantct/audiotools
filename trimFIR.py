@@ -85,16 +85,15 @@ if __name__ == "__main__":
         # y otra larga por detrás hasta completar los taps finales deseados:
         nleft  = int(frac * m)
         nright = m - nleft
+        imp2L = imp1[pkpos-nleft:pkpos]  * dsd.semiblackman(nleft)[::-1]
+        imp2R = imp1[pkpos:pkpos+nright] * dsd.semiblackman(nright)
+        imp2 = np.concatenate([imp2L, imp2R])
 
     # Enventanado simétrico
     else:
-        #   !!!!!  WIP   !!!!!!!
-        pass
+        imp2 = imp1[pkpos-m/2 : pkpos+m/2+ 1]  * dsd.blackman(m)
     
-    imp2L = imp1[pkpos-nleft:pkpos]  * dsd.semiblackman(nleft)[::-1]
-    imp2R = imp1[pkpos:pkpos+nright] * dsd.semiblackman(nright)
-
     # Y lo guardamos en formato pcm float 32
-    utils.savePCM32(np.concatenate([imp2L, imp2R]), f_out)
+    utils.savePCM32(imp2, f_out)
     print "pcm recortado a " + str(m) + " taps en: " + f_out
 
