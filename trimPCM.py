@@ -18,37 +18,30 @@ import utils
 
 if __name__ == "__main__":
 
+    # Leemos opciones
+    m = 0
+    overwriteFile = False
     if len(sys.argv) == 1:
         print __doc__
         sys.exit()
-
-    m = 0
-    overwriteFile = False
-
-    # Leemos opciones
     for opc in sys.argv[1:]:
-
         if opc.startswith('-t'):
             m = int(opc.replace('-t', ''))
             if not utils.isPowerOf2(m):
                 print __doc__
                 sys.exit()
-
         elif opc == '-h' or opc == '--help':
             print __doc__
             sys.exit()
-
         elif opc == '-o':
             overwriteFile = True
-            
         else:
             fin = opc
-
     if not m:
         print __doc__
         sys.exit()
 
-
+    # El archivo de salida depende de si se pide sobreescribir
     if not overwriteFile:
         fout = str(m) + "taps_" + fin
     else:
