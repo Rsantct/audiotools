@@ -27,9 +27,10 @@
 #   El GD recoge en la gráfica el delay del pico del filtro.
 #   Autoescala magnitudes.
 #   Se deja de mostrar los taps en 'Ktaps'
-version = 'v0.2e'
+version = 'v0.2f'
 #   Axes de impulsos en una fila opcinalmente
 #   Se muestra la versión del programa al pie de las gráficas.
+#   Se guarda la gráfica en un pdf
 # TO DO:
 #   Revisar la gráfica de fases
 #   Revisar la información mostrada "GD avg" que pretende ser la moda de los valores
@@ -289,6 +290,17 @@ if __name__ == "__main__":
 
     # Finalmente mostramos las gráficas por pantalla.
     plt.show()
+
+    # Y guardamos las gráficas en un PDF:
+    pdfName = "_".join(sys.argv[1:] + '.pdf'
+    print "\nGuardando en el archivo " + pdfName
+    # evitamos los warnings del pdf 
+    # C:\Python27\lib\site-packages\matplotlib\figure.py:1742: UserWarning: 
+    # This figure includes Axes that are not compatible with tight_layout, so 
+    # its results might be incorrect.
+    import warnings
+    warnings.filterwarnings("ignore")
+    fig.savefig(pdfName, bbox_inches='tight')
 
     print "Bye!"
    
