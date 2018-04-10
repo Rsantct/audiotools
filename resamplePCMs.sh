@@ -17,14 +17,13 @@ function help {
   echo
 }
 
-Fs1=$1  # fs de entrada
-Fs2=$2  # fs de salida
-
+# fs de entrada y de salida se dan como argumentos de la orden
+Fs1=$1  
+Fs2=$2
 if [[ ! $Fs1 || ! $Fs2 ]]; then
     help
     exit -1
 fi
-
 # Creamos el directorio de resultados
 mkdir -p $Fs2
 
