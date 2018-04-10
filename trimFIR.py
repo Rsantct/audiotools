@@ -13,6 +13,7 @@
         -tM     M taps de salida potencia de 2 (sin espacios)
         
         -lp     equivale a -sym
+        
         -mp     equivale a -p0
 
         -pP     Posición en P taps del peak en el FIR de entrada (no se buscará).
