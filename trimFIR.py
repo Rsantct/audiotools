@@ -4,11 +4,13 @@
     v0.1 wip
     
     Recorta un FIR .pcm float32 o .wav int16 aplicando una ventana
+    
     Uso:
-        python trimPCM.py  file.pcm  -tN [-s] [-o]
-        -tN: N taps de salida potencia de 2 (sin espacios)
-        -s:  ventana simétrica centrada en el pico
-        -o:  sobreescribe el original
+        python trimPCM.py  file.pcm  [-pPOS] -tTAPS  [-s] [-o]
+        -tTASP: Taps de salida potencia de 2 (sin espacios)
+        -pPOS:  Tap de ubicacion del pico en el FIR de entrada, no se buscará.
+        -s:     Ventana simétrica centrada en el pico
+        -o:     Sobreescribe el original
         
     Notas:
         -s  permite procesar FIR linear phase 
@@ -29,7 +31,8 @@ import pydsd as dsd
 import utils
 
 def lee_opciones():
-    global m, overwriteFile, sym
+    global m, overwriteFile, sym, pkPos
+    pkPos = np.nan # así podemos pasar 0 como argumento
     m = 0
     overwriteFile = False
     sym = False
@@ -42,6 +45,8 @@ def lee_opciones():
             if not utils.isPowerOf2(m):
                 print __doc__
                 sys.exit()
+        if opc.startswith('-p'):
+            pkPos = int(opc.replace('-t', ''))
         elif opc == '-h' or opc == '--help':
             print __doc__
             sys.exit()
@@ -64,9 +69,6 @@ def lee_opciones():
 
 if __name__ == "__main__":
     
-    print "WORK IN PROGRESS"
-    sys.exit()
-
     # Leemos opciones
     lee_opciones()
    
@@ -76,8 +78,9 @@ if __name__ == "__main__":
     elif f_in[-3:] == '.wav'
         fs, imp1 = utils.readWAV16(f_in)
 
-    # Buscamos el pico:
-    pkpos = abs(imp1).argmax()
+    # Buscamos el pico si no se ha indicado una posición predefinida:
+    if pkPos == np.nan:
+        pkPos = abs(imp1).argmax()
 
     # Enventanado NO simétrico
     if not sym:
@@ -85,13 +88,13 @@ if __name__ == "__main__":
         # y otra larga por detrás hasta completar los taps finales deseados:
         nleft  = int(frac * m)
         nright = m - nleft
-        imp2L = imp1[pkpos-nleft:pkpos]  * dsd.semiblackman(nleft)[::-1]
-        imp2R = imp1[pkpos:pkpos+nright] * dsd.semiblackman(nright)
+        imp2L = imp1[pkPos-nleft:pkPos]  * dsd.semiblackman(nleft)[::-1]
+        imp2R = imp1[pkPos:pkPos+nright] * dsd.semiblackman(nright)
         imp2 = np.concatenate([imp2L, imp2R])
 
     # Enventanado simétrico
     else:
-        imp2 = imp1[pkpos-m/2 : pkpos+m/2+ 1]  * dsd.blackman(m)
+        imp2 = imp1[pkPos-m/2 : pkPos+m/2+ 1]  * dsd.blackman(m)
     
     # Y lo guardamos en formato pcm float 32
     utils.savePCM32(imp2, f_out)
