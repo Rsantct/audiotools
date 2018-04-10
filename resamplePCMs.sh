@@ -1,7 +1,11 @@
 #!/bin/bash
 
-# TO DO:  Esto se empezó en plan sencillo, convendría abandonar bash y 
-#         trasladarlo a python usando pySoX
+# DISCLAIMER ATCHUNG: WORK IN PROGRESS - BETA TOTAL
+
+# TO DO:
+# - Validar s i lo que aquí se hace es adecuado...
+# - Esto se empezó en plan sencillo, convendría abandonar bash y 
+# trasladarlo a python usando pySoX
 
 function help {
   echo 
@@ -52,7 +56,7 @@ for fname in *pcm; do
     if [ "$fsize2" -gt  "$fsize1" ]; then 
         # Longitud en taps, en float32 se emplean 4 bytes ( 4*8=32 bits)
         ftaps=$(( $fsize1 / 4 ))
-        # Recortamos con la herramienta trimPCM.py sobreescribiendo los nuevos pcm
+        # Recortamos con la herramienta trimFIR.py sobreescribiendo los nuevos pcm
         python ~/audiotools/trimFIR.py $Fs2/$fname -t$ftaps -o
     fi
 done
