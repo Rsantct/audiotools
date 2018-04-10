@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-    v0.1beta
+    v0.1 wip
     
     Recorta un FIR pcm float 32 aplicando una ventana
     Uso:
@@ -20,6 +20,9 @@ import pydsd as dsd
 import utils
 
 if __name__ == "__main__":
+    
+    print "WORK IN PROGRESS"
+    sys.exit()
 
     # Leemos opciones
     m = 0
