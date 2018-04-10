@@ -14,20 +14,22 @@
         -s  permite procesar FIR linear phase 
             con el pico en cualquier localización.
 """
+
+# ------------------------   config   -----------------------------
+# Fracción de m que se tomará para enventanar por delante del pico
+frac = 0.001
+# -----------------------------------------------------------------
+
 import sys
 import numpy as np
 import pydsd as dsd
 import utils
 
-if __name__ == "__main__":
-    
-    print "WORK IN PROGRESS"
-    sys.exit()
-
-    # Leemos opciones
+def lee_opciones():
+    global m, overwriteFile, sym
     m = 0
     overwriteFile = False
-    sim = False
+    sym = False
     if len(sys.argv) == 1:
         print __doc__
         sys.exit()
@@ -43,26 +45,35 @@ if __name__ == "__main__":
         elif opc == '-o':
             overwriteFile = True
         elif opc == '-s':
-            sim = True
+            sym = True
         else:
-            fin = opc
+            f_in = opc
     if not m:
         print __doc__
         sys.exit()
 
     # El nombre de archivo de salida depende de si se pide sobreescribir
     if not overwriteFile:
-        fout = str(m) + "taps_" + fin
+        f_out = str(m) + "taps_" + f_in
     else:
-        fout = fin
+        f_out = f_in
         
+
+if __name__ == "__main__":
+    
+    print "WORK IN PROGRESS"
+    sys.exit()
+
+    # Leemos opciones
+    lee_opciones()
+   
     # Leemos el impulso de entrada imp1
-    imp1 = utils.readPCM32(fin)
+    imp1 = utils.readPCM32(f_in)
     
     # Lo cortamos a la longitud deseada aplicando una ventana:
     imp2 = dsd.semiblackman(m) * imp1[:m]
 
     # Y lo guardamos en formato pcm float 32
-    utils.savePCM32(raw=imp2, fout=fout)
-    print "pcm recortado a " + str(m) + " taps en: " + fout
+    utils.savePCM32(raw=imp2, fout=f_out)
+    print "pcm recortado a " + str(m) + " taps en: " + f_out
 
