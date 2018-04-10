@@ -7,12 +7,14 @@
     Uso:
         python trimPCM.py  file.pcm  -tN [-s] [-o]
         -tN: N taps de salida potencia de 2 (sin espacios)
-        -s:  ventana simétrica en el pico
+        -s:  ventana simétrica centrada en el pico
         -o:  sobreescribe el original
         
-    Nota:
+    Notas:
         -s  permite procesar FIR linear phase 
             con el pico en cualquier localización.
+
+        El resultado se guarda en formato .pcm float 32
 """
 
 # ----------   config   -------------------
@@ -55,9 +57,9 @@ def lee_opciones():
 
     # El nombre de archivo de salida depende de si se pide sobreescribir
     if not overwriteFile:
-        f_out = str(m) + "taps_" + f_in
+        f_out = str(m) + "taps_" + f_in.replace('.wav', '.pcm')
     else:
-        f_out = f_in
+        f_out = f_in.replace('.wav', '.pcm')
         
 
 if __name__ == "__main__":
