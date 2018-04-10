@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-    v0.02beta
+    v0.01beta
     
     Recorta un FIR pcm float 32 aplicando una ventana
 
