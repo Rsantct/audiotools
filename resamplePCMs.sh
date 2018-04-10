@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# TO DO:  Esto se empezó en plan sencillo, convendría abandonar bash y 
+#         trasladarlo a python usando pySoX
+
 function help {
   echo 
   echo "  v0.01beta"
@@ -14,14 +17,15 @@ function help {
   echo
 }
 
-Fs1=$1
-Fs2=$2
+Fs1=$1  # fs de entrada
+Fs2=$2  # fs de salida
 
 if [[ ! $Fs1 || ! $Fs2 ]]; then
     help
     exit -1
 fi
 
+# Creamos el directorio de resultados
 mkdir -p $Fs2
 
 # 1.Resampling con SoX
