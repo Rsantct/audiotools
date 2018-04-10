@@ -1,22 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-    pydsd v0.1BETA  *** work in progress ***
+    pydsd v0.01BETA
     
-    Traslación a python/scipy de algunas funciones del paquete DSD
+    %%%%%%%%%%%%%%  DSD  %%%%%%%%%%%%%%%%%
+    %% Traslación a python/scipy de     %%
+    %% funciones del paquete DSD        %%
+    %% https://github.com/rripio/DSD    %%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-        %%%%%%%%%%%%%%  DSD  %%%%%%%%%%%%%%%%%
-        %% https://github.com/rripio/DSD    %%
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
-    Nota: En cada función adaptada podemos ver código
-          original en octave comentado con #%%
-          
     DISCLAIMER: El autor de DSD no garantiza ni supervisa
                 esta traslación.
                 
-    ACHTUNG: El autor tampoco garantiza el correcto funcionamiento.
-    
+    ACHTUNG:    work in progress BETA
+
+    Nota:       En cada función adaptada podemos ver código
+                original en octave comentado con #%%
 """
 
 import numpy as np
