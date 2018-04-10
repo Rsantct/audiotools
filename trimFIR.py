@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-    v0.1 wip
+    v0.1
     
     Recorta un FIR .pcm float32 o .wav int16 aplicando una ventana
     
