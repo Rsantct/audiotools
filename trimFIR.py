@@ -8,17 +8,20 @@
 
     Uso y opciones:
 
-        python trimPCM.py  file.pcm -tM [-pP] [-sym] [-o]
+        python trimPCM.py  file.pcm -tM [-pP] [-sym] [-o] [-lp|-mp]
 
-        -tM:    M taps de salida potencia de 2 (sin espacios)
+        -tM     M taps de salida potencia de 2 (sin espacios)
+        
+        -lp     equivale a -sym
+        -mp     equivale a -p0
 
-        -pP:    Posición en P taps del peak en el FIR de entrada (no se buscará).
+        -pP     Posición en P taps del peak en el FIR de entrada (no se buscará).
                 Si se omite -p, se buscará el peak automáticamente.
 
-        -sym:   Ventana simétrica.
+        -sym    Ventana simétrica.
                 Si se omite se aplicará una semiventana.
 
-        -o:     Sobreescribe el archivo original
+        -o      Sobreescribe el archivo original
 
     Notas de aplicación:
 
@@ -42,9 +45,10 @@ import pydsd as dsd
 import utils
 
 def lee_opciones():
-    global f_in, f_out
+    global f_in, f_out, phasetype
     global m, overwriteFile, sym, pkPos
     f_in = ''
+    phaseType= ''
     pkPos = -1 # fuerza la búsqueda
     m = 0
     overwriteFile = False
@@ -58,7 +62,7 @@ def lee_opciones():
             if not utils.isPowerOf2(m):
                 print __doc__
                 sys.exit()
-        if opc.startswith('-p'):
+        elif opc.startswith('-p'):
             pkPos = int(opc.replace('-p', ''))
         elif opc == '-h' or opc == '--help':
             print __doc__
@@ -67,6 +71,10 @@ def lee_opciones():
             overwriteFile = True
         elif opc == '-sym':
             sym = True
+        elif opc == '-lp':
+            phaseType = 'lp'
+        elif opc == '-mp':
+            phaseType = 'mp'
         else:
             if not f_in:
                 f_in = opc
@@ -74,6 +82,14 @@ def lee_opciones():
         print __doc__
         sys.exit()
 
+    if phaseType == 'lp':
+        sym = True
+        pkPos = -1 # pkPos autodiscovered
+    if phaseType == 'mp':
+        sym = False
+        pkPos = 0
+
+        
     # El nombre de archivo de salida depende de si se pide sobreescribir
     if not overwriteFile:
         f_out = str(m) + "taps_" + f_in.replace('.wav', '.pcm')
