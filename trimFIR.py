@@ -15,10 +15,11 @@
             con el pico en cualquier localización.
 """
 
-# ------------------------   config   -----------------------------
-# Fracción de m que se tomará para enventanar por delante del pico
+# ----------   config   -------------------
+# En enventanado asimétrico, fracción de m 
+# que se tomará por delante del pico
 frac = 0.001
-# -----------------------------------------------------------------
+# -----------------------------------------
 
 import sys
 import numpy as np
@@ -68,22 +69,22 @@ if __name__ == "__main__":
     lee_opciones()
    
     # Leemos el impulso de entrada imp1
-    if   f_in[-3] == '.pcm'
+    if   f_in[-3:] == '.pcm'
         imp1 = utils.readPCM32(f_in)
-    elif f_in[-3] == '.wav'
+    elif f_in[-3:] == '.wav'
         fs, imp1 = utils.readWAV16(f_in)
 
     # Buscamos el pico:
     pkpos = abs(imp1).argmax()
 
-    # Enventanado simétrico
+    # Enventanado NO simétrico
     if not sym:
         # Hacemos dos ventanas, una muy corta por delante para pillar bien el impulso
         # y otra larga por detrás hasta completar los taps finales deseados:
         nleft  = int(frac * m)
         nright = m - nleft
 
-    # Enventanado NO simétrico
+    # Enventanado simétrico
     else:
         #   !!!!!  WIP   !!!!!!!
         pass
