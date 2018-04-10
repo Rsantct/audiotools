@@ -14,19 +14,19 @@
 
         -pP:    Posición en P taps del peak en el FIR de entrada (no se buscará).
                 Si se omite -p, se buscará el peak automáticamente.
-                
+
         -sym:   Ventana simétrica.
                 Si se omite se aplicará una semiventana.
 
         -o:     Sobreescribe el archivo original
 
     Notas de aplicación:
-    
+
     tipo de FIR             ventana           peakPos
     -----------------       -------           -------
     minimum phase                             0
-    linear phase            -sym              auto/userDef
-    linear + min phase      -sym              auto/userDef
+    linear phase            -sym              auto/userdef
+    linear + min phase      -sym              auto/userdef
 
 """
 
@@ -122,4 +122,4 @@ if __name__ == "__main__":
 
     # Y lo guardamos en formato pcm float 32
     utils.savePCM32(imp2, f_out)
-    print "FIR recortado en: " + f_out + " (peak1: " + str(pkPos), "peak2: " + str(pkPos2) + ")"
+    print "FIR recortado en: " + f_out + " (peak:" + str(pkPos) + " peak_" + str(m) + ":" + str(pkPos2) + ")"
