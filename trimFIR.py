@@ -6,9 +6,9 @@
     Recorta un FIR .pcm float32 o .wav int16 aplicando una ventana
     
     Uso:
-        python trimPCM.py  file.pcm  [-pPOS] -tTAPS  [-s] [-o]
-        -tTASP: Taps de salida potencia de 2 (sin espacios)
-        -pPOS:  Tap de ubicacion del pico en el FIR de entrada, no se buscará.
+        python trimPCM.py  file.pcm  [-pP] -tM  [-s] [-o]
+        -tM:    M taps de salida potencia de 2 (sin espacios)
+        -pP:    Posición en taps del pico en el FIR de entrada, no se buscará.
         -s:     Ventana simétrica centrada en el pico
         -o:     Sobreescribe el original
         
@@ -20,8 +20,8 @@
 """
 
 # ----------   config   -------------------
-# En enventanado asimétrico, fracción de m 
-# que se tomará por delante del pico
+# En enventanado asimétrico, fracción de 'M'
+# que se enventanará por delante del pico
 frac = 0.001
 # -----------------------------------------
 
