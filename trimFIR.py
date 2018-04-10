@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     # Enventanado NO simétrico
     if not sym:
-        # Hacemos dos ventanas, una muy corta por delante para pillar bien el impulso
+        # Hacemos dos semiventanas, una muy corta por delante para pillar bien el impulso
         # y otra larga por detrás hasta completar los taps finales deseados:
         nleft  = int(frac * m)
         nright = m - nleft
@@ -94,9 +94,10 @@ if __name__ == "__main__":
 
     # Enventanado simétrico
     else:
-        imp2 = imp1[pkPos-m/2 : pkPos+m/2+ 1]  * dsd.blackman(m)
+        # Hacemos una ventana centrada en el pico
+        imp2 = imp1[pkPos-m/2 : pkPos+m/2+ 1] * dsd.blackman(m)
     
     # Y lo guardamos en formato pcm float 32
     utils.savePCM32(imp2, f_out)
-    print "pcm recortado a " + str(m) + " taps en: " + f_out
+    print "FIR recortado a " + str(m) + " taps en: " + f_out
 
