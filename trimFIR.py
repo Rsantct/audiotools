@@ -22,7 +22,8 @@
         -sym    Ventana simétrica.
                 Si se omite se aplicará una semiventana.
 
-        -o      Sobreescribe el archivo original
+        -o      Sobreescribe el archivo original.
+                Si se omite se le añade un prefijo 'Mtaps_'
 
     Notas de aplicación:
 
