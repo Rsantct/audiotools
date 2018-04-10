@@ -5,11 +5,15 @@
     
     Recorta un FIR pcm float 32 aplicando una ventana
     Uso:
-        python trimPCM.py  file.pcm  -tN  [-o]
+        python trimPCM.py  file.pcm  -tN [-s] [-o]
         -tN: N taps de salida potencia de 2 (sin espacios)
+        -s:  ventana simétrica en el pico
         -o:  sobreescribe el original
+        
+    Nota:
+        -s  permite procesar FIR linear phase 
+            con el pico en cualquier localización.
 """
-
 import sys
 import numpy as np
 import pydsd as dsd
@@ -20,6 +24,7 @@ if __name__ == "__main__":
     # Leemos opciones
     m = 0
     overwriteFile = False
+    sim = False
     if len(sys.argv) == 1:
         print __doc__
         sys.exit()
@@ -34,13 +39,15 @@ if __name__ == "__main__":
             sys.exit()
         elif opc == '-o':
             overwriteFile = True
+        elif opc == '-s':
+            sim = True
         else:
             fin = opc
     if not m:
         print __doc__
         sys.exit()
 
-    # El archivo de salida depende de si se pide sobreescribir
+    # El nombre de archivo de salida depende de si se pide sobreescribir
     if not overwriteFile:
         fout = str(m) + "taps_" + fin
     else:
