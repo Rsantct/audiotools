@@ -24,9 +24,9 @@
     
     tipo de FIR             ventana           peakPos
     -----------------       -------           -------
-    minimum phase                             0 / auto
-    linear phase            -sym              auto
-    linear + min phase      -sym              userDef/auto
+    minimum phase                             0
+    linear phase            -sym              auto/userDef
+    linear + min phase      -sym              auto/userDef
 
 """
 
@@ -104,10 +104,13 @@ if __name__ == "__main__":
         # Hacemos dos semiventanas, una muy corta por delante para pillar bien el impulso
         # y otra larga por detrás hasta completar los taps finales deseados:
         nleft  = int(frac * m)
-        nright = m - nleft
-        imp2L = imp1[pkPos-nleft:pkPos]  * dsd.semiblackman(nleft)[::-1]
-        imp2R = imp1[pkPos:pkPos+nright] * dsd.semiblackman(nright)
-        imp2 = np.concatenate([imp2L, imp2R])
+        if nleft <= pkPos:
+            nright = m - nleft
+            imp2L = imp1[pkPos-nleft:pkPos]  * dsd.semiblackman(nleft)[::-1]
+            imp2R = imp1[pkPos:pkPos+nright] * dsd.semiblackman(nright)
+            imp2 = np.concatenate([imp2L, imp2R])
+        else:
+            imp2 = imp1[0:m] * dsd.semiblackman(m)
 
     # Enventanado simétrico
     else:
@@ -119,5 +122,4 @@ if __name__ == "__main__":
 
     # Y lo guardamos en formato pcm float 32
     utils.savePCM32(imp2, f_out)
-    print "FIR recortado en: " + f_out
-    print "    peak1: " + str(pkPos), "peak2: " + str(pkPos2)
+    print "FIR recortado en: " + f_out + " (peak1: " + str(pkPos), "peak2: " + str(pkPos2) + ")"
