@@ -292,7 +292,7 @@ if __name__ == "__main__":
     plt.show()
 
     # Y guardamos las gráficas en un PDF:
-    pdfName = ",".join(sys.argv[1:]) + '.pdf'
+    pdfName = ",".join([x for x in sys.argv[1:] if '.' in x]) + '.pdf'
     print "\nGuardando en el archivo " + pdfName
     # evitamos los warnings del pdf 
     # C:\Python27\lib\site-packages\matplotlib\figure.py:1742: UserWarning: 
