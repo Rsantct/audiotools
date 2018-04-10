@@ -3,7 +3,7 @@
 """
     v0.1 wip
     
-    Recorta un FIR pcm float 32 aplicando una ventana
+    Recorta un FIR .pcm float32 o .wav int16 aplicando una ventana
     Uso:
         python trimPCM.py  file.pcm  -tN [-s] [-o]
         -tN: N taps de salida potencia de 2 (sin espacios)
