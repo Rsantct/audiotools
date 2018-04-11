@@ -32,12 +32,11 @@
 
     Notas de aplicación:
 
-    tipo de FIR                 ventana           peakPos
-    -----------------           -------           -------
-    minimum phase (no delayed)                    userdef=0
-    minimum phase (delayed)     -asymR            auto
-    linear phase                                  auto / userdef
-    linear + min phase                            auto / userdef
+    Tipo de FIR:                  Ventana:   PeakPos:
+    -----------------             -------    -------
+    minimum phase (no delayed)    asym 0%    userdef=0
+    minimum phase (delayed)       asym       auto / userdef
+    linear phase                  sym        auto / userdef
 
 """
 
