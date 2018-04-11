@@ -28,7 +28,7 @@ function help {
 Fs1=$1  
 Fs2=$2
 ftype=$3
-if [[ ! $Fs1 || ! $Fs2 ]]; then
+if [[ ! $Fs1 && ! $Fs2 ]]; then
     help
     exit -1
 fi
