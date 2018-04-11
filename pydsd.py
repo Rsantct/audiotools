@@ -18,14 +18,15 @@
                 original en octave comentado con #%%
 """
 # v0.01aBETA
-# + blackman
+# + blackmanharris
+# *'blackman' functions renombradas a *'blackmanharris'
 
 import numpy as np
 from scipy import signal, interpolate
 
-def semiblackman(m):
+def semiblackmanharris(m):
     """
-    %% Obtiene la mitad derecha de una ventana Blackman de longitud m.
+    %% Obtiene la mitad derecha de una ventana Blackman-Harris de longitud m.
     %% w = Ventana.
     %% m = Número de muestras.
     """
@@ -34,9 +35,9 @@ def semiblackman(m):
     # devolvemos la mitad derecha
     return w[m:]
 
-def blackman(m):
+def blackmanharris(m):
     """
-    %% Obtiene una ventana Blackman de longitud m.
+    %% Obtiene una ventana Blackman-Harris de longitud m.
     """
     return signal.blackmanharris(m)
 
