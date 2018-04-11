@@ -126,16 +126,16 @@ if __name__ == "__main__":
         nleft  = int(frac * m)
         if nleft <= pkPos:
             nright = m - nleft
-            imp2L = imp1[pkPos-nleft:pkPos]  * dsd.semiblackman(nleft)[::-1]
-            imp2R = imp1[pkPos:pkPos+nright] * dsd.semiblackman(nright)
+            imp2L = imp1[pkPos-nleft:pkPos]  * dsd.semiblackmanharris(nleft)[::-1]
+            imp2R = imp1[pkPos:pkPos+nright] * dsd.semiblackmanharris(nright)
             imp2 = np.concatenate([imp2L, imp2R])
         else:
-            imp2 = imp1[0:m] * dsd.semiblackman(m)
+            imp2 = imp1[0:m] * dsd.semiblackmanharris(m)
 
     # Enventanado simétrico
     else:
         # Aplicamos la ventana centrada en el pico
-        imp2 = imp1[pkPos-m/2 : pkPos+m/2] * dsd.blackman(m)
+        imp2 = imp1[pkPos-m/2 : pkPos+m/2] * dsd.blackmanharris(m)
 
     # Informativo
     pkPos2 = abs(imp2).argmax()
