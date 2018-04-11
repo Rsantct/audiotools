@@ -23,7 +23,7 @@
                 Si se omite -p, se buscará el peak automáticamente.
 
       -asym[R]  Enventanado asimétrico respecto del peak,
-                R es el ratio % que ocupará la semiventana por la izquierda del peak.
+                R es el ratio % que ocupará la semiventana de la izquierda.
                 Si se omite R se aplicará un ratio del 0.1 %
                 Si se omite -asym[R] se aplicará enventanado simétrico.
 
