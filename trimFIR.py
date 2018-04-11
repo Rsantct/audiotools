@@ -8,7 +8,7 @@
 
     Uso y opciones:
 
-        python trimPCM.py  file.pcm -tM [-pP] [-sym] [-o] [-lp|-mp]
+        python trimFIR.py  file.pcm -tM [-pP] [-sym] [-o] [-lp|-mp]
 
         -tM     M taps de salida potencia de 2 (sin espacios)
         
@@ -22,7 +22,8 @@
         -sym    Ventana simétrica.
                 Si se omite se aplicará una semiventana.
 
-        -o      Sobreescribe el archivo original
+        -o      Sobreescribe el archivo original.
+                Si se omite se le añade un prefijo 'Mtaps_'
 
     Notas de aplicación:
 

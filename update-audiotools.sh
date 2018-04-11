@@ -29,7 +29,7 @@ chmod +x ~/audiotools/*
 # Dejamos una marca indicando la branch contenida
 touch ~/audiotools/THIS_BRANCH_IS_$branch
 
-# Incluimos auditools en el profile del usuario
+# Incluimos auditools en el PATH del profile del usuario
 #   Buscamos el archivo del profile
 profileFile=$(ls -a .*profile*)
 #   Si no tiene incluido el path a audiotools, lo incluimos
