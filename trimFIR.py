@@ -8,7 +8,7 @@
 
     Uso y opciones:
 
-        python trimPCM.py  file.pcm -tM [-pP] [-sym] [-o] [-lp|-mp]
+        python trimFIR.py  file.pcm -tM [-pP] [-sym] [-o] [-lp|-mp]
 
         -tM     M taps de salida potencia de 2 (sin espacios)
         
