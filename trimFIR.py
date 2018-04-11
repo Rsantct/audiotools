@@ -1,45 +1,49 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-    v0.1
+    v0.1b
 
-    Recorta un FIR .pcm float32 o .wav int16 aplicando una ventana
+    Recorta un FIR .pcm float32 o .wav int16
+    El recorte se efectúa aplicando Blackmann-Harris
     El resultado se guarda en formato .pcm float 32
 
     Uso y opciones:
 
-        python trimFIR.py  file.pcm -tM [-pP] [-sym] [-o] [-lp|-mp]
+      python trimFIR.py  file.pcm[.wav] -tM [-pP] [-asym[R]] [-o] [-lp|-mp]
 
-        -tM     M taps de salida potencia de 2 (sin espacios)
-        
-        -lp     equivale a -sym
-        
-        -mp     equivale a -p0
+      -tM       M taps de salida potencia de 2 (sin espacios)
 
-        -pP     Posición en P taps del peak en el FIR de entrada (no se buscará).
+      -lp       Equivale a enventanado simétrico en el peak (autolocalizado),
+                o sea, a no poner más opciones que los taps de salida.
+
+      -mp       Equivale a -p0 sirve para FIRs minimum phase sin delay añadido,
+                como los proporcionados por DSD.
+
+      -pP       Posición en P taps del peak en el FIR de entrada (no se buscará).
                 Si se omite -p, se buscará el peak automáticamente.
 
-        -sym    Ventana simétrica.
-                Si se omite se aplicará una semiventana.
+      -asym[R]  Enventanado asimétrico respecto del peak,
+                R es el ratio % que ocupará la semiventana por la izquierda del peak.
+                Si se omite R se aplicará un ratio del 0.1 %
+                Si se omite -asym[R] se aplicará enventanado simétrico.
 
-        -o      Sobreescribe el archivo original.
+      -o        Sobreescribe el archivo original.
                 Si se omite se le añade un prefijo 'Mtaps_'
 
     Notas de aplicación:
 
-    tipo de FIR             ventana           peakPos
-    -----------------       -------           -------
-    minimum phase                             0
-    linear phase            -sym              auto/userdef
-    linear + min phase      -sym              auto/userdef
+    tipo de FIR                 ventana           peakPos
+    -----------------           -------           -------
+    minimum phase (no delayed)                    userdef=0
+    minimum phase (delayed)     -asymR            auto
+    linear phase                                  auto / userdef
+    linear + min phase                            auto / userdef
 
 """
 
-# ----------   config   -------------------
-# En enventanado asimétrico, fracción de 'M'
-# que se enventanará por delante del pico
-frac = 0.001
-# -----------------------------------------
+# v0.1b
+#   Por defecto enventanado simétrico
+#   Ratio ajustable para la semiventana por la izq del pico vs el ancho total (wizq+wder)
 
 import sys
 import numpy as np
@@ -47,39 +51,53 @@ import pydsd as dsd
 import utils
 
 def lee_opciones():
-    global f_in, f_out, phasetype
-    global m, overwriteFile, sym, pkPos
+    global f_in, f_out, m, phasetype
+    global pkPos, sym, wratio, overwriteFile
     f_in = ''
-    phaseType= ''
-    pkPos = -1 # fuerza la búsqueda
     m = 0
+    phaseType= ''
+    pkPos = -1 # fuerza la búsqueda del peak
     overwriteFile = False
-    sym = False
+    sym = True
+    wratio = 0.001
+    
     if len(sys.argv) == 1:
         print __doc__
         sys.exit()
     for opc in sys.argv[1:]:
+
         if opc.startswith('-t'):
             m = int(opc.replace('-t', ''))
             if not utils.isPowerOf2(m):
                 print __doc__
                 sys.exit()
+                
         elif opc.startswith('-p'):
             pkPos = int(opc.replace('-p', ''))
+            
         elif opc == '-h' or opc == '--help':
             print __doc__
             sys.exit()
+            
         elif opc == '-o':
             overwriteFile = True
-        elif opc == '-sym':
-            sym = True
+            
+        elif opc.startswith('-asym'):
+            sym = False
+            if opc[5:]:
+                wpercent = float(opc[5:])
+                wratio = wpercent / 100.0
+            
         elif opc == '-lp':
             phaseType = 'lp'
+            
         elif opc == '-mp':
             phaseType = 'mp'
+            
         else:
             if not f_in:
                 f_in = opc
+                
     if not m:
         print __doc__
         sys.exit()
@@ -121,19 +139,19 @@ if __name__ == "__main__":
     if not sym:
         # Hacemos dos semiventanas, una muy corta por delante para pillar bien el impulso
         # y otra larga por detrás hasta completar los taps finales deseados:
-        nleft  = int(frac * m)
+        nleft  = int(wratio * m)
         if nleft <= pkPos:
             nright = m - nleft
-            imp2L = imp1[pkPos-nleft:pkPos]  * dsd.semiblackman(nleft)[::-1]
-            imp2R = imp1[pkPos:pkPos+nright] * dsd.semiblackman(nright)
+            imp2L = imp1[pkPos-nleft:pkPos]  * dsd.semiblackmanharris(nleft)[::-1]
+            imp2R = imp1[pkPos:pkPos+nright] * dsd.semiblackmanharris(nright)
             imp2 = np.concatenate([imp2L, imp2R])
         else:
-            imp2 = imp1[0:m] * dsd.semiblackman(m)
+            imp2 = imp1[0:m] * dsd.semiblackmanharris(m)
 
     # Enventanado simétrico
     else:
         # Aplicamos la ventana centrada en el pico
-        imp2 = imp1[pkPos-m/2 : pkPos+m/2] * dsd.blackman(m)
+        imp2 = imp1[pkPos-m/2 : pkPos+m/2] * dsd.blackmanharris(m)
 
     # Informativo
     pkPos2 = abs(imp2).argmax()
