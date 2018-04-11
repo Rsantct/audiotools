@@ -3,12 +3,13 @@
 """
     v0.1
 
-    Recorta un FIR .pcm float32 o .wav int16 aplicando una ventana
+    Recorta un FIR .pcm float32 o .wav int16
+    El recorte se efectúa aplicando una ventana Blackmann-Harris
     El resultado se guarda en formato .pcm float 32
 
     Uso y opciones:
 
-        python trimFIR.py  file.pcm -tM [-pP] [-sym] [-o] [-lp|-mp]
+        python trimFIR.py  file.pcm -tM [-pP] [-asym] [-o] [-lp|-mp]
 
         -tM     M taps de salida potencia de 2 (sin espacios)
         
@@ -19,19 +20,20 @@
         -pP     Posición en P taps del peak en el FIR de entrada (no se buscará).
                 Si se omite -p, se buscará el peak automáticamente.
 
-        -sym    Ventana simétrica.
-                Si se omite se aplicará una semiventana.
+        -asym   Enventanado asimétrico respecto del peak.
+                Si se omite se aplicará enventanado simétrico.
 
         -o      Sobreescribe el archivo original.
                 Si se omite se le añade un prefijo 'Mtaps_'
 
     Notas de aplicación:
 
-    tipo de FIR             ventana           peakPos
-    -----------------       -------           -------
-    minimum phase                             0
-    linear phase            -sym              auto/userdef
-    linear + min phase      -sym              auto/userdef
+    tipo de FIR                 ventana           peakPos
+    -----------------           -------           -------
+    minimum phase (no delayed)                    0
+    minimum phase (delayed)                       userdef
+    linear phase                -sym              auto/userdef
+    linear + min phase          -sym              auto/userdef
 
 """
 
