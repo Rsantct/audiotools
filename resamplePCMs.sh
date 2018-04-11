@@ -13,21 +13,30 @@ function help {
   echo
   echo "  Cutre script para obtener copias de FIRs a otra Fs"
   echo
-  echo "  Ejemplo de uso:  resamplePCM.sh 44100 48000"
+  echo "  Ejemplo de uso:  resamplePCM.sh 44100 48000 lp|mp"
   echo
   echo "  Se procesan todos los *.pcm del directorio actual"
   echo "  que se tratarán como Fs original 44100."
   echo "  Los resultados se dejan en: 'directorio_actual/48000/'"
   echo
+  echo "  lp: para procesar filtros linear phase"
+  echo "  mp: para procesar filtros minimum phase"
+  echo
 }
 
-# fs de entrada y de salida se dan como argumentos de la orden
+# fs de entrada, fs de salida y tipo de filtros se dan como argumentos de la orden
 Fs1=$1  
 Fs2=$2
+ftype=$3
 if [[ ! $Fs1 || ! $Fs2 ]]; then
     help
     exit -1
 fi
+if [[ ! $ftype == "lp" || ! $ftype == 'mp' ]]; then
+    help
+    exit -1
+fi
+
 # Creamos el directorio de resultados
 mkdir -p $Fs2
 
@@ -57,7 +66,7 @@ for fname in *pcm; do
         # Longitud en taps, en float32 se emplean 4 bytes ( 4*8=32 bits)
         ftaps=$(( $fsize1 / 4 ))
         # Recortamos con la herramienta trimFIR.py sobreescribiendo los nuevos pcm
-        python ~/audiotools/trimFIR.py $Fs2/$fname -t$ftaps -o
+        python ~/audiotools/trimFIR.py $Fs2/$fname -t$ftaps -$ftype -o
     fi
 done
 
