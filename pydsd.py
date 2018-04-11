@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-    pydsd v0.01BETA
+    pydsd v0.01aBETA
     
     %%%%%%%%%%%%%%  DSD  %%%%%%%%%%%%%%%%%
     %% Traslación a python/scipy de     %%
@@ -17,6 +17,8 @@
     Nota:       En cada función adaptada podemos ver código
                 original en octave comentado con #%%
 """
+# v0.01aBETA
+# + blackman
 
 import numpy as np
 from scipy import signal, interpolate
@@ -31,6 +33,12 @@ def semiblackman(m):
     w = signal.blackmanharris(2*m)
     # devolvemos la mitad derecha
     return w[m:]
+
+def blackman(m):
+    """
+    %% Obtiene una ventana Blackman de longitud m.
+    """
+    return signal.blackmanharris(m)
 
 def minphsp(sp):
     """
