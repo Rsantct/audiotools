@@ -1,3 +1,6 @@
+# OUTDATED
+## this repo has been moved to be continued at AudioHumLab/audiotools
+
 # audiotools
 
 Algunas herramientas, orientadas al manejo de FIRs para FIRtro
