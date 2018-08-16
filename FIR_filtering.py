@@ -1,4 +1,4 @@
-#!python
+#!/usr/bin/python
 
 # https://scipy-cookbook.readthedocs.io/items/ApplyFIRFilter.html#
 
