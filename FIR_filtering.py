@@ -18,23 +18,20 @@
 # y = lfilter(b, [1.0], x)[:, len(b) - 1:]
 
 import numpy as np
-import scipy.signal as sig
+from scipy import signal
 from matplotlib import pyplot as plt
 import sys
 import os
-
-HOME = os.path.expanduser("~")
-sys.path.append(HOME + "/audiotools")
-import utils as uti
+import utils
 
 xfile = sys.argv[1]
-x = uti.readPCM32(xfile)
+x = utils.readPCM32(xfile)
 
 yfile = sys.argv[1]
-y = uti.readPCM32(xfile)
+y = utils.readPCM32(xfile)
 
 
-z = sig.lfilter(y, [1.0], x)#[:, len(x) - 1:]
+z = signal.lfilter(y, [1.0], x)#[:, len(x) - 1:]
 # Creo que lo suyo seria aplicar una ventana al corte de arriba, ejem
 
 uti.savePCM32(z, "filtered.pcm")
