@@ -34,4 +34,4 @@ y = utils.readPCM32(xfile)
 z = signal.lfilter(y, [1.0], x)#[:, len(x) - 1:]
 # Creo que lo suyo seria aplicar una ventana al corte de arriba, ejem
 
-uti.savePCM32(z, "filtered.pcm")
+utils.savePCM32(z, "filtered.pcm")
