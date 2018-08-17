@@ -2,11 +2,15 @@
 # -*- coding: utf-8 -*-
 """
 v0.1
-Script para aplicar un filtro FIR sobre otro, ambos dados formato '.pcm' 32 bits.
-Mediante su convolución obtenemos un FIR con el nombre del archivo original + '_filtered.pcm'
+Script para aplicar un filtro FIR 'filter.pcm' sobre otro 'xxx.pcm',
+ambos deben propocrcionarse en formato '.pcm' 32 bits.
+
+Mediante convolución obtenemos un FIR nombrado 'xxx_filtered.pcm'
 
 Uso:
-  FIR_filter.py   file_1.pcm   filter.pcm
+
+    FIR_filter.py   xxx.pcm   filter.pcm
+
 """
 
 # https://scipy-cookbook.readthedocs.io/items/ApplyFIRFilter.html
