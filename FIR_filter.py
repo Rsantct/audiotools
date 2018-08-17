@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 """
 v0.1
 Script para combinar dos FIR .pcm dados como argumentos,
