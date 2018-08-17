@@ -2,16 +2,18 @@
 # -*- coding: utf-8 -*-
 """
 v0.1
-Script para aplicar un filtro FIR 'filter.pcm' sobre otro 'xxx.pcm',
-ambos deben propocrcionarse en formato '.pcm' 32 bits.
+Script para combinar dos filtros FIR en formato '.pcm' 32 bits.
 
-Mediante convolución obtenemos un FIR nombrado 'xxx_filtered.pcm'
+Mediante convolución obtenemos el FIR 'filter.pcm'.
 
 Uso:
 
-    FIR_filter.py   xxx.pcm   filter.pcm
+    FIR_filter.py   fir_1.pcm   fir_2.pcm
 
 """
+
+# (i) Como es de esperar, el resultado es el mismo si cambiamos el
+#     orden de los pcm proporcionados. La convolución es conmutativa.
 
 # https://scipy-cookbook.readthedocs.io/items/ApplyFIRFilter.html
 
@@ -32,16 +34,14 @@ Uso:
 
 import numpy as np
 from scipy import signal
-from matplotlib import pyplot as plt
 import sys
-import os
 import utils
 import pydsd
 
 try:
     xfile = sys.argv[1]
     yfile = sys.argv[2]
-    zfile = xfile.replace(".pcm", "") + "_filtered.pcm"
+    zfile = "filter.pcm"
 except:
     print __doc__
     sys.exit()
