@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 """
 v0.1
-Script para combinar dos FIR .pcm dados como argumentos,
-mediante su convolución obtenemos el FIR resultado en 'filter.pcm'
+Script para aplicar un filtro FIR sobre otro, ambos dados formato '.pcm' 32 bits.
+Mediante su convolución obtenemos un FIR en 'file_1_filtered.pcm'
 
 Uso:
-  FIR_filter.py file1.pcm file2.pcm
+  FIR_filter.py   file_1.pcm   filter.pcm
 """
 
 # https://scipy-cookbook.readthedocs.io/items/ApplyFIRFilter.html
@@ -41,7 +41,7 @@ except:
   print __doc__
   sys.exit()
 
-zfile = "filter.pcm"
+zfile = xfile.replace(".pcm", "") + "_filtered.pcm"
 
 # Leemos los FIR desde los archivos
 x = utils.readPCM32(xfile)
