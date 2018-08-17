@@ -1,6 +1,14 @@
 #!/usr/bin/python
+"""
+v0.1
+Script para combinar dos FIR .pcm dados como argumentos,
+mediante su convolución obtenemos el FIR resultado en 'filter.pcm'
 
-# https://scipy-cookbook.readthedocs.io/items/ApplyFIRFilter.html#
+Uso:
+  FIR_filter.py file1.pcm file2.pcm
+"""
+
+# https://scipy-cookbook.readthedocs.io/items/ApplyFIRFilter.html
 
 # From scipy.signal, lfilter() is designed to apply a discrete IIR filter to a signal, 
 # so by simply setting the array of denominator coefficients to [1.0], 
@@ -23,14 +31,27 @@ from matplotlib import pyplot as plt
 import sys
 import os
 import utils
+import pydsd
 
-xfile = sys.argv[1]
+try:
+  xfile = sys.argv[1]
+  yfile = sys.argv[1]
+except:
+  print __doc__
+  sys.exit()
+
+zfile = "filter.pcm"
+
+# Leemos los FIR desde los archivos
 x = utils.readPCM32(xfile)
+y = utils.readPCM32(yfile)
 
-yfile = sys.argv[1]
-y = utils.readPCM32(xfile)
+# Ventana que aplicaremos
+m = max([len(x), len(y)])
+w = pydsd.semiblackman(m)
 
+# Filtramos (aplicando ventana)
+z = w * signal.lfilter(y, [1.0], x)#[:, len(x) - 1:] # este slice no lo entiendo
 
-z = signal.lfilter(y, [1.0], x)#[:, len(x) - 1:] # este slice no lo entiendo
-
-utils.savePCM32(z, "filtered.pcm")
+# Guardamos el resultado en el archivo de salida
+utils.savePCM32(z, zfile)
