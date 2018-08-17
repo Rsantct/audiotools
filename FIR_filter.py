@@ -39,13 +39,13 @@ import utils
 import pydsd
 
 try:
-  xfile = sys.argv[1]
-  yfile = sys.argv[1]
+    xfile = sys.argv[1]
+    yfile = sys.argv[2]
+    zfile = xfile.replace(".pcm", "") + "_filtered.pcm"
 except:
-  print __doc__
-  sys.exit()
+    print __doc__
+    sys.exit()
 
-zfile = xfile.replace(".pcm", "") + "_filtered.pcm"
 
 # Leemos los FIR desde los archivos
 x = utils.readPCM32(xfile)
