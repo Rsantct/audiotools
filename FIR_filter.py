@@ -3,7 +3,7 @@
 """
 v0.1
 Script para aplicar un filtro FIR sobre otro, ambos dados formato '.pcm' 32 bits.
-Mediante su convolución obtenemos un FIR en 'file_1_filtered.pcm'
+Mediante su convolución obtenemos un FIR con el nombre del archivo original + '_filtered.pcm'
 
 Uso:
   FIR_filter.py   file_1.pcm   filter.pcm
