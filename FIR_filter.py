@@ -49,7 +49,7 @@ y = utils.readPCM32(yfile)
 
 # Ventana que aplicaremos
 m = max([len(x), len(y)])
-w = pydsd.semiblackman(m)
+w = pydsd.semiblackmanharris(m)
 
 # Filtramos (aplicando ventana)
 z = w * signal.lfilter(y, [1.0], x)#[:, len(x) - 1:] # este slice no lo entiendo
