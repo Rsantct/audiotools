@@ -46,7 +46,7 @@ if __name__ == "__main__":
     imp2 = np.real(imp2)
 
     # Lo cortamos a la longitud deseada y aplicamos una ventana:
-    imp2 = dsd.semiblackman(m) * imp2[:m]
+    imp2 = dsd.semiblackmanharris(m) * imp2[:m]
 
     # Y lo guardamos en formato pcm float 32
     utils.savePCM32(raw=imp2, fout=fout)
