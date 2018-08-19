@@ -35,40 +35,43 @@ def delta(m):
     imp[1] = 1.0
     return imp
 
-def crossLinkwitzRiley(fs=44100, m=32768, nl=2, fl=0, nh=2, fh=0): 
+def crossLinkwitzRiley(fs=44100, m=32768, n=2, fl=0 , fh=0):
     """
     %% Obtiene el filtro FIR de un filtro Linkwitz-Riley de orden n, n par.
+    %% Si se proporcionan las dos frecuencias 'fl' y 'fh' genera un pasabanda.
     %%
-    %% fs = Frecuencia de muestreo.
-    %% m  = Número de muestras.
-    %% nl = Orden del filtro pasaaltos.
-    %% fl = Frecuencia de corte inferior (pasaaltos). 0 para pasabajos.
-    %% nh = Orden del filtro pasabajos.
-    %% fh = Frecuencia de corte superior (pasabajos). 0 para pasaaltos.
+    %% Ejemplo de uso para obtener un FIR de 32 Ktaps LR4 pasabajos 100 Hz :
+    %%
+    %%      crossLinkwitzRiley(fs=44100, m=32768, n=4, fl=100 , fh=0)
+    %%
+    %%      fs = Frecuencia de muestreo.
+    %%      m  = Número de muestras.
+    %%      n  = Orden del filtro.
+    %%      fl = Frecuencia de corte pasabajos, 0 sin corte pasabajos.
+    %%      fh = Frecuencia de corte pasaaltos, 0 sin corte pasaaltos.
     """
-    #nl = nl/2.0;
-    #nh = nh/2.0;
-    wl = fl/(fs/2.0);   # frecs normalizadas
-    wh = fh/(fs/2.0);
-    imp = delta(m);     # delta a la que aplicaremos el filtro para entregar el FIR resultado
+    n   = n / 2         # El orden se doblará en la cascada
+    wl  = fl / (fs/2.0) # Frecs normalizadas
+    wh  = fh / (fs/2.0)
+    imp = delta(m)      # Delta a la que aplicaremos el filtro para entregar el FIR resultado
 
+    # 1. Diseñamos los coeff de un filtro Butterwoth estandar
     if fl > 0 and fh == 0:
-        btype = "lowpass"
-    elseif fl == 0 and fh > 0:
-        btype = "highpass"
-    elseif fl > 0 and fh > 0:
-        btype = "bandpass"
-    else
+        b, a = signal.butter(n, wl,       btype="lowpass",  analog=False, output="ba")
+
+    elif fl == 0 and fh > 0:
+        b, a = signal.butter(n, wh,       btype="highpass", analog=False, output="ba")
+
+    elif fl > 0 and fh > 0:
+        b, a = signal.butter(n, (wl, wh), btype="bandpass", analog=False, output="ba")
+
+    else:
         return imp
 
-    # 1. Diseñamos los coeff de un filtro Butt estandar
-    b, a = signal.butter(n, (wl, wh), btype=btype, analog=False, output="ba")
-    
-    # 2. Aplicamos el Butt a la delta, en cascada para obtener un L-R 
-    imp = lfilter(b, a , imp)
-    imp = lfilter(b, a , imp)
-
-    return imp    
+    # 2. Aplicamos el Butterwoth a la delta, en cascada para obtener un Linkwitz-Riley
+    imp = signal.lfilter(b, a , imp)
+    imp = signal.lfilter(b, a , imp)
+    return imp
 
 def semiblackmanharris(m):
     """
