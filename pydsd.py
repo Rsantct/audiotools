@@ -35,7 +35,7 @@ def delta(m):
     imp[1] = 1.0
     return imp
 
-def crossLinkwitzRiley(fs=44100, m=32768, nl=2, fl=0, nh=2, fh=0) 
+def crossLinkwitzRiley(fs=44100, m=32768, nl=2, fl=0, nh=2, fh=0): 
     """
     %% Obtiene el filtro FIR de un filtro Linkwitz-Riley de orden n, n par.
     %%
