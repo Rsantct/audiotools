@@ -24,6 +24,52 @@
 import numpy as np
 from scipy import signal, interpolate
 
+def delta(m):
+    """
+    %% Obtiene un impulso de longitud m con valor uno en su primera muestra.
+    %%
+    %% imp = Coeficientes del filtro FIR.
+    %% m = Número de muestras.
+    """
+    imp = np.zeros(m)
+    imp[1] = 1.0
+    return imp
+
+def crossLinkwitzRiley(fs=44100, m=32768, nl=2, fl=0, nh=2, fh=0) 
+    """
+    %% Obtiene el filtro FIR de un filtro Linkwitz-Riley de orden n, n par.
+    %%
+    %% fs = Frecuencia de muestreo.
+    %% m  = Número de muestras.
+    %% nl = Orden del filtro pasaaltos.
+    %% fl = Frecuencia de corte inferior (pasaaltos). 0 para pasabajos.
+    %% nh = Orden del filtro pasabajos.
+    %% fh = Frecuencia de corte superior (pasabajos). 0 para pasaaltos.
+    """
+    #nl = nl/2.0;
+    #nh = nh/2.0;
+    wl = fl/(fs/2.0);   # frecs normalizadas
+    wh = fh/(fs/2.0);
+    imp = delta(m);     # delta a la que aplicaremos el filtro para entregar el FIR resultado
+
+    if fl > 0 and fh == 0:
+        btype = "lowpass"
+    elseif fl == 0 and fh > 0:
+        btype = "highpass"
+    elseif fl > 0 and fh > 0:
+        btype = "bandpass"
+    else
+        return imp
+
+    # 1. Diseñamos los coeff de un filtro Butt estandar
+    b, a = signal.butter(n, (wl, wh), btype=btype, analog=False, output="ba")
+    
+    # 2. Aplicamos el Butt a la delta, en cascada para obtener un L-R 
+    imp = lfilter(b, a , imp)
+    imp = lfilter(b, a , imp)
+
+    return imp    
+
 def semiblackmanharris(m):
     """
     %% Obtiene la mitad derecha de una ventana Blackman-Harris de longitud m.
