@@ -53,7 +53,7 @@ def crossButterworth(fs=44100, m=32768, n=2, fl=0 , fh=0):
 
     wl  = fl / (fs/2.0) # Frecs normalizadas
     wh  = fh / (fs/2.0)
-    delta = delta(m)    # Delta a la que aplicaremos el filtro para entregar el FIR resultado
+    imp = delta(m)      # Delta a la que aplicaremos el filtro para entregar el FIR resultado
 
     # 1. Obtenemos los coeff de un filtro Butterworth estandar
     if   fl > 0  and fh == 0:
@@ -66,10 +66,10 @@ def crossButterworth(fs=44100, m=32768, n=2, fl=0 , fh=0):
         b, a = signal.butter(n, (wl, wh), btype="bandpass", analog=False, output="ba")
 
     else:
-        return delta
+        return imp
 
     # 2. Aplicamos el Butterwoth al FIR
-    return signal.lfilter(b, a , delta)
+    return signal.lfilter(b, a , imp)
 
 def crossLinkwitzRiley(fs=44100, m=32768, n=2, fl=0 , fh=0):
     """
@@ -87,10 +87,10 @@ def crossLinkwitzRiley(fs=44100, m=32768, n=2, fl=0 , fh=0):
     %%      fh = Frecuencia de corte pasaaltos, 0 sin corte pasaaltos.
     """
 
-    delta = delta(m)    # Delta a la que aplicaremos el filtro para entregar el FIR resultado
+    imp = delta(m)    # Delta a la que aplicaremos el filtro para entregar el FIR resultado
 
     if n % 2:
-        return delta    # Devolvemos una delta ya que el orden debe ser par.
+        return imp    # Devolvemos una delta ya que el orden debe ser par.
 
     n   = n / 2         # El orden se doblará en la cascada
     wl  = fl / (fs/2.0) # Frecs normalizadas
@@ -107,10 +107,10 @@ def crossLinkwitzRiley(fs=44100, m=32768, n=2, fl=0 , fh=0):
         b, a = signal.butter(n, (wl, wh), btype="bandpass", analog=False, output="ba")
 
     else:
-        return delta
+        return imp
 
     # 2. Aplicamos el Butterwoth a la delta, en cascada para obtener un Linkwitz-Riley
-    imp = signal.lfilter(b, a , delta)
+    imp = signal.lfilter(b, a , imp)
     imp = signal.lfilter(b, a , imp)
     return imp
 
