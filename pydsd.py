@@ -40,15 +40,15 @@ def crossButterworth(fs=44100, m=32768, n=2, fl=0 , fh=0):
     %% Obtiene el filtro FIR de un filtro Butterworth de orden n.
     %% Si se proporcionan las dos frecuencias 'fl' y 'fh' genera un pasabanda.
     %%
-    %% Ejemplo de uso para obtener un FIR de 32 Ktaps Butt pasabajos 100 Hz :
+    %% Ejemplo de uso para obtener un FIR de 32 Ktaps Butt pasabajos de orden 2 a 100 Hz :
     %%
-    %%      crossButterworth(fs=44100, m=32768, n=4, fl=100 , fh=0)
+    %%      crossButterworth( fs=44100, m=32768, n=2, fl=100 )
     %%
     %%      fs = Frecuencia de muestreo.
     %%      m  = Número de muestras.
     %%      n  = Orden del filtro.
-    %%      fl = Frecuencia de corte pasabajos, 0 sin corte pasabajos.
-    %%      fh = Frecuencia de corte pasaaltos, 0 sin corte pasaaltos.
+    %%      fl = Frecuencia de corte pasabajos, 0 u omitida sin corte pasabajos.
+    %%      fh = Frecuencia de corte pasaaltos, 0 u omitida sin corte pasaaltos.
     """
 
     wl  = fl / (fs/2.0) # Frecs normalizadas
@@ -71,6 +71,25 @@ def crossButterworth(fs=44100, m=32768, n=2, fl=0 , fh=0):
     # 2. Aplicamos el Butterwoth al FIR
     return signal.lfilter(b, a , imp)
 
+def crossButterworthLP(fs=44100, m=32768, n=2, fl=0 , fh=0):
+    """
+    %% Obtiene el filtro FIR de fase lineal con la magnitud de 
+    %% un filtro Butterworth de orden n.
+    %%
+    %% Si se proporcionan las dos frecuencias 'fl' y 'fh' genera un pasabanda.
+    %%
+    %% Ejemplo de uso para obtener un FIR lineal phase de 32 Ktaps Butt orden 1 pasabajos a 80 Hz :
+    %%
+    %%      crossButterworthLP( fs=44100, m=32768, n=1, fl=80 )
+    %%
+    %%      fs = Frecuencia de muestreo.
+    %%      m  = Número de muestras.
+    %%      n  = Orden del filtro.
+    %%      fl = Frecuencia de corte pasabajos, 0 u omitida sin corte pasabajos.
+    %%      fh = Frecuencia de corte pasaaltos, 0 u omitida sin corte pasaaltos.    
+    """
+    return delta(m)
+    
 def crossLinkwitzRiley(fs=44100, m=32768, n=2, fl=0 , fh=0):
     """
     %% Obtiene el filtro FIR de un filtro Linkwitz-Riley de orden n, n par.
@@ -78,13 +97,13 @@ def crossLinkwitzRiley(fs=44100, m=32768, n=2, fl=0 , fh=0):
     %%
     %% Ejemplo de uso para obtener un FIR de 32 Ktaps LR4 pasabajos 100 Hz :
     %%
-    %%      crossLinkwitzRiley(fs=44100, m=32768, n=4, fl=100 , fh=0)
+    %%      crossLinkwitzRiley(fs=44100, m=32768, n=4, fl=100)
     %%
     %%      fs = Frecuencia de muestreo.
     %%      m  = Número de muestras.
     %%      n  = Orden del filtro.
-    %%      fl = Frecuencia de corte pasabajos, 0 sin corte pasabajos.
-    %%      fh = Frecuencia de corte pasaaltos, 0 sin corte pasaaltos.
+    %%      fl = Frecuencia de corte pasabajos, 0 u omitida sin corte pasabajos.
+    %%      fh = Frecuencia de corte pasaaltos, 0 u omitida sin corte pasaaltos.
     """
 
     imp = delta(m)    # Delta a la que aplicaremos el filtro para entregar el FIR resultado
