@@ -161,15 +161,15 @@ def crossButterworthLP(fs=44100, m=32768, n=2, flp=0 , fhp=0):
     # Cód. original DSD, en Octave:
     # Nota: Se trabaja con el vector ssF de frecuencias físicas y la fs, es uno de los posibles
     #       modos de usar freqz en Octave. Al no usar 'whole' devuelve el semiespectro.
-    # %% mLow = fs/m                    % low freq, freq jump
-    # %% ssK = range(0, m/2+1)          % indexes of non aliased frequency vector
-    # %% ssF = mLow * (ssK)             % non aliased frequency vector
-    # %% h = freqz(b, a , ssF, fs)
-    # %% mag = abs(h)
+    # %% mLow = fs/m;                   % low freq, freq jump
+    # %% ssK = 0:m/2;                   % indexes of non aliased frequency vector
+    # %% ssF = mLow * (ssK);            % non aliased frequency vector
+    # %% h = freqz(b, a , ssF, fs);
+    # %% mag = abs(h);
 
     # En Scipy freqz trabaja con freqs normalizadas no se usa la fs como parámetro.
     # Aquí usaremos el espectro completo para evitar reconstruirlo más abajo con 'wholesplp'.
-    Nbins = fs/m
+    Nbins = m
     w, h = signal.freqz(b, a, Nbins, whole=True)
     mag = np.abs(h)
 
