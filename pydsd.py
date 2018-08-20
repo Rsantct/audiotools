@@ -143,16 +143,16 @@ def crossButterworthLP(fs=44100, m=32768, n=2, flp=0 , fhp=0):
     whp  = fhp / (fs/2.0)
 
     # 1. Calculamos los coeff del filtro Butterworth
-    if flp > 0  &  fhp == 0:
+    if flp > 0 and fhp == 0:
         b, a = signal.butter(n, wlp, btype="lowpass", analog=False, output="ba")
 
-    elif flp == 0  &  fhp > 0:
-        b, a = signal.butter(n, wlp, btype="highpass", analog=False, output="ba")
+    elif flp == 0 and fhp > 0:
+        b, a = signal.butter(n, whp, btype="highpass", analog=False, output="ba")
 
-    elif flp > 0  &  fhp > 0:
+    elif flp > 0 and fhp > 0:
         b, a = signal.butter(n, (wlp,whp), btype="bandpass", analog=False, output="ba")
 
-    elif flp == 0  &  fhp == 0:
+    elif flp == 0 and fhp == 0:
         imp = centerimp(deltacentered(m-1), m)
         return imp  # delta sin filtrar
 
