@@ -168,7 +168,7 @@ def crossButterworthLP(fs=44100, m=32768, n=2, flp=0 , fhp=0):
     # %% mag = abs(h);
 
     # En Scipy freqz trabaja con freqs normalizadas no se usa la fs como parámetro.
-    # Aquí usaremos el espectro completo para evitar reconstruirlo más abajo con 'wholesplp'.
+    # Aquí obtendremos el espectro completo para evitar reconstruirlo más abajo con 'wholesplp'.
     Nbins = m
     w, h = signal.freqz(b, a, Nbins, whole=True)
     mag = np.abs(h)
