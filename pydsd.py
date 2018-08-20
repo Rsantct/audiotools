@@ -49,7 +49,7 @@ def deltacentered(m):
     %%
     %% m = Número de muestras. Debe ser impar.
     """
-    if l % 2 == 0:
+    if m % 2 == 0:
         raise ValueError("deltacentered: Impulse length must be odd");
 
     imp = np.zeros(m)           # array de zeros de longitud m
