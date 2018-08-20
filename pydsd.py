@@ -49,8 +49,8 @@ def deltacentered(m):
     %%
     %% m = Número de muestras. Debe ser impar.
     """
-	if l % 2 == 0:
-		raise ValueError("deltacentered: Impulse length must be odd");
+    if l % 2 == 0:
+        raise ValueError("deltacentered: Impulse length must be odd");
 
     imp = np.zeros(m)           # array de zeros de longitud m
     imp[np.ceil(m/2.0)] = 1.0   # ponemos un uno en tolmedio
@@ -65,16 +65,16 @@ def centerimp(imp, m):
     %% m   = Longitud final del impulso.
     """
 
-	l = len(imp)
-	if l > m:
-		raise ValueError("centerimp: impulse length must be equal or less than m")
+    l = len(imp)
+    if l > m:
+        raise ValueError("centerimp: impulse length must be equal or less than m")
 
-	if l % 2 == 0:
-		raise ValueError("centerimp: Impulse length must be odd");
+    if l % 2 == 0:
+        raise ValueError("centerimp: Impulse length must be odd");
 
     # En Octave se hace zero padding (imp, longitud_deseada) en dos pasadas :
-	# %% imp = prepad(imporig, l + floor((m-l)/2) );
-	# %% imp = postpad(imp, m);
+    # %% imp = prepad(imporig, l + floor((m-l)/2) );
+    # %% imp = postpad(imp, m);
 
     # En numpy no hay equivalente.
     # Añadiremos (m-len(imp)) zeros extras, repartidos por delante y por detrás.
@@ -182,7 +182,7 @@ def crossButterworthLP(fs=44100, m=32768, n=2, flp=0 , fhp=0):
 
     # 4. Se aplica una ventana antes de devolver el resultado
     # Cód. original en Octave
-	# %% imp = blackmanharris (m) .* imp;
+    # %% imp = blackmanharris (m) .* imp;
     return blackmanharris(m) * imp
     
 def crossLinkwitzRiley(fs=44100, m=32768, n=2, flp=0 , fhp=0):
@@ -287,7 +287,7 @@ def wholespmp(ssp): # whole spectrum minimum phase
     nsp = np.conj(ssp[1 : m-2])
     nsp = nsp[::-1]                     # flipud
 
-	# wsp = [ssp;nsp];                  # cód. octave
+    # wsp = [ssp;nsp];                  # cód. octave
     return np.concatenate([ssp, nsp])
 
 def wholesplp(ssp): # whole spectrum linear phase
@@ -300,9 +300,9 @@ def wholesplp(ssp): # whole spectrum linear phase
     """
 
     if not ssp.ndim == 1:
-		raise ValueError("ssp must be a column vector")
+        raise ValueError("ssp must be a column vector")
 
-	m = len(ssp) 
+    m = len(ssp) 
     # Verifica que la longitud del espectro proporcionado sea impar 
     if m % 2 == 0:
         raise ValueError("wholesplp: Spectrum length must be odd")
@@ -311,7 +311,7 @@ def wholesplp(ssp): # whole spectrum linear phase
     nsp = ssp[1 : m-2]
     nsp = nsp[::-1]                     # flipud
 
-	# wsp = [ssp;nsp];                  # cód. octave
+    # wsp = [ssp;nsp];                  # cód. octave
     return np.concatenate([ssp, nsp])
     
 def lininterp(F, mag, m, fs):
