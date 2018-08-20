@@ -53,7 +53,8 @@ def deltacentered(m):
         raise ValueError("deltacentered: Impulse length must be odd");
 
     imp = np.zeros(m)           # array de zeros de longitud m
-    imp[np.ceil(m/2.0)] = 1.0   # ponemos un uno en tolmedio
+    ptomedio = int(np.ceil(m/2.0))
+    imp[ptomedio] = 1.0         # ponemos un uno en tolmedio
     return imp
 
 def centerimp(imp, m):
