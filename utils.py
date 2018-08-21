@@ -8,6 +8,20 @@ import sys
 from ConfigParser import ConfigParser
 import numpy as np
 from scipy.io import wavfile
+from scipy import signal
+
+def maxdB(imp, fs):
+    """ busca el máximo en el espectro de un impulso
+    """
+    # Obtenemos el espectro 'mag' con cierta resolución 1024 bins
+    Nbins = 1024
+    w, h = signal.freqz(imp, worN=Nbins, whole=False)
+    mag  = np.abs(h)
+    # buscamos el máximo
+    amax = np.amax(mag)             # magnitud máx
+    wmax = w[ np.argmax(mag) ]      # frec máx
+    fmax = wmax * fs/len(imp)
+    return fmax, 20*np.log10(amax)  # frec y mag en dBs
 
 def isPowerOf2(n):
     return np.floor(np.log2(n)) == np.ceil(np.log2(n))
