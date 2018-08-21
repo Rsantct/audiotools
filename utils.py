@@ -11,7 +11,7 @@ from scipy.io import wavfile
 from scipy import signal
 import pydsd
 
-def RoomGain2impulse(imp, fs, gaindBs):
+def RoomGain2impulse(imp, fs, gaindB):
     """
     Aplica ecualización Room Gain a un impulso
     (Adaptación de DSD/RoomGain.m que se aplica a un espectro)
@@ -24,7 +24,7 @@ def RoomGain2impulse(imp, fs, gaindBs):
     f1 = 120
     Q  = 0.707
     # Obtenemos los coeff de la curva y la aplicamos al impulso
-    b, a = pydsd.biquad(fs, f1, Q, "lowShelf", gaindBS)
+    b, a = pydsd.biquad(fs, f1, Q, "lowShelf", gaindB)
     return signal.lfilter(b, a, imp)
 
 def maxdB(imp, fs):
