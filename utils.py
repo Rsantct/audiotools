@@ -11,6 +11,49 @@ from scipy.io import wavfile
 from scipy import signal
 import pydsd
 
+def ba2LP(b, a, m, windowed=True):
+    """
+    audiotools/utils/ba2LP(b, a, m, windowed=True)
+
+    Esta función pretende obtener un impulso linear phase de longitud m
+    cuyo espectro se corresponde en magnitud con la de la función de 
+    transferencia de los coeff b,a proporcionados.
+
+    Está inspirada en el mecanismo usado en la función Octave DSD/crossButterworthLP.m
+    que aquí aparece traducida a Python/Scipy en audiotools/pydsd.py
+
+    b, a:   Coeffs numerador y denominador de la func de transferencia a procesar
+    m:      Longitud del impulso resultante
+    w:      Boolean para aplicar una ventana al impulso resultante (*)
+
+    (*) Parece conveniente no aplicar ventana si procesamos coeffs b,a 
+        resultantes de un biquad type='peakingEQ' estrecho.
+
+    !!!!!!!
+    ACHTUNG: estás usando una función en pruebas, tu sabrás lo que haces
+    !!!!!!!
+    """
+
+    # MUESTRA UN AVISO:
+    print ba2LP.__doc__
+
+    # Obtenemos el espectro correspondiente a los 
+    # coeff b,a de la func de transferencia indicada
+    Nbins = m
+    w, h = signal.freqz(b, a, Nbins, whole=True)
+    mag = np.abs(h)
+
+    # tomamos la parte real de IFFT para descartar la phase
+    imp = np.real( np.fft.ifft( mag ) )
+    # shifteamos la IFFT
+    imp = np.roll(imp, Nbins/2)
+
+    if windowed:
+        imp = pydsd.blackmanharris(Nbins) * imp
+
+    return imp
+
+
 def RoomGain2impulse(imp, fs, gaindB):
     """
     Aplica ecualización Room Gain a un impulso
