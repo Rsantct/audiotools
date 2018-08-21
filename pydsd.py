@@ -38,12 +38,12 @@ def biquad(fs, f0, Q, type, dBgain):
     """
     %% Obtiene los coeficientes 'b,a' del filtro IIR asociado a un biquad.
     %%
-    %% fs = Frecuencia de muestreo.
+    %% fs       = Frecuencia de muestreo.
     %% f0       = Frecuencia central del filtro.
     %% Q        = Definido en "peakingEQ" de "DSP EQ cookbook",
     %%            el ancho de banda es entre puntos de ganancia mitad.
-    %% type      = 'lpf' | 'hpf' | 'notch' | 'peakingEQ' | 'lowshelf' | 'highshelf'
-    %% dBgain    = Solo para peakingEQ, lowshelf o highshelf
+    %% type     = 'lpf' | 'hpf' | 'notch' | 'peakingEQ' | 'lowshelf' | 'highshelf'
+    %% dBgain   = Solo usado para peakingEQ, lowshelf o highshelf
     """
 
     if (Q <= 0):
@@ -53,8 +53,8 @@ def biquad(fs, f0, Q, type, dBgain):
         raise ValueError("f must be positive");
 
     # http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
-    A  = np.sqrt( 10**(dBgain/20))
-    w0 = 2.0 * np.pi * f0/fs
+    A     = np.sqrt(10**(dBgain/20))
+    w0    = 2.0 * np.pi * f0/fs
     alpha = np.sin(w0) / (2.0 * Q)
 
     if type.lower() == "lpf":
@@ -91,18 +91,18 @@ def biquad(fs, f0, Q, type, dBgain):
 
     elif type.lower() == "lowshelf":
         b0 =      A * ( (A+1) - (A-1)*np.cos(w0) + 2*np.sqrt(A)*alpha )
-        b1 =  2 * A * ( (A-1) - (A+1)*np.cos(w0) )
+        b1 =  2 * A * ( (A-1) - (A+1)*np.cos(w0)                      )
         b2 =      A * ( (A+1) - (A-1)*np.cos(w0) - 2*np.sqrt(A)*alpha )
         a0 =            (A+1) + (A-1)*np.cos(w0) + 2*np.sqrt(A)*alpha
-        a1 = -2 *     ( (A-1) + (A+1)*np.cos(w0) )
+        a1 = -2 *     ( (A-1) + (A+1)*np.cos(w0)                      )
         a2 =            (A+1) + (A-1)*np.cos(w0) - 2*np.sqrt(A)*alpha
 
     elif type.lower() == "highshelf":
         b0 =      A * ( (A+1) + (A-1)*np.cos(w0) + 2*np.sqrt(A)*alpha )
-        b1 = -2 * A * ( (A-1) + (A+1)*np.cos(w0) )
+        b1 = -2 * A * ( (A-1) + (A+1)*np.cos(w0)                      )
         b2 =      A * ( (A+1) + (A-1)*np.cos(w0) - 2*np.sqrt(A)*alpha )
         a0 =            (A+1) - (A-1)*np.cos(w0) + 2*np.sqrt(A)*alpha
-        a1 =  2 *     ( (A-1) - (A+1)*np.cos(w0) )
+        a1 =  2 *     ( (A-1) - (A+1)*np.cos(w0)                      )
         a2 =            (A+1) - (A-1)*np.cos(w0) - 2*np.sqrt(A)*alpha
 
     else:
