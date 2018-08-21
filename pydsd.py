@@ -52,8 +52,11 @@ def biquad(fs, f0, Q, type, dBgain=0.0):
     if (f0 <= 0) or (fs <= 0):
         raise ValueError("f must be positive");
 
-    # http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
-    A     = np.sqrt(10**(dBgain/20))
+    #######################################################
+    # http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt #
+    #######################################################
+    
+    A     = np.sqrt(10**(dBgain/20.0)) # (!) dividir por 20.0 para que Python no divida enteros
     w0    = 2.0 * np.pi * f0/fs
     alpha = np.sin(w0) / (2.0 * Q)
 
