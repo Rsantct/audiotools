@@ -3,19 +3,15 @@
 """
     pydsd v0.02
     
-    %%%%%%%%%%%%%%  DSD  %%%%%%%%%%%%%%%%%
-    %% Traslación a python/scipy de     %%
-    %% funciones del paquete DSD        %%
-    %% https://github.com/rripio/DSD    %%
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%  DSD  %%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Traslación a python/scipy de funciones del paquete DSD  %%
+    %%             https://github.com/rripio/DSD               %%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     DISCLAIMER: El autor de DSD no garantiza ni supervisa
                 esta traslación.
                 
-    ACHTUNG:    work in progress muy BETA
-
-    Nota:       En cada función adaptada podemos ver código
-                original de DSD en octave comentado con #%%
+    ACHTUNG:    WORK IN PROGRESS
 """
 # v0.01a
 # + blackmanharris
@@ -24,7 +20,9 @@
 # + funciones de crossover
 
 # -----------------------------------------------------------
-# Algunas convenciones usadas en DSD:
+# Notas:
+# - Abajo podemos ver código original de DSD en octave comentado con %%
+# - Algunas convenciones usadas en DSD:
 #   'sp'    suele referirse al spectrum completo
 #   'ssp'   suele referirse al semi spectrum
 # -----------------------------------------------------------
