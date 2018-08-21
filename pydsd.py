@@ -288,6 +288,7 @@ def crossButterworthLP(fs=44100, m=32768, n=2, flp=0 , fhp=0):
     # %% imp = real( ifft( wholesplp(mag') ) );
     # %% imp = circshift(imp, m/2);
     imp = np.real( np.fft.ifft( mag ) )
+    # shifteamos la IFFT para conformar el IR con el impulso centrado
     imp = np.roll(imp, m/2)
 
     # 4. Se aplica una ventana antes de devolver el resultado
