@@ -1,6 +1,6 @@
 # audiotools
 
-Algunas herramientas, orientadas al manejo de FIRs para **FIRtro**.
+Algunas herramientas, orientadas al manejo de FIRs para **AudioHumLab/FIRtro**.
 
 Se incluye una traslación a Python de funciones del paquete **rripio/DSD** en Octave
 
