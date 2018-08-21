@@ -6,11 +6,16 @@ Se incluye una traslación a Python de funciones del paquete **rripio/DSD** en O
 
 ### Install:
 
+
+    cd ~
     rm -f master.zip*
+    rm -f testing.zip*
     rm -f update-audiotools.sh*
     wget https://raw.githubusercontent.com/Rsantct/audiotools/master/update-audiotools.sh
     bash update-audiotools.sh
     rm update-audiotools.sh
+    rm -f master.zip*
+    rm -f testing.zip*
 
 ### Update:
 
