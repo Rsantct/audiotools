@@ -11,6 +11,44 @@ from scipy.io import wavfile
 from scipy import signal
 import pydsd
 
+def MP2LP(imp, windowed=True):
+    """
+    audiotools/utils/MP2LP(imp, windowed=True)
+
+    Esta función pretende obtener un impulso linear phase cuyo espectro
+    se corresponde en magnitud con el impulso causal proporcionado.
+
+    Está inspirada en el mecanismo usado en la función Octave DSD/crossButterworthLP.m
+    que aquí aparece traducida a Python/Scipy en audiotools/pydsd.py
+
+    imp:    Impulso a procesar
+    w:      Boolean para aplicar una ventana al impulso resultante (*)
+
+    (*) Parece conveniente no aplicar ventana si procesamos impulsos
+        con un espectro muy accidentado en magnitud.
+
+    !!!!!!!
+    ACHTUNG: estás usando una función en pruebas, AVISADO QUEDAS
+    !!!!!!!
+    """
+
+    # MUESTRA UN AVISO:
+    print MP2LP.__doc__
+
+    Nbins = len(imp)
+    w, h = signal.freqz(imp, worN=Nbins, whole=True)
+    mag = np.abs(h)
+
+    # tomamos la parte real de IFFT para descartar la phase
+    imp = np.real( np.fft.ifft( mag ) )
+    # shifteamos la IFFT
+    imp = np.roll(imp, Nbins/2)
+
+    if windowed:
+        imp = pydsd.blackmanharris(Nbins) * imp
+
+    return imp
+
 def ba2LP(b, a, m, windowed=True):
     """
     audiotools/utils/ba2LP(b, a, m, windowed=True)
@@ -30,7 +68,7 @@ def ba2LP(b, a, m, windowed=True):
         resultantes de un biquad type='peakingEQ' estrecho.
 
     !!!!!!!
-    ACHTUNG: estás usando una función en pruebas, tu sabrás lo que haces
+    ACHTUNG: estás usando una función en pruebas, AVISADO QUEDAS
     !!!!!!!
     """
 
@@ -38,7 +76,7 @@ def ba2LP(b, a, m, windowed=True):
     print ba2LP.__doc__
 
     # Obtenemos el espectro correspondiente a los 
-    # coeff b,a de la func de transferencia indicada
+    # coeff b,a de func de transferencia proporcionados
     Nbins = m
     w, h = signal.freqz(b, a, Nbins, whole=True)
     mag = np.abs(h)
@@ -52,7 +90,6 @@ def ba2LP(b, a, m, windowed=True):
         imp = pydsd.blackmanharris(Nbins) * imp
 
     return imp
-
 
 def RoomGain2impulse(imp, fs, gaindB):
     """
