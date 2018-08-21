@@ -3,8 +3,9 @@
 
 # audiotools
 
-Algunas herramientas, orientadas al manejo de FIRs para FIRtro.
-Se incluye una traslación a Python de funciones del paquete DSD en Octave
+Algunas herramientas, orientadas al manejo de FIRs para **FIRtro**.
+
+Se incluye una traslación a Python de funciones del paquete **rripio/DSD** en Octave
 
 ### Install:
 
