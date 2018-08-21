@@ -34,7 +34,7 @@
 import numpy as np
 from scipy import signal, interpolate
 
-def biquad(fs, f0, Q, type, dBgain):
+def biquad(fs, f0, Q, type, dBgain=0.0):
     """
     %% Obtiene los coeficientes 'b,a' del filtro IIR asociado a un biquad.
     %%
