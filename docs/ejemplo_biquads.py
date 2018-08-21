@@ -47,6 +47,6 @@ imp = utils.MP2LP(imp, windowed=False)
 utils.savePCM32(imp, "biquads_lp.pcm")
 
 print "(i) Observar los resultados con"
-print "    'IRs_viewer.py biquads.pcm 44100'"
+print "    'IRs_viewer.py biquads.pcm biquads_lp 44100'"
 
 
