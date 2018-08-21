@@ -282,8 +282,8 @@ def crossButterworthLP(fs=44100, m=32768, n=2, flp=0 , fhp=0):
     w, h = signal.freqz(b, a, Nbins, whole=True)
     mag = np.abs(h)
 
-    # 3. Se calcula el impulso correspondiente a 'mag': se toma la parte real de la IFFT, 
-    #    y se shiftea para que quede LP linear phase.
+    # 3. Se calcula el impulso correspondiente a 'mag':
+    #    se toma la parte real de la IFFT y se shiftea.
     # Cód. original en Octave:
     # %% imp = real( ifft( wholesplp(mag') ) );
     # %% imp = circshift(imp, m/2);
