@@ -1,26 +1,30 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-    pydsd v0.02
-    
+    pydsd v0.03
+
     %%%%%%%%%%%%%%%%%%%%%%%%%%%  DSD  %%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Traslación a python/scipy de funciones del paquete DSD  %%
     %%             https://github.com/rripio/DSD               %%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+
     DISCLAIMER: El autor de DSD no garantiza ni supervisa
                 esta traslación.
-                
+
     ACHTUNG:    WORK IN PROGRESS
 """
+
+# -----------------------------------------------------------
+# VERSIONES:
 # v0.01a
 # + blackmanharris
 # funciones 'blackman' renombradas a 'blackmanharris'
 # v0.02
 # + funciones de crossover
-
+# v0.03
+# + biquads como as 'DSP EQ cookbook', + shelfs como 'Linkwitzlab'
 # -----------------------------------------------------------
-# Notas:
+# NOTAS:
 # - Abajo podemos ver código original de DSD en octave comentado con %%
 # - Algunas convenciones usadas en DSD:
 #   'sp'    suele referirse al spectrum completo
@@ -29,6 +33,114 @@
 
 import numpy as np
 from scipy import signal, interpolate
+
+def biquad(fs, f0, Q, type, dBgain):
+    """
+    %% Obtiene los coeficientes 'b,a' del filtro IIR asociado a un biquad.
+    %%
+    %% fs = Frecuencia de muestreo.
+    %% f0       = Frecuencia central del filtro.
+    %% Q        = Definido en "peakingEQ" de "DSP EQ cookbook",
+    %%            el ancho de banda es entre puntos de ganancia mitad.
+    %% type      = 'lpf' | 'hpf' | 'notch' | 'peakingEQ' | 'lowshelf' | 'highshelf'
+    %% dBgain    = Solo para peakingEQ, lowshelf o highshelf
+    """
+
+    if (Q <= 0):
+        raise ValueError("Q must be positive");
+
+    if (f0 <= 0) or (fs <= 0):
+        raise ValueError("f must be positive");
+
+    w0 = 2.0 * np.pi * f0/fs
+    alpha = np.sin(w0) / (2.0 * Q)
+
+    if type.lower() == "lpf":
+        b0 =  (1 - np.cos(w0)) / 2
+        b1 =   1 - np.cos(w0)
+        b2 =  (1 - np.cos(w0)) / 2
+        a0 =   1 + alpha
+        a1 =  -2 * np.cos(w0)
+        a2 =   1 - alpha
+
+    elif type.lower() == "hpf":
+        b0 =  (1 + np.cos(w0)) / 2
+        b1 = -(1 + np.cos(w0))
+        b2 =  (1 + np.cos(w0)) / 2
+        a0 =   1 + alpha
+        a1 =  -2 * np.cos(w0)
+        a2 =   1 - alpha
+
+    elif type.lower() == "notch":
+        b0 =   1
+        b1 =  -2 * np.cos(w0)
+        b2 =   1
+        a0 =   1 + alpha
+        a1 =  -2 * np.cos(w0)
+        a2 =   1 - alpha
+
+    elif type.lower() == "peakingeq":
+        A  = 10**(dBgain/40)
+
+        b0 =   1 + alpha * A
+        b1 =  -2 * np.cos(w0)
+        b2 =   1 - alpha * A
+        a0 =   1 + alpha / A
+        a1 =  -2 * np.cos(w0)
+        a2 =   1 - alpha / A
+
+    elif type.lower() == "lowshelf":
+        A  = 10**(dBgain/40)
+
+        b0 =      A * ( (A+1) - (A-1)*np.cos(w0) + 2*np.sqrt(A)*alpha )
+        b1 =  2 * A * ( (A-1) - (A+1)*np.cos(w0) )
+        b2 =      A * ( (A+1) - (A-1)*np.cos(w0) - 2*np.sqrt(A)*alpha )
+        a0 =            (A+1) + (A-1)*np.cos(w0) + 2*np.sqrt(A)*alpha
+        a1 = -2 *     ( (A-1) + (A+1)*np.cos(w0) )
+        a2 =            (A+1) + (A-1)*np.cos(w0) - 2*np.sqrt(A)*alpha
+
+    elif type.lower() == "highshelf":
+        A  = 10**(dBgain/40);
+
+        b0 =      A * ( (A+1) + (A-1)*np.cos(w0) + 2*np.sqrt(A)*alpha )
+        b1 = -2 * A * ( (A-1) + (A+1)*np.cos(w0) )
+        b2 =      A * ( (A+1) + (A-1)*np.cos(w0) - 2*np.sqrt(A)*alpha )
+        a0 =            (A+1) - (A-1)*np.cos(w0) + 2*np.sqrt(A)*alpha
+        a1 =  2 *     ( (A-1) - (A+1)*np.cos(w0) )
+        a2 =            (A+1) - (A-1)*np.cos(w0) - 2*np.sqrt(A)*alpha
+
+    else:
+        raise ValueError("Wrong biquad type")
+
+    a = np.array([a0, a1, a2])
+    b = np.array([b0, b1, b2])
+    return b, a
+
+def biqshelving(fs, f1, f2, type):
+    """
+    %% Obtiene los coeficientes 'b,a' del filtro IIR asociado a
+    && un filtro shelving tal como se define en www.linkwitzlab.com.
+    %% La pendiente se limita a la ausencia de overshoot, con un máximo de 6 dB/oct.
+    %%
+    %% fs   = Frecuencia de muestreo.
+    %% f1   = Frecuencia de inicio de la pendiente.
+    %% f2   = Frecuencia final de la pendiente.
+    %% type = 'lowShelf' | 'highShelf'
+    """
+    if (f2 <= f1):
+        raise ValueError("f2 must be grater than f1")
+
+    s = 6                   # % LINKWITZ SHELVINGS, 6 dB/oct
+    f0 = np.sqrt(f1*f2)
+    w0 = 2 * np.pi * f0/fs
+    dBgain = 20 * np.log10(f2/f1)
+    A  = 10**(dBgain/40.0)
+    S = s * np.log2(10)/40 * np.sin(w0)/w0 * (A**2 + 1) / np.abs(A**2 - 1)
+    if S > 1:
+        S = 1
+    Q = 1 / (np.sqrt((A + 1/A) * (1/S - 1) + 2))
+
+    return biquad(fs, f0, Q, type, dBgain)
 
 def delta(m):
     """
