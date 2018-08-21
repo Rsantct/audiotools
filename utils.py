@@ -11,7 +11,7 @@ from scipy.io import wavfile
 from scipy import signal
 import pydsd
 
-def RoomGain2impulse(imp, fs, gaindBs)
+def RoomGain2impulse(imp, fs, gaindBs):
     """
     Aplica ecualización Room Gain a un impulso
     (Adaptación de DSD/RoomGain.m que se aplica a un espectro)
