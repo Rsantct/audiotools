@@ -9,17 +9,18 @@
     
     IR_viewer.py  drcREW_test1.wav  drcREW_test2.pcm   44100  fmin-fmax -1
     
-    fmin-fmax:  opción que permite visualizar un rango en Hz, útil para ver graves.
-    -1:         opción para mostrar las gráficas de los impulsos en una fila única.
-
+    fmin-fmax:  Opción que permite visualizar un rango en Hz, útil para ver graves.
+    -1:         Opción para mostrar las gráficas de los impulsos en una fila única.
+    -pdf:       Guarda la gráfica archivo PDF, incluyendo el zoom que se hiciese durante
+                la visualización.
 """
-# v0.2
+# version = 'v0.2'
 #   Se añade un visor de la fase y otro pequeño visor de los impulsos
-# v0.2b 
+# version = 'v0.2b'
 #   Opción del rango de frecuencias a visualizar
-# v0.2c
+# version = 'v0.2c'
 #   Opcion -pha (oculta beta) para pintar la phase. ESTO NO ESTÁ CLARO PTE INVESTIGARLO DEEPER
-# v0.2d
+# version = 'v0.2d'
 #   Dejamos de pintar phases o gd fuera de la banda de paso, 
 #   con nuevo umbral a -50dB parece más conveniente para FIRs cortos con rizado alto.
 #   Se aumenta el rango de magnitudes hasta -60 dB
@@ -27,10 +28,12 @@
 #   El GD recoge en la gráfica el delay del pico del filtro.
 #   Autoescala magnitudes.
 #   Se deja de mostrar los taps en 'Ktaps'
-version = 'v0.2f'
+# version = 'v0.2f'
 #   Axes de impulsos en una fila opcinalmente
 #   Se muestra la versión del programa al pie de las gráficas.
 #   Se guarda la gráfica en un pdf
+version = 'v0.2g'
+#   La impresión a PDF se deja opcional
 # TO DO:
 #   Revisar la gráfica de fases
 #   Revisar la información mostrada "GD avg" que pretende ser la moda de los valores
@@ -45,8 +48,9 @@ import utils
 
 def lee_commandline(opcs):
     global fmin, fmax, plotPha
-    global plotIRsInOneRow
+    global plotIRsInOneRow, generaPDF
     plotIRsInOneRow = False
+    generaPDF = False
     
     # impulsos que devolverá esta función
     IRs = []
@@ -73,6 +77,9 @@ def lee_commandline(opcs):
             
         elif opc == "-1":
             plotIRsInOneRow = True
+
+        elif opc == "-pdf":
+            generaPDF = True
 
         else:
             fnames.append(opc)
@@ -291,16 +298,17 @@ if __name__ == "__main__":
     # Finalmente mostramos las gráficas por pantalla.
     plt.show()
 
-    # Y guardamos las gráficas en un PDF:
-    pdfName = ",".join([x for x in sys.argv[1:] if '.' in x]) + '.pdf'
-    print "\nGuardando en el archivo " + pdfName
-    # evitamos los warnings del pdf 
-    # C:\Python27\lib\site-packages\matplotlib\figure.py:1742: UserWarning: 
-    # This figure includes Axes that are not compatible with tight_layout, so 
-    # its results might be incorrect.
-    import warnings
-    warnings.filterwarnings("ignore")
-    fig.savefig(pdfName, bbox_inches='tight')
+    if generaPDF:
+        # Y guardamos las gráficas en un PDF:
+        pdfName = ",".join([x for x in sys.argv[1:] if '.' in x]) + '.pdf'
+        print "\nGuardando en el archivo " + pdfName
+        # evitamos los warnings del pdf 
+        # C:\Python27\lib\site-packages\matplotlib\figure.py:1742: UserWarning: 
+        # This figure includes Axes that are not compatible with tight_layout, so 
+        # its results might be incorrect.
+        import warnings
+        warnings.filterwarnings("ignore")
+        fig.savefig(pdfName, bbox_inches='tight')
 
     print "Bye!"
-   
+  
