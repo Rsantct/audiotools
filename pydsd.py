@@ -52,6 +52,8 @@ def biquad(fs, f0, Q, type, dBgain):
     if (f0 <= 0) or (fs <= 0):
         raise ValueError("f must be positive");
 
+    # http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
+    A  = np.sqrt( 10**(dBgain/20))
     w0 = 2.0 * np.pi * f0/fs
     alpha = np.sin(w0) / (2.0 * Q)
 
@@ -80,8 +82,6 @@ def biquad(fs, f0, Q, type, dBgain):
         a2 =   1 - alpha
 
     elif type.lower() == "peakingeq":
-        A  = 10**(dBgain/40)
-
         b0 =   1 + alpha * A
         b1 =  -2 * np.cos(w0)
         b2 =   1 - alpha * A
@@ -90,8 +90,6 @@ def biquad(fs, f0, Q, type, dBgain):
         a2 =   1 - alpha / A
 
     elif type.lower() == "lowshelf":
-        A  = 10**(dBgain/40)
-
         b0 =      A * ( (A+1) - (A-1)*np.cos(w0) + 2*np.sqrt(A)*alpha )
         b1 =  2 * A * ( (A-1) - (A+1)*np.cos(w0) )
         b2 =      A * ( (A+1) - (A-1)*np.cos(w0) - 2*np.sqrt(A)*alpha )
@@ -100,8 +98,6 @@ def biquad(fs, f0, Q, type, dBgain):
         a2 =            (A+1) + (A-1)*np.cos(w0) - 2*np.sqrt(A)*alpha
 
     elif type.lower() == "highshelf":
-        A  = 10**(dBgain/40);
-
         b0 =      A * ( (A+1) + (A-1)*np.cos(w0) + 2*np.sqrt(A)*alpha )
         b1 = -2 * A * ( (A-1) + (A+1)*np.cos(w0) )
         b2 =      A * ( (A+1) + (A-1)*np.cos(w0) - 2*np.sqrt(A)*alpha )
