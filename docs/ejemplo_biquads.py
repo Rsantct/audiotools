@@ -41,7 +41,7 @@ for param in [(50,  10, -20),
 utils.savePCM32(imp, "biquads.pcm")
 
 # 3. Convertimos a LP linear phase :-| ejem...
-imp = utils.MP2LP(imp, windowed=False)
+imp = utils.MP2LP(imp, windowed=True)
 
 # 4. Guardamos el resultado LP
 utils.savePCM32(imp, "biquads_lp.pcm")
