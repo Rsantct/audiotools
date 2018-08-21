@@ -22,10 +22,9 @@ def MP2LP(imp, windowed=True):
     que aquí aparece traducida a Python/Scipy en audiotools/pydsd.py
 
     imp:    Impulso a procesar
-    w:      Boolean para aplicar una ventana al impulso resultante (*)
+    w:      Boolean para aplicar una ventana al impulso resultante, True por defecto (*)
 
-    (*) Parece conveniente no aplicar ventana si procesamos impulsos
-        con un espectro muy accidentado en magnitud.
+    (*) El enventado afectará a la resolución en IRs con espectro en magnitud muy accidentado.
 
     !!!!!!!
     ACHTUNG: estás usando una función en pruebas, AVISADO QUEDAS
@@ -41,12 +40,14 @@ def MP2LP(imp, windowed=True):
 
     # tomamos la parte real de IFFT para descartar la phase
     imp = np.real( np.fft.ifft( mag ) )
-    # shifteamos la IFFT
+    # shifteamos la IFFT para conformar el IR con el impulso centrado
     imp = np.roll(imp, Nbins/2)
 
+    # Enventanado simétrico
     if windowed:
-        imp = pydsd.blackmanharris(Nbins) * imp
-
+        # imp = pydsd.blackmanharris(Nbins) * imp
+        imp = signal.windows.kaiser(Nbins, beta=4) * imp
+        
     return imp
 
 def ba2LP(b, a, m, windowed=True):
@@ -62,10 +63,10 @@ def ba2LP(b, a, m, windowed=True):
 
     b, a:   Coeffs numerador y denominador de la func de transferencia a procesar
     m:      Longitud del impulso resultante
-    w:      Boolean para aplicar una ventana al impulso resultante (*)
+    w:      Boolean para aplicar una ventana al impulso resultante, True por defecto (*)
 
-    (*) Parece conveniente no aplicar ventana si procesamos coeffs b,a 
-        resultantes de un biquad type='peakingEQ' estrecho.
+    (*) El enventanado afecta a la resolución final y se nota sustancialmente
+        si procesamos coeffs b,a resultantes de un biquad type='peakingEQ' estrecho.
 
     !!!!!!!
     ACHTUNG: estás usando una función en pruebas, AVISADO QUEDAS
@@ -83,11 +84,13 @@ def ba2LP(b, a, m, windowed=True):
 
     # tomamos la parte real de IFFT para descartar la phase
     imp = np.real( np.fft.ifft( mag ) )
-    # shifteamos la IFFT
+    # shifteamos la IFFT para conformar el IR con el impulso centrado
     imp = np.roll(imp, Nbins/2)
 
+    # Enventanado simétrico
     if windowed:
-        imp = pydsd.blackmanharris(Nbins) * imp
+        # imp = pydsd.blackmanharris(Nbins) * imp
+        imp = signal.windows.kaiser(Nbins, beta=4) * imp
 
     return imp
 
