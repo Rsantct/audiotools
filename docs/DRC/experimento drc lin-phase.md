@@ -30,7 +30,7 @@ El principal problema de esta solución es el alto retardo inherente a usar FIRs
 
 ## El procedimiento:
  
-**Herramienta: REW**
+**Herramienta: REW Room EQ Wizard**
  
 1. Tomar varias medidas de IR en distintos puntos de la sala.
  
