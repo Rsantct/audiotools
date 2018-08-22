@@ -132,7 +132,7 @@ def RoomGain2impulse(imp, fs, gaindB):
 
     fs       = Frecuencia de muestreo.
     imp      = Impulso al que se aplica la ecualización.
-    gaindBS  = Ganancia total a DC sobre la respuesta plana.
+    gaindB   = Ganancia total a DC sobre la respuesta plana.
     """
     # Parámetros convencionales para una curva Room Gain
     f1 = 120
