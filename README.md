@@ -2,7 +2,7 @@
 
 Algunas herramientas, orientadas al manejo de FIRs para **AudioHumLab/FIRtro**.
 
-Se incluye una traslación a Python de funciones del paquete **rripio/DSD** en Octave
+Se incluye una traslación a Python de funciones del paquete Octave **rripio/DSD**
 
 ### Install:
 
