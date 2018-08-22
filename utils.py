@@ -11,7 +11,16 @@ from scipy.io import wavfile
 from scipy import signal
 import pydsd
 
-def read_REW_EQ_txt(rew_eq_fname)
+def q2bw(Q):
+    """
+        convierte un valor de Q a BW en octavas
+        http://www.rane.com/note167.html#qformula
+        http://www.rane.com/note170.html
+    """
+    bw = 2.0 / np.log10(2.0) * np.log10( 0.5 * (1/Q + np.sqrt(1/Q**2 + 4)))
+    return bw
+
+def read_REW_EQ_txt(rew_eq_fname):
     """
      Lee un archivo .txt de filtros paramétricos de RoomEqWizard
      y devuelve un diccionario con los parámetros de los filtros
@@ -31,7 +40,7 @@ def read_REW_EQ_txt(rew_eq_fname)
             fc      = float( linea[28:34].strip().replace(",",".") )
             gain    = float( linea[44:49].strip().replace(",",".") )
             Q       = float( linea[56:61].strip().replace(",",".") )
-            BW = q2bw(float(Q)) # convertimos Q en BW(oct)
+            BW = round( q2bw(float(Q)), 4)  # convertimos Q en BW(oct)
             # Añadimos el filtro
             PEQs[i] = {'active':active, 'fc':fc, 'gain':gain, 'Q':Q, 'BW':BW}
             i += 1
