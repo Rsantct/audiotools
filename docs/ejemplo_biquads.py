@@ -8,46 +8,49 @@ import os
 import sys
 HOME = os.path.expanduser("~")
 sys.path.append(HOME + "/audiotools")
+# modulos de audiotools:
 import utils
 import pydsd
 
-
 # PARAMETROS GLOBALES:
-fs = 44100   # Frecuencia de muestreo
-m  = 16386   # Longitud del impulso FIR
+fs = 44100  # Frecuencia de muestreo
+m  = 2**15  # Longitud del impulso FIR
+            # (i) Para filtros de alto Q > 5  y baja frecuencia <50Hz
+            #     usar m >= 16K para un FIR largo.
 
-# 0. Partimos de una delta (espectro plano)
-delta = pydsd.delta(m)
+for channel in "L", "R":
 
-# 1. Aplicamos una curva Room Gain +6dB
-gain = 6.0
-imp = utils.RoomGain2impulse(delta, fs, gain)
+    # 0. Partimos de una delta (espectro plano)
+    imp = pydsd.delta(m)
 
-# 2. Encadenamos filtros 'peakingEQ' ~ 'paramétricos' 
-# NOTA: para filtros de alto Q > 5  y baja frecuencia <50Hz
-#       usar m >= 16K (FIR largo)
-#       (i) Observar los resultados con 'IRs_viewer.py biquads.pcm 44100'
+    # 1. Aplicamos una curva Room Gain +6dB
+    #gain = 6.0
+    #imp = utils.RoomGain2impulse(imp, fs, gain)
 
-for param in [(50,  10, -20), 
-              (100, 10, -15), 
-              (120, 10, -20)]:
-    f0  = param[0]
-    Q   = param[1]
-    gdB = param[2]
-    b, a = pydsd.biquad(fs=fs, f0=f0, Q=Q, type="peakingEQ", dBgain=gdB)
-    imp = signal.lfilter(b, a, imp)
+    # 2. Leemos los filtros paramétricos desde un archivo de texto de REW:
+    rewfname = "rew/eq_" + channel + ".txt"
+    PEQs = utils.read_REW_EQ_txt(rewfname)
 
-# 4. Guardamos el resultado
-utils.savePCM32(imp, "biquads.pcm")
+    # 3. Encadenamos los filtros 'peakingEQ' 
+    for peqId, params in PEQs.items():
 
-# 3. Convertimos a LP linear phase :-| ejem...
-#    kaiserBeta=1 experimental compromiso resolución peaks vs artifactos GD
-imp = utils.MP2LP(imp, windowed=True, kaiserBeta=1)
+        b, a = pydsd.biquad(fs     = fs, 
+                            f0     = params['fc'], 
+                            Q      = params['Q'], 
+                            dBgain = params['gain'],
+                            type   = "peakingEQ") 
 
-# 4. Guardamos el resultado LP
-utils.savePCM32(imp, "biquads_lp.pcm")
+        imp = signal.lfilter(b, a, imp)
 
-print "(i) Observar los resultados con"
-print "    'IRs_viewer.py biquads.pcm biquads_lp 44100'"
+    # 4. Guardamos el resultado minimum phase
+    utils.savePCM32(imp, "biquads_" + channel + ".pcm")
 
+    # 5. Convertimos a LP linear phase :-| ejem...
+    imp = utils.MP2LP(imp, windowed=True, kaiserBeta=1)
 
+    # 6. Guardamos el resultado LP
+    utils.savePCM32(imp, "biquads_lp_" + channel + ".pcm")
+
+print "(i) Observar los resultados haciendo zoom con"
+print "    'IRs_viewer.py biquads_R.pcm biquads_lp_R.pcm 44100'"
+print "    Es interesante probar distintas fs, betas de kaiser..."
