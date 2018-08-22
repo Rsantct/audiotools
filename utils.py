@@ -11,88 +11,96 @@ from scipy.io import wavfile
 from scipy import signal
 import pydsd
 
-def MP2LP(imp, windowed=True):
+def MP2LP(imp, windowed=True, kaiserBeta=8):
     """
-    audiotools/utils/MP2LP(imp, windowed=True)
-
+    audiotools/utils/MP2LP(imp, windowed=True, kaiserBeta=8)
+ 
     Esta función pretende obtener un impulso linear phase cuyo espectro
-    se corresponde en magnitud con el impulso causal proporcionado.
-
+    se corresponde en magnitud con la del impulso causal proporcionado.
+ 
     Está inspirada en el mecanismo usado en la función Octave DSD/crossButterworthLP.m
     que aquí aparece traducida a Python/Scipy en audiotools/pydsd.py
-
-    imp:    Impulso a procesar
-    w:      Boolean para aplicar una ventana al impulso resultante, True por defecto (*)
-
+ 
+    imp:      Impulso a procesar
+    windowed: Boolean para aplicar una ventana al impulso resultante, True por defecto (*)
+ 
     (*) El enventado afectará a la resolución en IRs con espectro en magnitud muy accidentado.
-
-    !!!!!!!
-    ACHTUNG: estás usando una función en pruebas, AVISADO QUEDAS
-    !!!!!!!
+        Por contra suaviza los microartifactos de retardo de grupo del impulso resultante,
+        que son visibles haciendo zoom con 'IRs_viewer.py'. El GD debe ser constante.
+ 
+    ¡¡¡ ACHTUNG !!! Estás usando una función en pruebas, ¡¡¡ AVISADO QUEDAS !!!
     """
-
     # MUESTRA UN AVISO:
     print MP2LP.__doc__
-
+ 
+    # Obtenemos el espectro completo del impulso dado
     Nbins = len(imp)
-    w, h = signal.freqz(imp, worN=Nbins, whole=True)
-    mag = np.abs(h)
-
-    # tomamos la parte real de IFFT para descartar la phase
-    imp = np.real( np.fft.ifft( mag ) )
-    # shifteamos la IFFT para conformar el IR con el impulso centrado
-    imp = np.roll(imp, Nbins/2)
-
-    # Enventanado simétrico
-    if windowed:
-        # imp = pydsd.blackmanharris(Nbins) * imp
-        imp = signal.windows.kaiser(Nbins, beta=4) * imp
-        
-    return imp
-
-def ba2LP(b, a, m, windowed=True):
+    _, h = signal.freqz(imp, worN=Nbins, whole=True)
+    wholemag = np.abs(h)
+ 
+    # Obtenemos el impulso equivalente en linear phase
+    return wholemag2LP(wholemag , windowed=windowed, kaiserBeta=kaiserBeta)
+ 
+def ba2LP(b, a, m, windowed=True, kaiserBeta=4):
     """
-    audiotools/utils/ba2LP(b, a, m, windowed=True)
-
+    audiotools/utils/ba2LP(b, a, m, windowed=True, kaiserBeta=4)
+ 
     Esta función pretende obtener un impulso linear phase de longitud m
-    cuyo espectro se corresponde en magnitud con la de la función de 
-    transferencia de los coeff b,a proporcionados.
-
+    cuyo espectro se corresponde en magnitud con la de la función de
+    transferencia definida por los coeff 'b,a' proporcionados.
+ 
     Está inspirada en el mecanismo usado en la función Octave DSD/crossButterworthLP.m
     que aquí aparece traducida a Python/Scipy en audiotools/pydsd.py
-
-    b, a:   Coeffs numerador y denominador de la func de transferencia a procesar
-    m:      Longitud del impulso resultante
-    w:      Boolean para aplicar una ventana al impulso resultante, True por defecto (*)
-
+ 
+    b, a:     Coeffs numerador y denominador de la func de transferencia a procesar
+    m:        Longitud del impulso resultante
+    windowed: Boolean para aplicar una ventana al impulso resultante, True por defecto (*)
+ 
     (*) El enventanado afecta a la resolución final y se nota sustancialmente
-        si procesamos coeffs b,a resultantes de un biquad type='peakingEQ' estrecho.
-
-    !!!!!!!
-    ACHTUNG: estás usando una función en pruebas, AVISADO QUEDAS
-    !!!!!!!
+        si procesamos coeffs 'b,a' correspondientes a un biquad type='peakingEQ' estrecho.
+        Por contra suaviza los microartifactos de retardo de grupo del impulso resultante
+        que son visibles haciendo zoom con 'IRs_viewer.py'. El GD debe ser constante.
+ 
+    ¡¡¡ ACHTUNG !!! Estás usando una función en pruebas, ¡¡¡ AVISADO QUEDAS !!!
     """
-
     # MUESTRA UN AVISO:
     print ba2LP.__doc__
-
-    # Obtenemos el espectro correspondiente a los 
-    # coeff b,a de func de transferencia proporcionados
+ 
+    # Obtenemos el espectro completo correspondiente
+    # a los coeff b,a de func de transferencia
     Nbins = m
-    w, h = signal.freqz(b, a, Nbins, whole=True)
-    mag = np.abs(h)
-
-    # tomamos la parte real de IFFT para descartar la phase
-    imp = np.real( np.fft.ifft( mag ) )
-    # shifteamos la IFFT para conformar el IR con el impulso centrado
-    imp = np.roll(imp, Nbins/2)
-
+    _, h = signal.freqz(b, a, worN=Nbins, whole=True)
+    wholemag = np.abs(h)
+ 
+    # Obtenemos el impulso equivalente en linear phase
+    return wholemag2LP(wholemag , windowed=windowed, kaiserBeta=kaiserBeta)
+ 
+def wholemag2LP(wholemag, windowed=True, kaiserBeta=4):
+    """
+    Esta función pretende obtener un impulso linear phase cuyo espectro se
+    corresponde en magnitud con el espectro fft proporcionado 'wholemag', que
+    debe ser un espectro fft completo y causal.
+ 
+    Está inspirada en el mecanismo usado en la función Octave DSD/crossButterworthLP.m
+    que aquí aparece traducida a Python/Scipy en audiotools/pydsd.py
+ 
+    La longitud del impulso resultante se corresponde con la longitud del espectro de entrada.
+ 
+    Se le aplica una ventana kaiser con 'beta' ajustable.
+    """
+ 
+    # Volvemos al dom de t, tomamos la parte real de IFFT
+    imp = np.real( np.fft.ifft( wholemag ) )
+    # y shifteamos la IFFT para conformar el IR con el impulso centrado:
+    imp = np.roll(imp, len(wholemag)/2)
+ 
     # Enventanado simétrico
     if windowed:
-        # imp = pydsd.blackmanharris(Nbins) * imp
-        imp = signal.windows.kaiser(Nbins, beta=4) * imp
-
-    return imp
+        # imp = pydsd.blackmanharris(len(imp)) * imp
+        # Experimentamos con valores 'beta' de kaiser:
+        return signal.windows.kaiser(len(imp), beta=kaiserBeta) * imp
+    else:
+        return imp
 
 def RoomGain2impulse(imp, fs, gaindB):
     """
