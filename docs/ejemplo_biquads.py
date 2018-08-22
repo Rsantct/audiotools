@@ -25,7 +25,7 @@ imp = utils.RoomGain2impulse(delta, fs, gain)
 
 # 2. Encadenamos filtros 'peakingEQ' ~ 'paramétricos' 
 # NOTA: para filtros de alto Q > 5  y baja frecuencia <50Hz
-#       usar m >= 8192 para un FIR largo.
+#       usar m >= 16K (FIR largo)
 #       (i) Observar los resultados con 'IRs_viewer.py biquads.pcm 44100'
 
 for param in [(50,  10, -20), 
@@ -41,7 +41,8 @@ for param in [(50,  10, -20),
 utils.savePCM32(imp, "biquads.pcm")
 
 # 3. Convertimos a LP linear phase :-| ejem...
-imp = utils.MP2LP(imp, windowed=True)
+#    kaiserBeta=1 experimental compromiso resolución peaks vs artifactos GD
+imp = utils.MP2LP(imp, windowed=True, kaiserBeta=1)
 
 # 4. Guardamos el resultado LP
 utils.savePCM32(imp, "biquads_lp.pcm")
