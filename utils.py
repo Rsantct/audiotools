@@ -11,6 +11,33 @@ from scipy.io import wavfile
 from scipy import signal
 import pydsd
 
+def read_REW_EQ_txt(rew_eq_fname)
+    """
+     Lee un archivo .txt de filtros paramétricos de RoomEqWizard
+     y devuelve un diccionario con los parámetros de los filtros
+ 
+     (i) Se precisa que en REW se utilice [Equaliser: Generic]
+    """
+    f = open(rew_eq_fname, 'r')
+    txt = f.read()
+    f.close()
+ 
+    PEQs = {}   # Diccionario con el resultado de paramétricos leidos
+ 
+    i = 0
+    for linea in txt.split("\n"):
+        if "Filter" in linea and (not "Settings" in linea) and ("Fc") in linea:
+            active  = ( linea[11:14].strip() == "ON" )
+            fc      = float( linea[28:34].strip().replace(",",".") )
+            gain    = float( linea[44:49].strip().replace(",",".") )
+            Q       = float( linea[56:61].strip().replace(",",".") )
+            BW = q2bw(float(Q)) # convertimos Q en BW(oct)
+            # Añadimos el filtro
+            PEQs[i] = {'active':active, 'fc':fc, 'gain':gain, 'Q':Q, 'BW':BW}
+            i += 1
+ 
+    return PEQs
+
 def MP2LP(imp, windowed=True, kaiserBeta=8):
     """
     audiotools/utils/MP2LP(imp, windowed=True, kaiserBeta=8)
