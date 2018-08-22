@@ -51,11 +51,8 @@ def MP2LP(imp, windowed=True, kaiserBeta=8):
     """
     audiotools/utils/MP2LP(imp, windowed=True, kaiserBeta=8)
  
-    Esta función pretende obtener un impulso linear phase cuyo espectro
-    se corresponde en magnitud con la del impulso causal proporcionado.
- 
-    Está inspirada en el mecanismo usado en la función Octave DSD/crossButterworthLP.m
-    que aquí aparece traducida a Python/Scipy en audiotools/pydsd.py
+    Obtiene un impulso linear phase cuyo espectro se corresponde
+    en magnitud con la del impulso causal proporcionado.
  
     imp:      Impulso a procesar
     windowed: Boolean para aplicar una ventana al impulso resultante, True por defecto (*)
@@ -63,11 +60,9 @@ def MP2LP(imp, windowed=True, kaiserBeta=8):
     (*) El enventado afectará a la resolución en IRs con espectro en magnitud muy accidentado.
         Por contra suaviza los microartifactos de retardo de grupo del impulso resultante,
         que son visibles haciendo zoom con 'IRs_viewer.py'. El GD debe ser constante.
- 
-    ¡¡¡ ACHTUNG !!! Estás usando una función en pruebas, ¡¡¡ AVISADO QUEDAS !!!
-    """
-    # MUESTRA UN AVISO:
-    print MP2LP.__doc__
+     """
+    # MUESTRA LA DOC DE ESTA FUNCIÓN:
+    # print MP2LP.__doc__
  
     # Obtenemos el espectro completo del impulso dado
     Nbins = len(imp)
@@ -77,16 +72,13 @@ def MP2LP(imp, windowed=True, kaiserBeta=8):
     # Obtenemos el impulso equivalente en linear phase
     return wholemag2LP(wholemag , windowed=windowed, kaiserBeta=kaiserBeta)
  
-def ba2LP(b, a, m, windowed=True, kaiserBeta=4):
+def ba2LP(b, a, m, windowed=True, kaiserBeta=3):
     """
     audiotools/utils/ba2LP(b, a, m, windowed=True, kaiserBeta=4)
  
-    Esta función pretende obtener un impulso linear phase de longitud m
-    cuyo espectro se corresponde en magnitud con la de la función de
+    Obtiene un impulso linear phase de longitud m cuyo espectro
+    se corresponde en magnitud con la de la función de
     transferencia definida por los coeff 'b,a' proporcionados.
- 
-    Está inspirada en el mecanismo usado en la función Octave DSD/crossButterworthLP.m
-    que aquí aparece traducida a Python/Scipy en audiotools/pydsd.py
  
     b, a:     Coeffs numerador y denominador de la func de transferencia a procesar
     m:        Longitud del impulso resultante
@@ -96,11 +88,9 @@ def ba2LP(b, a, m, windowed=True, kaiserBeta=4):
         si procesamos coeffs 'b,a' correspondientes a un biquad type='peakingEQ' estrecho.
         Por contra suaviza los microartifactos de retardo de grupo del impulso resultante
         que son visibles haciendo zoom con 'IRs_viewer.py'. El GD debe ser constante.
- 
-    ¡¡¡ ACHTUNG !!! Estás usando una función en pruebas, ¡¡¡ AVISADO QUEDAS !!!
     """
-    # MUESTRA UN AVISO:
-    print ba2LP.__doc__
+    # MUESTRA LA DOC DE ESTA FUNCIÓN:
+    # print ba2LP.__doc__
  
     # Obtenemos el espectro completo correspondiente
     # a los coeff b,a de func de transferencia
@@ -111,16 +101,13 @@ def ba2LP(b, a, m, windowed=True, kaiserBeta=4):
     # Obtenemos el impulso equivalente en linear phase
     return wholemag2LP(wholemag , windowed=windowed, kaiserBeta=kaiserBeta)
  
-def wholemag2LP(wholemag, windowed=True, kaiserBeta=4):
+def wholemag2LP(wholemag, windowed=True, kaiserBeta=3):
     """
-    Esta función pretende obtener un impulso linear phase cuyo espectro se
-    corresponde en magnitud con el espectro fft proporcionado 'wholemag', que
-    debe ser un espectro fft completo y causal.
+    Obtiene un impulso linear phase cuyo espectro se corresponde 
+    en magnitud con el espectro fft proporcionado 'wholemag',
+    que debe ser un espectro fft completo y causal.
  
-    Está inspirada en el mecanismo usado en la función Octave DSD/crossButterworthLP.m
-    que aquí aparece traducida a Python/Scipy en audiotools/pydsd.py
- 
-    La longitud del impulso resultante se corresponde con la longitud del espectro de entrada.
+    La longitud del impulso resultante ifft se corresponde con la longitud del espectro de entrada.
  
     Se le aplica una ventana kaiser con 'beta' ajustable.
     """
