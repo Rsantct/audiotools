@@ -28,7 +28,7 @@ for channel in "L", "R":
     #imp = utils.RoomGain2impulse(imp, fs, gain)
 
     # 2. Leemos los filtros paramétricos desde un archivo de texto de REW:
-    rewfname = "rew/eq_" + channel + ".txt"
+    rewfname = "~/audiotools/docs/REW/eq_" + channel + ".txt"
     PEQs = utils.read_REW_EQ_txt(rewfname)
 
     # 3. Encadenamos los filtros 'peakingEQ' 
