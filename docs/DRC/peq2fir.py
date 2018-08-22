@@ -53,4 +53,8 @@ for channel in "L", "R":
 
 print "(i) Observar los resultados haciendo zoom con"
 print "    'IRs_viewer.py biquads_R.pcm biquads_lp_R.pcm 44100'"
+print
 print "    Es interesante probar distintas fs, betas de kaiser..."
+print "    Si aumentamos beta disminuyen los microartifactos del GD del filtro, ¿audibles?,"
+print "    pero a costa de menos resolución en la curva de filtrado en graves."
+
