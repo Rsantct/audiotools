@@ -10,15 +10,13 @@ import numpy as np
 from scipy.io import wavfile
 from scipy import signal
 import pydsd
+import q2bw
 
 def q2bw(Q):
-    """
-        convierte un valor de Q a BW en octavas
-        http://www.rane.com/note167.html#qformula
-        http://www.rane.com/note170.html
-    """
-    bw = 2.0 / np.log10(2.0) * np.log10( 0.5 * (1/Q + np.sqrt(1/Q**2 + 4)))
-    return bw
+    return q2bw.q2bw(Q)
+
+def bw2q(BWoct):
+    return q2bw.bw2Q(BWoct)
 
 def read_REW_EQ_txt(rew_eq_fname):
     """
