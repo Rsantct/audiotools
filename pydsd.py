@@ -264,11 +264,13 @@ def crossButterworthLP(fs=44100, m=32768, n=2, flp=0 , fhp=0):
         imp = centerimp(deltacentered(m-1), m)
         return imp  # delta sin filtrar
 
-    # 2. Calculamos la magnitud del semiespectro
+    # 2. Para obtener linear-phase: pasamos a dom de f, tomamos la magnitud y regresamos a dom de t.
+
+    # 2a. Calculamos la magnitud del espectro de frecuencias
 
     # Cód. original DSD, en Octave:
     # Nota: Se trabaja con el vector ssF de frecuencias físicas y la fs, es uno de los posibles
-    #       modos de usar freqz en Octave. Al no usar 'whole' devuelve el semiespectro.
+    #       modos de usar freqz en Octave. OjO al no usar 'whole' devuelve el SEMIespectro.
     # %% mLow = fs/m;                   % low freq, freq jump
     # %% ssK = 0:m/2;                   % indexes of non aliased frequency vector
     # %% ssF = mLow * (ssK);            % non aliased frequency vector
@@ -277,20 +279,21 @@ def crossButterworthLP(fs=44100, m=32768, n=2, flp=0 , fhp=0):
 
     # En Scipy freqz trabaja con freqs normalizadas no se usa la fs como parámetro.
     # Aquí obtendremos el espectro completo para evitar reconstruirlo más abajo con 'wholesplp'.
-    Nbins = m
-    w, h = signal.freqz(b, a, Nbins, whole=True)
+    _, h = signal.freqz(b, a, worN = m, whole = True)   # worN: 'w' array de frecuencias or 'N' bins
     mag = np.abs(h)
 
-    # 3. Se calcula el impulso correspondiente a 'mag':
-    #    se toma la parte real de la IFFT y se shiftea.
+    # 2b. Regresamos a dom de t: se calcula el impulso correspondiente a 'mag':
+    #     se toma la parte real de la IFFT y se shiftea.
+
     # Cód. original en Octave:
     # %% imp = real( ifft( wholesplp(mag') ) );
     # %% imp = circshift(imp, m/2);
+
     imp = np.real( np.fft.ifft( mag ) )
     # shifteamos la IFFT para conformar el IR con el impulso centrado
     imp = np.roll(imp, m/2)
 
-    # 4. Se aplica una ventana antes de devolver el resultado
+    # 3. Se aplica una ventana antes de devolver el resultado
     # Cód. original en Octave
     # %% imp = blackmanharris (m) .* imp;
     return blackmanharris(m) * imp
