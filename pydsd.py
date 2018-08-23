@@ -175,11 +175,10 @@ def centerimp(imp, m):
     %% m   = Longitud final del impulso.
     """
 
-    l = len(imp)
-    if l > m:
+    if len(imp) > m:
         raise ValueError("centerimp: impulse length must be equal or less than m")
 
-    if l % 2 == 0:
+    if len(imp) % 2 == 0:
         raise ValueError("centerimp: Impulse length must be odd");
 
     # En Octave se hace zero padding (imp, longitud_deseada) en dos pasadas :
