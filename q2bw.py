@@ -26,14 +26,14 @@ def q2bw(Q):
     """
     Q = float(Q)
     BWoct = np.log10( 1 + 1 / (2*Q*Q) + np.sqrt(((2 + 1/(Q*Q))**2) / 4 - 1 )) / np.log10(2)
-    return BWoct
+    return round(BWoct, 4)
 
 def bw2q(N):
     """ Convierte un valor BW_octavas a Q
     """
     N = float(N)
     Q = np.sqrt(2**N) / (2**N -1)
-    return Q
+    return round(Q, 4)
 
 if __name__ == '__main__':
     pass
