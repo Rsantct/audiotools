@@ -10,13 +10,7 @@ import numpy as np
 from scipy.io import wavfile
 from scipy import signal
 import pydsd
-import q2bw
-
-def q2bw(Q):
-    return q2bw.q2bw(Q)
-
-def bw2q(BWoct):
-    return q2bw.bw2Q(BWoct)
+from q2bw import *
 
 def read_REW_EQ_txt(rew_eq_fname):
     """
