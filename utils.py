@@ -39,15 +39,17 @@ def read_REW_EQ_txt(rew_eq_fname):
  
     return PEQs
 
-def MP2LP(imp, windowed=True, kaiserBeta=8):
+def MP2LP(imp, windowed=True, kaiserBeta=6):
     """
-    audiotools/utils/MP2LP(imp, windowed=True, kaiserBeta=8)
+    audiotools/utils/MP2LP(imp, windowed=True, kaiserBeta=3)
  
     Obtiene un impulso linear phase cuyo espectro se corresponde
     en magnitud con la del impulso causal proporcionado.
  
-    imp:      Impulso a procesar
-    windowed: Boolean para aplicar una ventana al impulso resultante, True por defecto (*)
+    imp:        Impulso a procesar
+    windowed:   Boolean para aplicar una ventana al impulso resultante, True por defecto (*)
+    kaiserBeta: Ajuste de forma de la ventana kaiser (6	Similar to a Hann)
+                https://docs.scipy.org/doc/scipy-1.0.0/reference/generated/scipy.signal.kaiser.html
  
     (*) El enventado afectará a la resolución en IRs con espectro en magnitud muy accidentado.
         Por contra suaviza los microartifactos de retardo de grupo del impulso resultante,
@@ -72,9 +74,11 @@ def ba2LP(b, a, m, windowed=True, kaiserBeta=3):
     se corresponde en magnitud con la de la función de
     transferencia definida por los coeff 'b,a' proporcionados.
  
-    b, a:     Coeffs numerador y denominador de la func de transferencia a procesar
-    m:        Longitud del impulso resultante
-    windowed: Boolean para aplicar una ventana al impulso resultante, True por defecto (*)
+    b, a:       Coeffs numerador y denominador de la func de transferencia a procesar
+    m:          Longitud del impulso resultante
+    windowed:   Boolean para aplicar una ventana al impulso resultante, True por defecto (*)
+    kaiserBeta: Ajuste de forma de la ventana kaiser (3	Similar to a Hamming)
+                https://docs.scipy.org/doc/scipy-1.0.0/reference/generated/scipy.signal.kaiser.html
  
     (*) El enventanado afecta a la resolución final y se nota sustancialmente
         si procesamos coeffs 'b,a' correspondientes a un biquad type='peakingEQ' estrecho.
@@ -102,6 +106,11 @@ def wholemag2LP(wholemag, windowed=True, kaiserBeta=3):
     La longitud del impulso resultante ifft se corresponde con la longitud del espectro de entrada.
  
     Se le aplica una ventana kaiser con 'beta' ajustable.
+    
+    wholemag:   La magnitud de espectro completo y causal a procesar
+    windowed:   Boolean para aplicar una ventana al impulso resultante, True por defecto (*)
+    kaiserBeta: Ajuste de forma de la ventana kaiser
+                https://docs.scipy.org/doc/scipy-1.0.0/reference/generated/scipy.signal.kaiser.html
     """
  
     # Volvemos al dom de t, tomamos la parte real de IFFT
