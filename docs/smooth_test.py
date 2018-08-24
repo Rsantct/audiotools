@@ -42,16 +42,18 @@ frec = FR[:, 0]
 mag  = FR[:, 1]
 
 # Ploteo sin suavizar
-plt.semilogx(frec, mag )
+plt.semilogx(frec, mag , label="raw")
 
 aten = -10
 for Noct in 12, 6, 3:
     print "suavizando 1/" + str(Noct) + " oct ... .. ."
     # Ploteo de la magnitud SUAVIZADA (se pinta desplazada -10 dBs)
-    plt.semilogx(frec, aten + smooth(mag, frec, Noct) )
+    plt.semilogx(frec, aten + smooth(mag, frec, Noct), label="1/"+str(Noct)+" oct" )
     aten -= 10
 
 plt.xlim(20, 20000)
 plt.ylim(-60, 10)
 plt.grid()
+plt.legend()
 plt.show()
+
