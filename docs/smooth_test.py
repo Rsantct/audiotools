@@ -26,6 +26,7 @@ from smoothSpectrum import smoothSpectrum as smooth
 
 # Lee el nombre de archivo .frd
 if len(sys.argv) == 1:
+    print __doc__
     sys.exit() 
 try:
     fname = sys.argv[1]
