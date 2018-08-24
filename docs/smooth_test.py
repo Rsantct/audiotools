@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-    Ejemplo de uso de la función utils/smooth.py
+    Ejemplo de uso de la función audiotools/smoothSpectrum.py
     de suavizado de respuestas en frecuencia
     obternidas con ARTA.
     
