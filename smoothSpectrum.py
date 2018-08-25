@@ -1,14 +1,13 @@
 #!/usr/env/python
 # -*- coding: utf-8 -*-
 
-### SOURCE CODE:
+# This is a Python translation from the original written in MathLab:
+#
 # https://github.com/IoSR-Surrey/MatlabToolbox
 # Institute of Sound Recording
 # University of Surrey
 # Home of the Tonmeister course and research into psychoacoustic engineering
 # Copyright 2016 University of Surrey.
-#
-### This is a Python translation from the original written in MathLab.
 
 #   Example
 # 
@@ -46,7 +45,7 @@
 
 import numpy as np
 
-def smoothSpectrum(X, f, Noct):
+def smoothSpectrum(X, f, Noct, variableSmoothFactor=0):
     """
     Applies 1/NOCT-octave smoothing to the frequency spectrum contained 
     in vector 'X' sampled at frequencies in vector 'f'. 
@@ -65,6 +64,19 @@ def smoothSpectrum(X, f, Noct):
     See also IOSR.DSP.LTAS, FFT.
 
     Copyright 2016 University of Surrey.
+    
+    'audiotools' translation to Python/Numpy, adding variable smoothing feature.
+
+        'variableSmoothFactor' (1 ~ 10) indicates the speed for lossing 1/N oct smoothing
+        from the spectrum low end, towards 1/1 smoothing at the spectrum high end.
+
+        Examples: 
+
+        If 0, then constant 1/N oct smoothing will be applied along the whole spectrum.
+
+        If 5 and Noct=24, then 1/1 smoothing is reached at 200 Hz approx
+    
+        No se si mexplico.
     """
 
     #%% Input checking
@@ -84,34 +96,47 @@ def smoothSpectrum(X, f, Noct):
     assert(np.all( f >= 0 )),       "Frec must contain positive values" 
     assert(Noct >= 0),              "Noct must be greater than or equal to 0"
     assert(len(X) == len(f)),       "Mag and Frec must be the same size"
-
+    vsf = variableSmoothFactor      # alias
+    assert( vsf in range(11) ),     "variableSmoothFactor: 0 .. 10"
+    
     #%% Smoothing
-
     #% calculates a Gaussian function for each frequency,
     #% deriving a bandwidth for that frequency.
 
     x_oct = np.copy(X)  # initial spectrum (OjO numpy requiere hacer una copia)
     
-    if Noct > 0:        # don't bother if no smoothing
- 
-        # for i = find(f>0, 1, 'first') : length(f)     # Mathlab
-        #     g = gauss_f(f, f(i), Noct);
-        #     x_oct(i) = sum(g.*X);       % calculate smoothed spectral coefficient
-        # end
+    # Para el VARIABLE SMOOTHING, calculamos un vector de
+    # valores logdecreciente desde N hasta 1 de la misma
+    # longitud que el vector de bins de frecuencias 'f'
+    vsf = vsf * 20  # Experimental, con este factor 'vsf' conseguimos que el
+                    # smoothing aumente más rápido al avanzar en frecuencia.
+    Noct = np.logspace(np.log10(10.0**vsf), np.log10(1.0), num=len(f)) * Noct/10.0**vsf
+    Noct[ Noct < 1] = 1     # Noct no debe ser menor que 1.
+    
+    # INICIO:
+    
+    if Noct[0] == 0:        # Return if no smoothing
+        return x_oct
 
-        start = np.flatnonzero(f)[0]                    # Numpy
-        for i in range( start, len(f) ):
-            g = gauss_f(f, f[i], Noct)
-            x_oct[i] = np.sum(g * X)
+    # Mathlab
+    # for i = find(f>0, 1, 'first') : length(f) # first index for non zero element
+    #     g = gauss_f(f, f(i), Noct);
+    #     x_oct(i) = sum(g.*X);       % calculate smoothed spectral coefficient
+    # end
 
-        # remove undershoot when Mag is positive
-        # if all( X >= 0 )                              # Mathlab
-        #    x_oct( x_oct < 0 ) = 0;
-        if np.all( X >= 0 ):                            # Numpy
-            x_oct[ x_oct < 0 ] = 0
+    # Numpy
+    start = np.flatnonzero(f)[0]
+    for i in range( start, len(f) ):
+        g = gauss_f(f, f[i], Noct[i])   # 'Noct[i]' is for variable smoothing
+        x_oct[i] = np.sum(g * X)
+
+    # remove undershoot when Mag is positive
+    # if all( X >= 0 )                              # Mathlab
+    #    x_oct( x_oct < 0 ) = 0;
+    if np.all( X >= 0 ):                            # Numpy
+        x_oct[ x_oct < 0 ] = 0
 
     return x_oct
-
 
 def gauss_f(f_x, F , Noct):
     """
@@ -131,5 +156,3 @@ def gauss_f(f_x, F , Noct):
     g = g / np.sum(g)                                           # normalise magnitude
 
     return g
-
-
