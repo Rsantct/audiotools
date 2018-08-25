@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 """
     Ejemplo de uso de la función audiotools/smoothSpectrum.py
-    de suavizado de respuestas en frecuencia
-    obternidas con ARTA.
+    para el suavizado de respuestas en frecuencia.
     
     Uso:  python smooth_test.py altavoz.frd
 """
@@ -36,20 +35,25 @@ except:
     print "No se puede leer " + fname
     sys.exit()
 
-# array de frecuencias
-frec = FR[:, 0]
-# array de magnitudes
-mag  = FR[:, 1]
+frec = FR[:, 0]     # array de frecuencias
+mag  = FR[:, 1]     # array de magnitudes
 
 # Ploteo sin suavizar
 plt.semilogx(frec, mag , label="raw")
 
-aten = -10
-for Noct in 12, 6, 3:
+# Ploteos de la magnitud SUAVIZADA 1/9 1/24 (se pintan desplazados -10 dBs)
+gain = -10
+for Noct in [9, 24]:
+
     print "suavizando 1/" + str(Noct) + " oct ... .. ."
-    # Ploteo de la magnitud SUAVIZADA (se pinta desplazada -10 dBs)
-    plt.semilogx(frec, aten + smooth(mag, frec, Noct), label="1/"+str(Noct)+" oct" )
-    aten -= 10
+    plt.semilogx(frec, gain + smooth(mag, frec, Noct),
+                 label="1/"+str(Noct)+" oct" )
+    gain -= 10
+
+    print "suavizado variable 1/" + str(Noct) + " oct ... .. ."
+    plt.semilogx(frec, gain + smooth(mag, frec, Noct, variableSmoothFactor=5),
+                 label="1/"+str(Noct)+" oct variable" )
+    gain -= 10
 
 plt.xlim(20, 20000)
 plt.ylim(-60, 10)
