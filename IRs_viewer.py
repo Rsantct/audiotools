@@ -37,7 +37,7 @@
 # version = 'v0.2g'
 #   La impresión a PDF se deja opcional
 version = 'v0.2h'
-#   opcion -eq para ver FIRs de ecualización.
+#   Opción -eq para ver FIRs de ecualización.
 # TO DO:
 #   Revisar la gráfica de fases
 #   Revisar la información mostrada "GD avg" que pretende ser la moda de los valores
