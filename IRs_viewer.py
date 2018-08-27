@@ -34,8 +34,10 @@
 #   Axes de impulsos en una fila opcinalmente
 #   Se muestra la versión del programa al pie de las gráficas.
 #   Se guarda la gráfica en un pdf
-version = 'v0.2g'
+# version = 'v0.2g'
 #   La impresión a PDF se deja opcional
+version = 'v0.2h'
+#   opcion -eq para ver FIRs de ecualización.
 # TO DO:
 #   Revisar la gráfica de fases
 #   Revisar la información mostrada "GD avg" que pretende ser la moda de los valores
