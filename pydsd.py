@@ -360,28 +360,43 @@ def blackmanharris(m):
 
 def minphsp(sp):
     """
+    ### Cód original DSD:
+    %% usage: minph = minphsp (sp)
+    %%
     %% Obtiene el espectro de fase mínima a partir de un espectro completo.
-    %% minph = Espectro completo de fase mínima con la misma magnitud de espectro que imp.
-    %% sp    = Espectro completo. Longitud par.
-    Nota del traductor:
-        El espectro en phase minima se consigue simplemente haciendo
-        la transformada de Hilbert de la magnitud del espectro proporcionado.
+    %%
+    %% minph    = Espectro completo de fase mínima con la misma magnitud de espectro que imp. (**)
+    %% sp       = Espectro completo. Longitud par.
+
+    ### Notas del traductor:
+
+        -   El espectro min-pha se obtine haciendo la transformada de Hilbert
+            del espectro de magnitudes 'sp' que debe ser completo (simétrico).
+
+        -   Los comentarios de arriba originales de DSD (**) me temo que se
+            adelantan a la obtención posterior del impulso. Aquí todavía
+            se resuelve un espectro, ahora con información de phase.
     """
 
     if not sp.ndim == 1:
-        raise ValueError("ssp must be a column vector")
+        raise ValueError("sp must be a vector")
 
-    #%% exp(conj(hilbert(log(abs(sp)))));
-    return np.exp(np.conj(signal.hilbert(np.log(abs(sp)))));
+    # !!!!
+    # NOTA: La versión original de DSD espera recibir
+    #       un espectro 'sp' en dB, pero aquí asumimos que 
+    #       el espectro 'sp' es dado en escala lineal.
+    # !!!!
+    # %% minph = exp(conj(hilbert(log(abs(sp)))));  # Cód. original Octave
+    return np.conj( signal.hilbert( np.abs(sp) ) )
 
 def wholespmp(ssp): # whole spectrum minimum phase
     """
-    %% Obtiene el espectro CAUSAL completo a partir 
+    %% Obtiene el espectro CAUSAL completo a partir
     %% del espectro de las frecuencias positivas.
     %%
     %% ssp = Espectro de las frecuencias positivas entre 0 y m/2.
     %% wsp = Espectro completo entre 0 y m-1 (m par).
-    
+
     Nota del traductor:
         entrada: un semiespectro de trabajo de freq positivas
         salida:  el espectro completo
@@ -390,17 +405,16 @@ def wholespmp(ssp): # whole spectrum minimum phase
     if not ssp.ndim == 1:
         raise ValueError("ssp must be a column vector")
 
-    m = len(ssp) 
-    # Verifica que la longitud del espectro proporcionado sea impar 
+    m = len(ssp)
+    # Verifica que la longitud del espectro proporcionado sea impar
     if m % 2 == 0:
         raise ValueError("wholespmp: Spectrum length must be odd")
 
+    # nsp = flipud(conj(ssp(2:m-1)));   # Cód. Octave
+    nsp = np.conj(ssp[1:m-1])           # OjO 1:m-1 equivale a la slice de Octave
+    nsp = np.flip(nsp)
 
-    # nsp = flipud(conj(ssp(2:m-1)));   # desglosamos el cód octave en dos líneas:
-    nsp = np.conj(ssp[1 : m-2])
-    nsp = nsp[::-1]                     # flipud
-
-    # wsp = [ssp;nsp];                  # cód. octave
+    # wsp = [ssp;nsp];                  # Cód. octave
     return np.concatenate([ssp, nsp])
 
 def wholesplp(ssp): # whole spectrum linear phase
