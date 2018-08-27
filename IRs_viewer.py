@@ -7,12 +7,14 @@
     
     Ejemplo de uso:
     
-    IR_viewer.py  drcREW_test1.wav  drcREW_test2.pcm   44100  fmin-fmax -1
-    
-    fmin-fmax:  Opción que permite visualizar un rango en Hz, útil para ver graves.
-    -1:         Opción para mostrar las gráficas de los impulsos en una fila única.
-    -pdf:       Guarda la gráfica archivo PDF, incluyendo el zoom que se hiciese durante
-                la visualización.
+    IR_viewer.py  drcREW_test1.wav  drcREW_test2.pcm   44100  [ fmin-fmax -1 -eq ]
+ 
+    Opciones:
+        fmin-fmax:  Permite visualizar un rango en Hz, útil para ver graves.
+        -1:         Muestra las gráficas de los impulsos en una fila única.
+        -pdf:       Guarda la gráfica en archivo PDF, incluyendo el zoom
+                    que se hiciese durante la visualización.
+        -eq         Para ver curvas de un FIR de EQ (abcisas de -15 a +5 dB)
 """
 # version = 'v0.2'
 #   Se añade un visor de la fase y otro pequeño visor de los impulsos
@@ -47,11 +49,12 @@ from matplotlib import gridspec # Para ajustar disposición de los subplots
 import utils
 
 def lee_commandline(opcs):
-    global fmin, fmax, plotPha
+    global fmin, fmax, plotPha, IRtype
     global plotIRsInOneRow, generaPDF
     plotIRsInOneRow = False
     generaPDF = False
-    
+    IRtype = "normal"
+
     # impulsos que devolverá esta función
     IRs = []
     # archivos que leeremos
@@ -72,6 +75,9 @@ def lee_commandline(opcs):
             fmin = float(fmin)
             fmax = float(fmax)
             
+        elif opc == "-eq":
+            IRtype = 'eq'
+
         elif "-ph" in opc:
             plotPha = True
             
@@ -156,7 +162,7 @@ def preparaGraficas():
     prepara_eje_frecuencias(axMag)
     # axMag.set_ylim([top_dBs - range_dBs, top_dBs]) # dejamos esto para cuando conozcamos la mag
     axMag.set_ylabel("filter magnitude dB")
-    
+
     # --- SUBPLOT para pintar el GD (alto 2 filas, ancho todas las columnas)
     # comparte el eje X (twinx) con el de la phase
     # https://matplotlib.org/gallery/api/two_scales.html
@@ -253,6 +259,8 @@ if __name__ == "__main__":
         if tmp > top_dBs:
             top_dBs = tmp
         axMag.set_ylim(bottom = top_dBs - range_dBs, top = top_dBs)
+        if IRtype == 'eq':
+            axMag.set_ylim(-15.0, 5.0)
         axMag.plot(freqs, magdB, label=info)
         color = axMag.lines[-1].get_color() # anotamos el color de la última línea  
 
