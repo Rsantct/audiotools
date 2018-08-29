@@ -383,7 +383,8 @@ def minphsp(sp):
     # !!!!
     # NOTA: La versión original de DSD hace un log al espectro antes de hacerle
     #       la transf. de Hilbert y luego se aplica un exp al resultado.
-    #       Aquí omitimos dicha conversión entendiendo el sp de entrada con magnitudes lineales.
+    #       Aquí omitimos dicha conversión entendiendo los spectrum 
+    #       de entrada y salida con magnitudes lineales.
     # !!!!
     # %% minph = exp(conj(hilbert(log(abs(sp)))));  # Cód. original Octave
     return np.conj( signal.hilbert( np.abs(sp) ) )
