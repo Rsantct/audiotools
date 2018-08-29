@@ -118,13 +118,13 @@ def smoothSpectrum(X, f, Noct, variableSmoothFactor=0):
     if Noct[0] == 0:        # Return if no smoothing
         return x_oct
 
-    # Mathlab
+    # Mathlab:
     # for i = find(f>0, 1, 'first') : length(f) # first index for non zero element
     #     g = gauss_f(f, f(i), Noct);
     #     x_oct(i) = sum(g.*X);       % calculate smoothed spectral coefficient
     # end
 
-    # Numpy
+    # Numpy:
     start = np.flatnonzero(f)[0]
     for i in range( start, len(f) ):
         g = gauss_f(f, f[i], Noct[i])   # 'Noct[i]' is for variable smoothing
@@ -145,12 +145,12 @@ def gauss_f(f_x, F , Noct):
     Calculates a frequency-domain Gaussian function
     for frequencies f_x, with centre frequency f and bandwidth f/Noct.
     """
-    # Mathlab
-    # sigma = (F/Noct)/pi;                      % standard deviation
-    # g = exp(-(((f_x-F).^2)./(2.*(sigma^2)))); % Gaussian
-    # g = g./sum(g);                            % normalise magnitude
+    # Mathlab:
+    # sigma = (F/Noct)/pi;                                      % standard deviation
+    # g = exp(-(((f_x-F).^2)./(2.*(sigma^2))));                 % Gaussian
+    # g = g./sum(g);                                            % normalise magnitude
     
-    # Numpy
+    # Numpy:
     sigma = (F/Noct) / np.pi                                    # standard deviation
     g = np.exp( -( ( (f_x-F) ** 2) / (2 * (sigma ** 2) ) ) )    # Gaussian
     g = g / np.sum(g)                                           # normalise magnitude
