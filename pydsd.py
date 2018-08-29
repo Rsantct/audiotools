@@ -373,18 +373,17 @@ def minphsp(sp):
         -   El espectro min-pha se obtine haciendo la transformada de Hilbert
             del espectro de magnitudes 'sp' que debe ser completo (simétrico).
 
-        -   Los comentarios de arriba originales de DSD (**) me temo que se
-            adelantan a la obtención posterior del impulso. Aquí todavía
-            se resuelve un espectro, ahora con información de phase.
+        -   El comentario de arriba original de DSD (**) me temo que
+            tiene un typo debería decir "...con la misma magnitud de espectro que sp."
     """
 
     if not sp.ndim == 1:
         raise ValueError("sp must be a vector")
 
     # !!!!
-    # NOTA: La versión original de DSD espera recibir
-    #       un espectro 'sp' en dB, pero aquí asumimos que 
-    #       el espectro 'sp' es dado en escala lineal.
+    # NOTA: La versión original de DSD hace un log al espectro antes de hacerle
+    #       la transf. de Hilbert y luego se aplica un exp al resultado.
+    #       Aquí omitimos dicha conversión entendiendo el sp de entrada con magnitudes lineales.
     # !!!!
     # %% minph = exp(conj(hilbert(log(abs(sp)))));  # Cód. original Octave
     return np.conj( signal.hilbert( np.abs(sp) ) )
