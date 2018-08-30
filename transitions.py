@@ -45,5 +45,5 @@ def ejemplo_logTransition():
 
     plt.xlim(20,20000)
     plt.legend()
-    plt.title("logTransition at f0 = " + str(f0))
+    plt.title("transition.logTransition at f0 = " + str(f0))
     plt.show()
