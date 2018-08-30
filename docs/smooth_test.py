@@ -42,9 +42,9 @@ mag  = FR[:, 1]     # array de magnitudes
 # Ploteo sin suavizar
 plt.semilogx(frec, mag , label="raw")
 
-# Ploteos de la magnitud SUAVIZADA 1/9 1/24 (se pintan desplazados -10 dBs)
+# Ploteos de la magnitud SUAVIZADA 1/24 1/6 (se pintan desplazados -10 dBs)
 gainStep = -10
-for Noct in [24]:
+for Noct in [24, 6]:
 
     print "suavizando 1/" + str(Noct) + " oct ... .. ."
     plt.semilogx(frec, gainStep + smooth(mag, frec, Noct),
