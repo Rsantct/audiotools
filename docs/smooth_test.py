@@ -22,6 +22,7 @@ except:
 
 from matplotlib import pyplot as plt
 from smoothSpectrum import smoothSpectrum as smooth
+import numpy as np
 
 # Lee el nombre de archivo .frd
 if len(sys.argv) == 1:
@@ -42,22 +43,23 @@ mag  = FR[:, 1]     # array de magnitudes
 plt.semilogx(frec, mag , label="raw")
 
 # Ploteos de la magnitud SUAVIZADA 1/9 1/24 (se pintan desplazados -10 dBs)
-gain = -10
-for Noct in [9, 24]:
+gainStep = -10
+for Noct in [24]:
 
     print "suavizando 1/" + str(Noct) + " oct ... .. ."
-    plt.semilogx(frec, gain + smooth(mag, frec, Noct),
+    plt.semilogx(frec, gainStep + smooth(mag, frec, Noct),
                  label="1/"+str(Noct)+" oct" )
-    gain -= 10
+    gainStep -= 10
 
     print "suavizado variable 1/" + str(Noct) + " oct ... .. ."
-    plt.semilogx(frec, gain + smooth(mag, frec, Noct, variableSmoothFactor=5),
+    plt.semilogx(frec, gainStep + smooth(mag, frec, Noct, f0=250, Tspeed="slow"),
                  label="1/"+str(Noct)+" oct variable" )
-    gain -= 10
+    gainStep -= 10
 
+# Ajustes de la gráfica
+promedio = np.average(mag)
+plt.ylim(promedio-50, promedio+10)
 plt.xlim(20, 20000)
-plt.ylim(-60, 10)
 plt.grid()
 plt.legend()
 plt.show()
-
