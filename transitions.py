@@ -30,13 +30,13 @@ def logTransition(f, f0, speed="medium"):
     return 1 / ( 1 + (f/f0)**(2**speed) )
 
 def ejemplo_logTransition():
-    
-    frecs = np.linspace(0, 20000, 1024)
+
+    frecs = np.linspace(0, 20000, 2**12)
     mags  = np.ones( len(frecs) )
-    print "Creamos un semiespectro de frecuencias plano, de 1024 bins"
+    print "Creamos un semiespectro de frecuencias plano, de 4K bins"
 
     f0 = 100
-    print "Frecuencia de transición f0: ", f0
+    print "Frecuencia de transición f0: ", f0, "Hz"
 
     # Gráficas de la transición del efecto
     for speed in ["slow", "medium", "fast"]:
@@ -45,4 +45,5 @@ def ejemplo_logTransition():
 
     plt.xlim(20,20000)
     plt.legend()
+    plt.title("logTransition at f0 = " + str(f0))
     plt.show()
