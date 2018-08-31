@@ -44,7 +44,7 @@
 # 
 
 import numpy as np
-from transitions import logTransition # used for variable smoothing feature
+from utils import logTransition # used for variable smoothing feature
 
 def smoothSpectrum(X, f, Noct, f0=0, Tspeed="medium"):
     """
