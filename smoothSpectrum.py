@@ -105,7 +105,7 @@ def smoothSpectrum(X, f, Noct, f0=0, Tspeed="medium"):
     # En esta adaptación, Noct pasa a ser un vector de la longitud del 
     # vector 'f' de las frecuencias.
     # Si se pide un smooth variable (f0 <> 0), Noct empezará valiendo N, 
-    # y cambiará hacia 1 a partir de la f0 (ver transitions.py)
+    # y cambiará hacia 1 a partir de la f0 (ver utils/logTransition)
     if f0:
         Noct = (Noct-1) * logTransition(f, f0, speed=Tspeed) + 1
     else:
@@ -115,19 +115,19 @@ def smoothSpectrum(X, f, Noct, f0=0, Tspeed="medium"):
     
     # INICIO DEL SUAVIZADO:
     
-    if Noct[0] == 0:        # Return if no smoothing
+    if Noct[0] == 0:                                # Return if no smoothing
         return x_oct
 
     # Matlab:
-    # for i = find(f>0, 1, 'first') : length(f) # first index for non zero element
+    # for i = find(f>0, 1, 'first') : length(f)     # first index for non zero element
     #     g = gauss_f(f, f(i), Noct);
-    #     x_oct(i) = sum(g.*X);       % calculate smoothed spectral coefficient
+    #     x_oct(i) = sum(g.*X);                     % calculate smoothed spectral coefficient
     # end
 
     # Numpy:
     start = np.flatnonzero(f)[0]
     for i in range( start, len(f) ):
-        g = gauss_f(f, f[i], Noct[i])   # 'Noct[i]' is for variable smoothing
+        g = gauss_f(f, f[i], Noct[i])               # 'Noct[i]' is for variable smoothing
         x_oct[i] = np.sum(g * X)
 
     # remove undershoot when Mag is positive
