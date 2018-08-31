@@ -12,6 +12,30 @@ from scipy import signal
 import pydsd
 from q2bw import *
 
+def logTransition(f, f0, speed="medium"):
+    """
+    +1  _______
+               \
+                \
+     0           \______
+               f0        
+        <-- semilog f -->
+
+    Proporciona una transición, con la apariencia del esquema de arriba, útil para 
+    aplicar un efecto sobre la representación logarítmica de un semiespectro DFT.
+    
+    'speed' (slow, mid, fast) define la velocidad de la transición.
+    
+    docs/demo_logTransition.py muestra un gráfica ilustrativa.
+    """
+    speeds = { "slow":0.5, "medium":1.2, "fast":3.0}
+    speed = speeds[speed]
+    if f0 < min(f) or f0 <= 0:
+        return np.zeros(len(f))
+    if f0 > max(f):
+        return np.ones(len(f))
+    return 1 / ( 1 + (f/f0)**(2**speed) )
+
 def read_REW_EQ_txt(rew_eq_fname):
     """
      Lee un archivo .txt de filtros paramétricos de RoomEqWizard
