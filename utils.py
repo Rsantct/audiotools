@@ -22,11 +22,13 @@ def logTransition(f, f0, speed="medium"):
         <-- semilog f -->
 
     Proporciona una transición, con la apariencia del esquema de arriba, útil para 
-    aplicar un efecto sobre la representación logarítmica de un semiespectro DFT.
-    
+    aplicar un efecto sobre la proyección logarítmica de un semiespectro DFT 'f'.
+
+    Nótese que 'f' debe proporcionarse en escala lineal (bins equiespaciados de una DFT).
+
     'speed' (slow, mid, fast) define la velocidad de la transición.
     
-    docs/demo_logTransition.py muestra un gráfica ilustrativa.
+    docs/demo_logTransition.py muestra un gráfica ilustrativa del parámetro 'speed'.
     """
     speeds = { "slow":0.5, "medium":1.2, "fast":3.0}
     speed = speeds[speed]
