@@ -51,6 +51,7 @@ if __name__ == '__main__':
         sys.exit()
 
     modo = "q2bw"
+    valor = None
     for opc in sys.argv[1:]:
         if opc.replace(".", "").isdigit():
             valor = float(opc)
