@@ -4,9 +4,8 @@
     conversor BW oct <---> Q
 
     uso:
-        q2bw.py      nn      convierte Q=nn  --> BW
-        q2bw.py  -q  nn      ídem
-        q2bw.py  -bw nn      convierte BW=nn --> Q
+        q2bw.py  [-q] nn    convierte Q=nn  --> BW
+        q2bw.py   -bw nn    convierte BW=nn --> Q
 
 """
 
