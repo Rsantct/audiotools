@@ -1,6 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+    conversor BW oct <---> Q
 
+    uso:
+        q2bw.py      nn      convierte Q=nn  --> BW
+        q2bw.py  -q  nn      ídem
+        q2bw.py  -bw nn      convierte BW=nn --> Q
+
+"""
+
+import sys
 import numpy as np
 
 # Fórmulas copiadas de:
@@ -36,5 +46,19 @@ def bw2q(N):
     return round(Q, 4)
 
 if __name__ == '__main__':
-    pass
 
+    if len(sys.argv) <= 1:
+        print __doc__
+        sys.exit()
+
+    modo = "q2bw"
+    for opc in sys.argv[1:]:
+        if opc.replace(".", "").isdigit():
+            valor = float(opc)
+        elif "B" in opc.upper():
+            modo = "bw2q"
+
+    if modo == "bw2q":
+        print bw2q(valor)
+    else:
+        print q2bw(valor)
