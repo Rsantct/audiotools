@@ -57,6 +57,10 @@ if __name__ == '__main__':
         elif "B" in opc.upper():
             modo = "bw2q"
 
+    if not valor:
+        print __doc__
+        sys.exit()
+            
     if modo == "bw2q":
         print bw2q(valor)
     else:
