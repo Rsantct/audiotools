@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-    visor de impulsos IR wav o raw (.pcm)
+    visor de impulsos IR wav o raw (.pcm, .txt)
     
     Si se pasan impulsos raw (.pcm) se precisa pasar también la Fs
     
@@ -36,8 +36,10 @@
 #   Se guarda la gráfica en un pdf
 # version = 'v0.2g'
 #   La impresión a PDF se deja opcional
-version = 'v0.2h'
+# version = 'v0.2h'
 #   Opción -eq para ver FIRs de ecualización.
+version = 'v0.2i'
+#   Admite IRs en archivos de texto.
 # TO DO:
 #   Revisar la gráfica de fases
 #   Revisar la información mostrada "GD avg" que pretende ser la moda de los valores
@@ -103,13 +105,24 @@ def lee_commandline(opcs):
             fswav, imp = utils.readWAV16(fname)
             IRs.append( (fswav, imp, fname) )
             
-        else:
+        elif fname.endswith('.txt'):
+            if fs:
+                imp = np.loadtxt(fname)
+                IRs.append( (fs, imp, fname) )
+            else:
+                print __doc__
+                sys.exit()
+            
+        elif fname.endswith('.pcm'):
             if fs:
                 imp = utils.readPCM32(fname)
                 IRs.append( (fs, imp, fname) )
             else:
                 print __doc__
                 sys.exit()
+        else:
+            print __doc__
+            sys.exit()
             
     return IRs
 
