@@ -270,17 +270,17 @@ if __name__ == "__main__":
         axMag.set_ylim(bottom = top_dBs - range_dBs, top = top_dBs)
         if IRtype == 'eq':
             axMag.set_ylim(-15.0, 5.0)
-        axMag.semilogx(freqs, magdB, label=info)
+        axMag.plot(freqs, magdB, label=info)
         color = axMag.lines[-1].get_color() # anotamos el color de la última línea
 
         if plotPha:
-            axPha.semilogx(freqs, phaseClean, "-", linewidth=1.0, color=color)
+            axPha.plot(freqs, phaseClean, "-", linewidth=1.0, color=color)
 
         # Ploteo del GD con autoajuste del top
         ymin = peakOffsetms - 25
         ymax = peakOffsetms + 75
         axGD.set_ylim(bottom = ymin, top = ymax)
-        axGD.semilogx(freqs, gdms, "--", linewidth=1.0, color=color)
+        axGD.plot(freqs, gdms, "--", linewidth=1.0, color=color)
 
         # Plot del IR
         # (i) Opcionalmente podemos pintar los impulsos en una sola fila
