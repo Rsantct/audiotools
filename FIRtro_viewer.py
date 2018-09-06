@@ -289,16 +289,9 @@ if __name__ == "__main__":
         fs, gain, gainext = lee_params(pcmname)        
         fny = fs / 2.0 # Nyquist
 
-        #---Obtenemos la FR 'h' en 500 bins de frecs logspaciadas
-        #   para que las resuelva freqz y group_delay
-        w1 = 1 / fny * (2 * np.pi)
-        w2 = 2 * np.pi
-        #bins = np.geomspace(w1, w2, 500) # np.geomspace needs python >= 1.12
-        bins = freq = np.logspace(np.log10(w1), np.log10(w2), num=500)
-
-        #   usamos whole=False para computar hasta pi (Nyquist)
-        #   devuelve: h - la FR  y w - las frec normalizadas hasta Nyquist
-        w, h = signal.freqz(IR, worN=bins, whole=False)
+        #   Semiespectro, whole=False para computar hasta pi (Nyquist)
+        #   devuelve: h - la FT  y w - las frec normalizadas hasta Nyquist
+        w, h = signal.freqz(IR, worN=len(IR)/2, whole=False)
         # convertimos las frecuencias normalizadas en reales según la Fs
         freqs = (w / np.pi) * fny
 
@@ -315,7 +308,7 @@ if __name__ == "__main__":
         np.copyto(firPhaseClean, firPhase, where=mask)
 
         #--- Obtenemos el GD 'gd' en N bins:
-        wgd, gd = signal.group_delay((IR, 1), w=bins, whole=False)
+        wgd, gd = signal.group_delay((IR, 1), w=len(IR)/2, whole=False)
         # GD es en radianes los convertimos a en milisegundos
         firGDms = gd / fs * 1000 
         # Limpiamos con la misma mask de valores fuera de la banda de paso usada arriba
