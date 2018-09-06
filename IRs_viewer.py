@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 """
     visor de impulsos IR wav o raw (.pcm, .txt)
-    
+
     Si se pasan impulsos raw (.pcm) se precisa pasar también la Fs
-    
+
     Ejemplo de uso:
-    
+
     IR_viewer.py  drcREW_test1.wav  drcREW_test2.pcm   44100  [ fmin-fmax -1 -eq ]
- 
+
     Opciones:
         fmin-fmax:  Permite visualizar un rango en Hz, útil para ver graves.
         -1:         Muestra las gráficas de los impulsos en una fila única.
@@ -23,7 +23,7 @@
 # version = 'v0.2c'
 #   Opcion -pha (oculta beta) para pintar la phase. ESTO NO ESTÁ CLARO PTE INVESTIGARLO DEEPER
 # version = 'v0.2d'
-#   Dejamos de pintar phases o gd fuera de la banda de paso, 
+#   Dejamos de pintar phases o gd fuera de la banda de paso,
 #   con nuevo umbral a -50dB parece más conveniente para FIRs cortos con rizado alto.
 #   Se aumenta el rango de magnitudes hasta -60 dB
 #   Muestra el pkOffset en ms
@@ -70,7 +70,7 @@ def lee_commandline(opcs):
         if opc in ("-h", "-help", "--help"):
             print __doc__
             sys.exit()
-            
+
         elif opc.isdigit():
             fs = float(opc)
 
@@ -78,13 +78,13 @@ def lee_commandline(opcs):
             fmin, fmax = opc.split("-")
             fmin = float(fmin)
             fmax = float(fmax)
-            
+
         elif opc == "-eq":
             IRtype = 'eq'
 
         elif "-ph" in opc:
             plotPha = True
-            
+
         elif opc == "-1":
             plotIRsInOneRow = True
 
@@ -100,11 +100,11 @@ def lee_commandline(opcs):
         sys.exit()
 
     for fname in fnames:
-    
+
         if fname.endswith('.wav'):
             fswav, imp = utils.readWAV16(fname)
             IRs.append( (fswav, imp, fname) )
-            
+
         elif fname.endswith('.txt'):
             if fs:
                 imp = np.loadtxt(fname)
@@ -112,7 +112,7 @@ def lee_commandline(opcs):
             else:
                 print __doc__
                 sys.exit()
-            
+
         elif fname.endswith('.pcm'):
             if fs:
                 imp = utils.readPCM32(fname)
@@ -123,7 +123,7 @@ def lee_commandline(opcs):
         else:
             print __doc__
             sys.exit()
-            
+
     return IRs
 
 def prepara_eje_frecuencias(ax):
@@ -142,7 +142,7 @@ def prepara_eje_frecuencias(ax):
 def preparaGraficas():
     numIRs = len(IRs)
     global fig, grid, axMag, axDrv, axPha, axGD, axIR
-    
+
     #-------------------------------------------------------------------------------
     # Preparamos el tamaño de las gráficas 'fig'
     #-------------------------------------------------------------------------------
@@ -161,7 +161,7 @@ def preparaGraficas():
     # Preparamos una matriz de Axes (gráficas).
     # Usamos GridSpec que permite construir un array chachi.
     # Las gráficas de MAG ocupan 3 filas, la de PHA ocupa 2 filas,
-    # y gráfica de IR según la opcion elegida:                      
+    # y gráfica de IR según la opcion elegida:
     #   - en una fila única simple declaramos 6 filas y numIRs columnas
     #   - en filas independientes de altura doble declaramos 5 + 2*numIRs filas.
     #-------------------------------------------------------------------------------
@@ -170,7 +170,7 @@ def preparaGraficas():
         grid = gridspec.GridSpec(nrows = 6, ncols = numIRs)
     else:
         grid = gridspec.GridSpec(nrows = 5 + 2*numIRs, ncols = 1)
-        
+
     # --- SUBPLOT para pintar las FRs (alto 3 filas, ancho todas las columnas)
     axMag = fig.add_subplot(grid[0:3, :])
     axMag.grid(linestyle=":")
@@ -186,7 +186,7 @@ def preparaGraficas():
     prepara_eje_frecuencias(axGD)
     #axGD.set_ylim(-25, 75) # dejamos los límites del eje y para cuando conozcamos el GD
     axGD.set_ylabel(u"--- filter GD (ms)")
-    
+
     # --- SUBPLOT para pintar las PHASEs (común con el de GD)
     if plotPha:
         axPha = axGD.twinx()
@@ -195,7 +195,7 @@ def preparaGraficas():
         axPha.set_ylim([-180.0,180.0])
         axPha.set_yticks(range(-135, 180, 45))
         axPha.set_ylabel(u"filter phase")
- 
+
 if __name__ == "__main__":
 
     top_dBs   = 5  # inicial lugo se reajustará
@@ -203,52 +203,46 @@ if __name__ == "__main__":
     fmin = 10
     fmax = 20000
     # Umbral de la magnitud en dB para dejar de pintar phases o gd
-    magThr = -50.0 
+    magThr = -50.0
 
     if len(sys.argv) == 1:
         print __doc__
         sys.exit()
 
     IRs = lee_commandline(sys.argv[1:])
-        
+
     preparaGraficas()
-    
+
     GDavgs = [] # los promedios de GD de cada impulso, para mostrarlos por separado
     IRnum = 0
     for IR in IRs:
-    
+
         fs, imp, info = IR
         fny = fs/2.0
-        limp = imp.shape[0]
+        limp = len(imp)
         peakOffsetms = np.round(abs(imp).argmax() / fs * 1000, 1) # en ms
-
-        # 500 bins de frecs logspaciadas para que las resuelva freqz
-        w1 = 1 / fny * (2 * np.pi)
-        w2 = 2 * np.pi
-        #bins = np.geomspace(w1, w2, 500) # np.geomspace needs numpy >= 1.12
-        bins = np.logspace(np.log10(w1), np.log10(w2), num=500)
 
         # Semiespectro
         # whole=False --> hasta Nyquist
-        w, h = signal.freqz(imp, worN=bins, whole=False)
-        
+        w, h = signal.freqz(imp, worN=len(imp)/2, whole=False)
+
         # frecuencias trasladadas a Fs
         freqs = w / np.pi * fny
-        
+
         # Magnitud:
         magdB = 20 * np.log10(abs(h))
 
         # Wrapped Phase:
         phase = np.angle(h, deg=True)
-        # Eliminamos (np.nan) los valores de phase fuera de 
+        # Eliminamos (np.nan) los valores de phase fuera de
         # la banda de paso, por debajo de un umbral configurable.
         phaseClean  = np.full((len(phase)), np.nan)
         mask = (magdB > magThr)
         np.copyto(phaseClean, phase, where=mask)
 
         # Group Delay:
-        wgd, gd = signal.group_delay((imp, 1), w=bins, whole=False)
-        # Eliminamos (np.nan) los valores fuera de 
+        wgd, gd = signal.group_delay((imp, 1), w=len(imp)/2, whole=False)
+        # Eliminamos (np.nan) los valores fuera de
         # la banda de paso, por debajo de un umbral configurable.
         gdClean  = np.full((len(gd)), np.nan)
         mask = (magdB < magThr)
@@ -265,7 +259,7 @@ if __name__ == "__main__":
         #   3. Promedio recalculado sobre los valores without deviations
         gdmsAvg = np.round(np.nanmean(gdms), 1)
         GDavgs.append(gdmsAvg)
-        
+
         # ---- PLOTEOS ----
 
         # Ploteo de la Magnitud con autoajuste del top
@@ -276,19 +270,19 @@ if __name__ == "__main__":
         axMag.set_ylim(bottom = top_dBs - range_dBs, top = top_dBs)
         if IRtype == 'eq':
             axMag.set_ylim(-15.0, 5.0)
-        axMag.plot(freqs, magdB, label=info)
-        color = axMag.lines[-1].get_color() # anotamos el color de la última línea  
+        axMag.semilogx(freqs, magdB, label=info)
+        color = axMag.lines[-1].get_color() # anotamos el color de la última línea
 
         if plotPha:
-            axPha.plot(freqs, phaseClean, "-", linewidth=1.0, color=color)
+            axPha.semilogx(freqs, phaseClean, "-", linewidth=1.0, color=color)
 
         # Ploteo del GD con autoajuste del top
         ymin = peakOffsetms - 25
         ymax = peakOffsetms + 75
         axGD.set_ylim(bottom = ymin, top = ymax)
-        axGD.plot(freqs, gdms, "--", linewidth=1.0, color=color)
-    
-        # Plot del IR 
+        axGD.semilogx(freqs, gdms, "--", linewidth=1.0, color=color)
+
+        # Plot del IR
         # (i) Opcionalmente podemos pintar los impulsos en una sola fila
         rotuloIR = str(limp) + " taps - pk offset " + str(peakOffsetms) + " ms"
         if plotIRsInOneRow:
@@ -299,7 +293,7 @@ if __name__ == "__main__":
         else:
             # Cada IR en una fila de altura doble:
             axIR = fig.add_subplot(grid[5+2*IRnum:5+2*IRnum+2, :])
-            # Rotulamos dentro del axe:        
+            # Rotulamos dentro del axe:
             axIR.annotate(rotuloIR, xy=(.6,.8), xycoords='axes fraction') # coords referidas al area gráfica
         IRnum += 1
         axIR.set_xticks(range(0,len(imp),10000))
@@ -309,7 +303,7 @@ if __name__ == "__main__":
     # Mostramos los valores de GD avg de cada impulso:
     GDtitle = 'GD avg:    ' + '    '.join([str(x) for x in GDavgs]) + ' (ms)'
     axGD.set_title(GDtitle)
-    
+
     # Leyenda con los nombres de los impulsos en el gráfico de magnitudes
     axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
 
@@ -325,13 +319,12 @@ if __name__ == "__main__":
         # Y guardamos las gráficas en un PDF:
         pdfName = ",".join([x for x in sys.argv[1:] if '.' in x]) + '.pdf'
         print "\nGuardando en el archivo " + pdfName
-        # evitamos los warnings del pdf 
-        # C:\Python27\lib\site-packages\matplotlib\figure.py:1742: UserWarning: 
-        # This figure includes Axes that are not compatible with tight_layout, so 
+        # evitamos los warnings del pdf
+        # C:\Python27\lib\site-packages\matplotlib\figure.py:1742: UserWarning:
+        # This figure includes Axes that are not compatible with tight_layout, so
         # its results might be incorrect.
         import warnings
         warnings.filterwarnings("ignore")
         fig.savefig(pdfName, bbox_inches='tight')
 
     print "Bye!"
-  
