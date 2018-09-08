@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-    v0.1 BETA
+    v0.2 BETA
     Visor de archivos de respuesta en frecuencia .FRD
-    Se muestra la fase si existe una tercera columna. 
-    Se estima la fase mínima (BETA)
-    
-    Uso:
-    FRD_viewer.py [flow-fhigh] path/to/file1.frd [path/to/file2.frd ...]
-    
-    See also:  FIRtro_viewer.py
-    
-"""
-# Se deja de mostrar la curva de phase fuera 
-# de la banda de uso del driver (ver magThr)
+    Se muestra la fase si existe una tercera columna.
 
+    Uso:
+    FRD_viewer.py   file1.frd  file2.frd ... [-opciones]
+    
+    -autobalance    Dibuja las curvas niveladas en su banda de paso.
+    -normaliza      Dibuja el máx de la curva en 0 dB
+    -nomask         Muestra la phase también en las regiones de magnitud
+                    muy baja respecto a la banda de paso.
+    -f300-3000      Eje de frecuencias de 300 a 3000 Hz
+    -m25-5          Eje de magnitudes desde -25 hasta 5 dBs
+"""
 import sys
 import numpy as np
 from scipy import signal, interpolate
@@ -39,29 +39,28 @@ def prepara_eje_frecuencias(ax):
 
 def prepara_graf():
     fig = plt.figure()
-    grid = gridspec.GridSpec(nrows=2, ncols=1)    
+    grid = gridspec.GridSpec(nrows=2, ncols=1)
 
     axMag = fig.add_subplot(grid[0,0])
-    axMag.set_ylim(-40,5)
+    axMag.set_ylim(ymin,ymax)
     prepara_eje_frecuencias(axMag)
     axMag.set_ylabel("magnitude (dB)")
-    
+
     axPha = fig.add_subplot(grid[1,0])
     prepara_eje_frecuencias(axPha)
     axPha.set_ylim([-180.0,180.0])
     #axPha.set_yticks(range(-135, 180, 45))
     axPha.set_yticks(range(-180, 225, 45))
     axPha.grid(linestyle=":")
-    # en principio pintaremos solo la pha min derivada de la mag
-    axPha.set_ylabel("--- min pha (BETA)")
-    
+    axPha.set_ylabel("phase")
+
     return axMag, axPha
 
 def lee_command_line():
-    global frdnames, fmin, fmax, autolevel
-    
+    global frdnames, fmin, fmax, ymin, ymax
+    global autobalance, normalize, maskPhaseIfLow
+
     frdnames = []
-    autolevel = False
 
     if len(sys.argv) == 1:
         print __doc__
@@ -73,15 +72,31 @@ def lee_command_line():
                 print __doc__
                 sys.exit()
 
+            elif "-f" in opc and opc[2].isdigit() and opc[-1].isdigit:
+                fmin, fmax = opc[2:].split("-")
+                fmin = float(fmin)
+                fmax = float(fmax)
+
+            elif "-m" in opc and opc[2].isdigit() and opc[-1].isdigit:
+                ymin, ymax = opc[2:].split("-")
+                ymin = -float(ymin)
+                ymax = float(ymax)
+
             elif "-" in opc and opc[0].isdigit() and opc[-1].isdigit:
                 fmin, fmax = opc.split("-")
                 fmin = float(fmin)
                 fmax = float(fmax)
 
-            elif opc == '-autolevel':
-                autolevel = True
+            elif "-auto" in opc:
+                autobalance = True
 
-            else:
+            elif "-norm" in opc:
+                normalize = True
+                
+            elif "-nomask" in opc:
+                maskPhaseIfLow = False
+
+            elif not "-" in opc:
                 frdnames.append(opc)
 
     # si no hay pcms o si no hay (Fs xor ini)
@@ -90,7 +105,7 @@ def lee_command_line():
         sys.exit()
 
 def BPavg(curve):
-    """ cutre estimación del promedio de una curva de magnitudes dB en la banda de paso 
+    """ cutre estimación del promedio de una curva de magnitudes dB en la banda de paso
     """
     # Suponemos que la curva es de tipo band-pass maomeno plana
     # Elegimos los bins que están a poca distancia del máximo de la curva
@@ -111,65 +126,82 @@ def limpia(pha, mag, th):
 
 if __name__ == "__main__":
 
+    # Por defecto
+    fmin = 20;  fmax = 20000    # Hz
+    ymin = -40; ymax = 10       # dB
+    autobalance = False
+    normalize = False
+    maskPhaseIfLow = True
+
     # Umbral de descarte para pintar la fase
     magThr = -40.0
-    
-    # Por defecto
-    fmin = 20; fmax = 20000
 
-    # Lee archivos .frd y limites de frecuencias 
+
+    # Lee archivos .frd y limites de frecuencias
     lee_command_line()
-    
+
     # Prepara graficas
     axMag, axPha = prepara_graf()
-    
-    # Usaremos un nuevo eje de frecuencias comun sobre el que interpolaremos
+
+    # Usaremos un nuevo vector de frecuencias comun sobre el que interpolaremos
     # las FRDs de los archivos leidos que pueden diferir
+    #freq = np.linspace(fmin, fmax, 500)
+    # (i) Preferimos un vector logespaciado porque con uno linespaciado
+    #     la interpolación resulta en una resolución escasa en graves.
     freq = np.logspace(np.log10(fmin), np.log10(fmax), num=500)
 
     for frdname in frdnames:
-        drivername = frdname.split("/")[-1].split(".")[:-1][0]
+        curvename = frdname.split("/")[-1].split(".")[:-1][0]
+
+        # Leemos el contenido del archivo .frd. NOTA: np.loadtxt() no admite
+        # los .frd de ARTA por que tienen cabecera sin comentar '#'
         frd = utils.readFRD(frdname)
+
         # Vemos si hay columna de phase
         frd_con_fase = (frd.shape[1] == 3)
 
         # arrays de freq, mag y pha
-        freq0 = frd[::, 0]
-        mag0  = frd[::, 1]
+        freq0 = frd[:, 0]
+        mag0  = frd[:, 1]
 
-        # Funcion de interpolacion con los datos leidos
-        fmag = interpolate.interp1d(freq0, mag0, kind="cubic", bounds_error=False)
-        # Interpolación sobre nuestro eje 'freq'
-        mag = fmag(freq)
-        # La bajamos por debajo de 0
-        mag -= np.max(mag)
-        if autolevel:
+        # Funcion de interpolación con los datos leidos. (!) OjO 'cubic' puede fallar.
+        Imag = interpolate.interp1d(freq0, mag0, kind="linear", bounds_error=False)
+
+        # Hallamos la interpolación proyectada sobre nuestro eje 'freq'
+        mag = Imag(freq)
+        # Opcionalmente la bajamos por debajo de 0
+        if normalize:
+            mag -= np.max(mag)
+        if autobalance and len(frdnames) > 1:
             mag -= BPavg(mag)
-            axMag.set_title("auto levels")
-    
+            axMag.set_title("(!) Curves level have an automatic offset")
+
+        # Plot de la magnitud
+        axMag.plot(freq, mag, label=curvename)
+        color = axMag.lines[-1].get_color() # anotamos el color
+
         # BETA Fase mínima ??
         H = signal.hilbert(mag)
         mpha = np.angle(H, deg=True)
         mpha = limpia(pha=mpha, mag=mag, th=magThr)
-        
-        # Plot 
-        axMag.plot(freq, mag, label=drivername)
-        color = axMag.lines[-1].get_color() # anotamos el color
 
-        axPha.plot(freq, mpha, "--", linewidth=1.0, color=color)        
+        # Plot de la minPhase
+        # axPha.plot(freq, mpha, "--", linewidth=1.0, color=color)
 
         if frd_con_fase:
-        
-            pha0  = frd[::, 2]
-            fpha = interpolate.interp1d(freq0, pha0, kind="linear", bounds_error=False)
-            pha = fpha(freq)
-            pha = pha * 180.0 / np.pi
-            pha = limpia(pha=pha, mag=mag, th=magThr)
-            
-            # Plot
-            axPha.set_ylabel("pha / --- min pha (BETA)")
+
+            # La interpolamos sobre nuestro vector de frecuencias 
+            pha0  = frd[:, 2]
+            Ipha = interpolate.interp1d(freq0, pha0, kind="linear", bounds_error=False)
+            pha = Ipha(freq)
+            # Limpieza opcional dejamos de pintar la phase si la amplitud es muy baja.
+            if maskPhaseIfLow:
+                pha = limpia(pha=pha, mag=mag, th=magThr)
+
+            # Plot de la phase
+            axPha.set_ylabel("pha")
             axPha.plot(freq, pha, "-", linewidth=1.0, color=color)
-    
+
     axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
     axPha.legend(loc='lower left', prop={'size':'small', 'family':'monospace'})
     plt.show()

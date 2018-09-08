@@ -4,6 +4,7 @@
     common use tools
 """
 import os.path
+from os import remove as os_remove # para borrar el archivo temporal de readFRD()
 import sys
 from ConfigParser import ConfigParser
 import numpy as np
@@ -218,23 +219,28 @@ def savePCM32(raw, fout):
     f.close()
 
 def readFRD(fname):
-    """ devuelve la FR leida en .frd en tuplas (freq, mag, phase)
+    """ Devuelve un ndarray[freq, mag, phase] con el contenido de un archivo de texto
+        Freq Response Data. Algunos archivos .FRD como los de ARTA incluyen una cabecera
+        que no está comentada '#' lo que ocasiona un error con np.loadtxt().
+        Aquí los comentaremos en un archivo temporal que será el que
+        leamos con np.loadtxt()
     """
     f = open(fname, 'r')
     lineas = f.read().split("\n")
     f.close()
-    fr = []
-    for linea in [x[:-1].replace("\t", " ").strip() for x in lineas if x]:
-        if linea[0].isdigit():
-            linea = linea.split()
-            f = []
-            for col in range(len(linea)):
-                dato = float(linea[col])
-                if col == 2: # hay columna de phases en deg
-                    dato = round(dato / 180.0 * np.pi, 4)
-                f.append(dato)
-            fr.append(f)
-    return np.array(fr)
+    ftmp = open("tmp", "w")
+    # tab2spc y descarta lineas vacías:
+    for linea in [x.replace("\t", " ").strip() for x in lineas if x]:
+        if not linea[0].isdigit():
+            lineatmp = "# " + linea
+        else:
+            lineatmp = linea
+        ftmp.write(lineatmp + "\n")
+    ftmp.close()
+    # Lectura en un array con las columnas del .FRD
+    columnas = np.loadtxt("tmp")
+    #os_remove("tmp")
+    return columnas
 
 def readPCMini(f):
     """ lee el .ini asociado a un filtro .pcm de FIRtro
