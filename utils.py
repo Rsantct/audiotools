@@ -239,7 +239,7 @@ def readFRD(fname):
     ftmp.close()
     # Lectura en un array con las columnas del .FRD
     columnas = np.loadtxt("tmp")
-    #os_remove("tmp")
+    os_remove("tmp")
     return columnas
 
 def readPCMini(f):
