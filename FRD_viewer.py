@@ -8,12 +8,16 @@
     Uso:
     FRD_viewer.py   file1.frd  file2.frd ... [-opciones]
     
-    -autobalance    Dibuja las curvas niveladas en su banda de paso.
     -normaliza      Dibuja el máx de la curva en 0 dB
     -nomask         Muestra la phase también en las regiones de magnitud
                     muy baja respecto a la banda de paso.
+    -autobalance    Dibuja las curvas niveladas en su banda de paso.
+
     -f300-3000      Eje de frecuencias de 300 a 3000 Hz
     -m25-5          Eje de magnitudes desde -25 hasta 5 dBs
+
+    -Xoct           Suaviza la curva a 1/X oct
+
 """
 import sys
 import numpy as np
@@ -23,6 +27,7 @@ from matplotlib import pyplot as plt
 from matplotlib import gridspec
 from matplotlib import ticker
 import utils
+from smoothSpectrum import smoothSpectrum as smooth
 
 def prepara_eje_frecuencias(ax):
     freq_ticks=[20, 100, 1000, 10000, 20000]
@@ -58,7 +63,7 @@ def prepara_graf():
 
 def lee_command_line():
     global frdnames, fmin, fmax, ymin, ymax
-    global autobalance, normalize, maskPhaseIfLow
+    global autobalance, normalize, maskPhaseIfLow, Noct
 
     frdnames = []
 
@@ -96,6 +101,9 @@ def lee_command_line():
             elif "-nomask" in opc:
                 maskPhaseIfLow = False
 
+            elif opc[0] == "-" and opc[-3:] == "oct":
+                Noct = int(opc.replace("-", "").replace("oct", "").strip())
+
             elif not "-" in opc:
                 frdnames.append(opc)
 
@@ -115,14 +123,13 @@ def BPavg(curve):
     avg = mode(np.round(bandpass,1), axis=None)[0][0]
     return avg
 
-def limpia(pha, mag, th):
-    #--- Extraemos la wrapped PHASE de la FR 'h'
-    # Eliminamos (np.nan) los valores de phase fuera de la banda de paso,
-    # por ejemplo de magnitud por debajo de -80 dB
-    phaClean  = np.full((len(pha)), np.nan)
-    mask = (mag > th)
-    np.copyto(phaClean, pha, where=mask)
-    return phaClean
+def limpia(curva, curvaRef, th):
+    # Eliminamos (np.nan) los valores del array 'curva' cuando los valores del
+    # array 'curvaRef' estén por debajo de el umbral 'th'.
+    curvaClean  = np.full((len(curva)), np.nan)
+    mask = (curvaRef > th)
+    np.copyto(curvaClean, curva, where=mask)
+    return curvaClean
 
 if __name__ == "__main__":
 
@@ -132,6 +139,7 @@ if __name__ == "__main__":
     autobalance = False
     normalize = False
     maskPhaseIfLow = True
+    Noct = 0                    # Sin suavizado
 
     # Umbral de descarte para pintar la fase
     magThr = -40.0
@@ -177,13 +185,16 @@ if __name__ == "__main__":
             axMag.set_title("(!) Curves level have an automatic offset")
 
         # Plot de la magnitud
-        axMag.plot(freq, mag, label=curvename)
+        ls = "-"        # linestyle solid
+        if Noct <> 0:
+            ls = ":"    # linestyle dotted
+        axMag.plot(freq, mag, ls=ls, label=curvename)
         color = axMag.lines[-1].get_color() # anotamos el color
 
-        # BETA Fase mínima ??
+        # Fase mínima (BETA pendiente)
         H = signal.hilbert(mag)
         mpha = np.angle(H, deg=True)
-        mpha = limpia(pha=mpha, mag=mag, th=magThr)
+        mpha = limpia(curva=mpha, curvaRef=mag, th=magThr)
 
         # Plot de la minPhase
         # axPha.plot(freq, mpha, "--", linewidth=1.0, color=color)
@@ -196,11 +207,17 @@ if __name__ == "__main__":
             pha = Ipha(freq)
             # Limpieza opcional dejamos de pintar la phase si la amplitud es muy baja.
             if maskPhaseIfLow:
-                pha = limpia(pha=pha, mag=mag, th=magThr)
+                pha = limpia(curva=pha, curvaRef=mag, th=magThr)
 
             # Plot de la phase
             axPha.set_ylabel("pha")
             axPha.plot(freq, pha, "-", linewidth=1.0, color=color)
+
+        # Plot de la curva suavizada
+        if Noct <> 0:
+            smoothed = smooth(mag, freq, Noct=Noct)
+            axMag.plot(freq, smoothed, color=color)
+
 
     axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
     axPha.legend(loc='lower left', prop={'size':'small', 'family':'monospace'})
