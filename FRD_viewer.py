@@ -1,24 +1,28 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-    v0.2 BETA
+    v0.2
     Visor de archivos de respuesta en frecuencia .FRD
     Se muestra la fase si existe una tercera columna.
 
     Uso:
     FRD_viewer.py   file1.frd  file2.frd ... [-opciones]
     
-    -normaliza      Dibuja el máx de la curva en 0 dB
+    -norm           Dibuja el máx de la curva en 0 dB
     -nomask         Muestra la phase también en las regiones de magnitud
                     muy baja respecto a la banda de paso.
-    -autobalance    Dibuja las curvas niveladas en su banda de paso.
+    -autobal        Dibuja las curvas niveladas con su banda de paso en 0 dB
 
     -f300-3000      Eje de frecuencias de 300 a 3000 Hz
-    -m25-5          Eje de magnitudes desde -25 hasta 5 dBs
+    -dB50           Rango en dBs del eje de magnitudes 
 
     -Xoct           Suaviza la curva a 1/X oct
 
 """
+# v0.2
+#   - Mejoras en la estimación del promedio de la curva en la banda de paso
+#   - Nuevas opciones de presentación
+
 import sys
 import numpy as np
 from scipy import signal, interpolate
@@ -47,7 +51,7 @@ def prepara_graf():
     grid = gridspec.GridSpec(nrows=2, ncols=1)
 
     axMag = fig.add_subplot(grid[0,0])
-    axMag.set_ylim(ymin,ymax)
+    axMag.set_ylim(-40,10)
     prepara_eje_frecuencias(axMag)
     axMag.set_ylabel("magnitude (dB)")
 
@@ -62,7 +66,7 @@ def prepara_graf():
     return axMag, axPha
 
 def lee_command_line():
-    global frdnames, fmin, fmax, ymin, ymax
+    global frdnames, fmin, fmax, dBrange
     global autobalance, normalize, maskPhaseIfLow, Noct
 
     frdnames = []
@@ -103,7 +107,10 @@ def lee_command_line():
 
             elif opc[0] == "-" and opc[-3:] == "oct":
                 Noct = int(opc.replace("-", "").replace("oct", "").strip())
-
+                
+            elif opc.lower()[:3] == "-db":
+                dBrange = round(float(opc[3:].strip()))
+                
             elif not "-" in opc:
                 frdnames.append(opc)
 
@@ -113,14 +120,19 @@ def lee_command_line():
         sys.exit()
 
 def BPavg(curve):
-    """ cutre estimación del promedio de una curva de magnitudes dB en la banda de paso
+    """ Estimación del promedio de una curva de magnitudes dB en la banda de paso
     """
     # Suponemos que la curva es de tipo band-pass maomeno plana
-    # Elegimos los bins que están a poca distancia del máximo de la curva
-    bandpass_locations = np.where( curve > max(curve) - 12)
+    # En todo caso la suavizamos para aplanarla.
+    smoothed = smooth(mag, freq, Noct=1)
+
+    # Elegimos los bins que distan poco del máximo de la curva suavizada 1/1oct    
+    bandpass_locations = np.where( curve > max(smoothed) - 12)
     bandpass = np.take( curve, bandpass_locations)
+
     # Buscamos los valores más frecuentes de la zona plana 'bandpass' redondeada a .1 dB
     avg = mode(np.round(bandpass,1), axis=None)[0][0]
+
     return avg
 
 def limpia(curva, curvaRef, th):
@@ -135,15 +147,14 @@ if __name__ == "__main__":
 
     # Por defecto
     fmin = 20;  fmax = 20000    # Hz
-    ymin = -40; ymax = 10       # dB
+    dBrange = 50                # dB
     autobalance = False
     normalize = False
     maskPhaseIfLow = True
     Noct = 0                    # Sin suavizado
 
-    # Umbral de descarte para pintar la fase
+    # Umbral dB de descarte para pintar la fase
     magThr = -40.0
-
 
     # Lee archivos .frd y limites de frecuencias
     lee_command_line()
@@ -177,12 +188,16 @@ if __name__ == "__main__":
 
         # Hallamos la interpolación proyectada sobre nuestro eje 'freq'
         mag = Imag(freq)
+
         # Opcionalmente la bajamos por debajo de 0
         if normalize:
             mag -= np.max(mag)
-        if autobalance and len(frdnames) > 1:
+
+        # Opcionalmente la nivela a 0dB en su banda de paso
+        if autobalance:
             mag -= BPavg(mag)
-            axMag.set_title("(!) Curves level have an automatic offset")
+            if len(frdnames) > 1:
+                axMag.set_title("(!) Curves level have an automatic offset")
 
         # Plot de la magnitud
         ls = "-"        # linestyle solid
@@ -218,7 +233,13 @@ if __name__ == "__main__":
             smoothed = smooth(mag, freq, Noct=Noct)
             axMag.plot(freq, smoothed, color=color)
 
+    # Encuadre vertical (magnitudes)
+    if normalize or autobalance:
+        centerY = 0
+    else:
+        centerY = 10 * np.floor(BPavg(mag) / 10)
 
+    axMag.set_ylim( centerY + 10 - dBrange, centerY + 10 )    
     axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
     axPha.legend(loc='lower left', prop={'size':'small', 'family':'monospace'})
     plt.show()
