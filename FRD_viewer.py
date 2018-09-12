@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-    v0.2
-    Visor de archivos de respuesta en frecuencia .FRD
+    v0.3
+    Visor de archivos de respuesta en frecuencia .frd .txt
 
     Uso:
-     FRD_viewer.py   file1.frd  file2.frd ... [-opciones]
+     FRD_tool.py   file1.frd  file2.txt .. [-opciones ..]
 
-    -norm           Dibuja el máx de la curva en 0 dB
-    -autobal        Dibuja las curvas niveladas con su banda de paso en 0 dB
+    -norm           Ajusta el máx de la curva en 0 dB
+    -autobal        Presenta las curvas niveladas con su banda de paso en 0 dB
     -dB50           Rango en dBs del eje de magnitudes
 
-    -phase          Incluye la phase si la hubiera.
+    -phase          Incluye gráfico de la phase si la hubiera.
     -nomask         Muestra la phase también en las regiones de magnitud
                     muy baja respecto a la banda de paso.
 
@@ -20,11 +20,15 @@
     -Noct           Suaviza la curva a 1/N oct
     -f0=xx          Frecuencia en la que deja de suavizar 1/N oct
                     hasta alcanzar 1/1 oct en Nyquist
-
+    -saveNoct       Guarda la curva suavizada en un archivo 'fileX_Noct.frd'
 """
 # v0.2
 #   - Mejoras en la estimación del promedio de la curva en la banda de paso
 #   - Nuevas opciones de presentación
+# v0.3
+#   - La gráfica de phase queda como opcional
+#   - Permite guardar la versión suavizada de una curva:
+#   - Cambio de nombre FRD_viewer.py --> FRD_tool.py
 
 import sys
 import numpy as np
@@ -76,7 +80,7 @@ def prepara_graf():
         return axMag, None
 
 def lee_command_line():
-    global frdnames, fmin, fmax, dBrange, subplotPha
+    global frdnames, fmin, fmax, dBrange, subplotPha, saveNoct
     global autobalance, normalize, maskPhaseIfLow, Noct, f0
 
     frdnames = []
@@ -127,6 +131,9 @@ def lee_command_line():
             elif opc[:4] == '-f0=':
                 f0 = int(opc[4:])
 
+            elif opc[:5] == '-save':
+                saveNoct = True
+
             elif opc[-4:].lower() in ['.txt', '.frd']:
                 frdnames.append(opc)
 
@@ -140,12 +147,11 @@ def BPavg(curve):
     """
     # Suponemos que la curva es de tipo band-pass maomeno plana
     # En todo caso la suavizamos para aplanarla.
-    smoothed = smooth(mag, freq, Noct=1)
-
+    smoothed = smooth(curve, freq, Noct=3)
+    
     # Elegimos los bins que distan poco del máximo de la curva suavizada 1/1oct
     bandpass_locations = np.where( curve > max(smoothed) - 12)
     bandpass = np.take( curve, bandpass_locations)
-
     # Buscamos los valores más frecuentes de la zona plana 'bandpass' redondeada a .1 dB
     avg = mode(np.round(bandpass,1), axis=None)[0][0]
 
@@ -170,6 +176,7 @@ if __name__ == "__main__":
     maskPhaseIfLow      = True
     Noct                = 0         # Sin suavizado
     f0                  = None      # f0 para transicion del suavizado hasta 1/1 oct en Nyq
+    saveNoct            = False     # guarda una versión de la curva suavizada.
 
     # Umbral dB de descarte para pintar la fase
     magThr = -40.0
@@ -202,11 +209,12 @@ if __name__ == "__main__":
         mag0  = frd[:, 1]
 
         # Funcion de interpolación con los datos leidos. (!) OjO 'cubic' puede fallar.
-        Imag = interpolate.interp1d(freq0, mag0, kind="linear", bounds_error=False)
+        Imag = interpolate.interp1d(freq0, mag0, kind='linear',
+                                    bounds_error=False, fill_value='extrapolate')
 
         # Hallamos la interpolación proyectada sobre nuestro eje 'freq'
         mag = Imag(freq)
-
+        
         # Opcionalmente la bajamos por debajo de 0
         if normalize:
             mag -= np.max(mag)
@@ -249,13 +257,18 @@ if __name__ == "__main__":
 
             axPha.legend(loc='lower left', prop={'size':'small', 'family':'monospace'})
 
-        # Plot de la curva suavizada
+        # Curva suavizada
         if Noct <> 0:
             if f0:
                 smoothed = smooth(mag, freq, Noct=Noct, f0=f0)
             else:
                 smoothed = smooth(mag, freq, Noct=Noct)
+            # Ploteo
             axMag.plot(freq, smoothed, color=color)
+            # Opcionalmente guarda la versión suavizada:
+            if saveNoct:
+                utils.saveFRD(curvename + '_' + str(Noct) + 'oct.frd', 
+                              freq, smoothed, fs=None)
 
     # Encuadre vertical (magnitudes)
     if normalize or autobalance:

@@ -242,6 +242,20 @@ def readFRD(fname):
     os_remove("tmp")
     return columnas
 
+def saveFRD(fname, freq, mag, fs=None):
+    """ NOTAS: 'mag' al ser esta una función que guarda FRDs, se debe dar en dBs.
+               'fs'  se usa para la cabecera informativa del archivo de texto guardado.
+    """
+    if not fs:
+        fs = "unknwon"
+    header =  "DFT Frequency Response\n"
+    header += "Numpoints = " + str(len(freq)) + "\n"
+    header += "SamplingRate = " + str(fs) + " Hz\n"
+    header += "Frequency(Hz)   Magnitude(dB)"
+    print "Guardando " + fname
+    np.savetxt( fname, np.column_stack((freq, mag)), 
+             delimiter="\t", fmt='%1.4e', header=header)
+
 def readPCMini(f):
     """ lee el .ini asociado a un filtro .pcm de FIRtro
     """

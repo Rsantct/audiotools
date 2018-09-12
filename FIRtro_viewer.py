@@ -38,7 +38,7 @@
         gainext = 8.0      # Resto de ganancia incluyendo la potencia final
                              radiada en el eje de escucha.
                              
-    See also: FRD_viewer.py, IRs_viewer.py
+    See also: FRD_tool.py, IRs_viewer.py
     
 """
 #
