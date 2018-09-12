@@ -3,20 +3,23 @@
 """
     v0.2
     Visor de archivos de respuesta en frecuencia .FRD
-    Se muestra la fase si existe una tercera columna.
 
     Uso:
-    FRD_viewer.py   file1.frd  file2.frd ... [-opciones]
-    
+     FRD_viewer.py   file1.frd  file2.frd ... [-opciones]
+
     -norm           Dibuja el máx de la curva en 0 dB
+    -autobal        Dibuja las curvas niveladas con su banda de paso en 0 dB
+    -dB50           Rango en dBs del eje de magnitudes
+
+    -phase          Incluye la phase si la hubiera.
     -nomask         Muestra la phase también en las regiones de magnitud
                     muy baja respecto a la banda de paso.
-    -autobal        Dibuja las curvas niveladas con su banda de paso en 0 dB
 
-    -f300-3000      Eje de frecuencias de 300 a 3000 Hz
-    -dB50           Rango en dBs del eje de magnitudes 
+    -f300-3000      Eje de frecuencias p.ej: 300 a 3000 Hz
 
-    -Xoct           Suaviza la curva a 1/X oct
+    -Noct           Suaviza la curva a 1/N oct
+    -f0=xx          Frecuencia en la que deja de suavizar 1/N oct
+                    hasta alcanzar 1/1 oct en Nyquist
 
 """
 # v0.2
@@ -48,26 +51,33 @@ def prepara_eje_frecuencias(ax):
 
 def prepara_graf():
     fig = plt.figure()
-    grid = gridspec.GridSpec(nrows=2, ncols=1)
+    if subplotPha:
+        grid = gridspec.GridSpec(nrows=3, ncols=1)
+    else:
+        grid = gridspec.GridSpec(nrows=1, ncols=1)
 
-    axMag = fig.add_subplot(grid[0,0])
+    axMag = fig.add_subplot(grid[0:2,0])
     axMag.set_ylim(-40,10)
     prepara_eje_frecuencias(axMag)
     axMag.set_ylabel("magnitude (dB)")
 
-    axPha = fig.add_subplot(grid[1,0])
-    prepara_eje_frecuencias(axPha)
-    axPha.set_ylim([-180.0,180.0])
-    #axPha.set_yticks(range(-135, 180, 45))
-    axPha.set_yticks(range(-180, 225, 45))
-    axPha.grid(linestyle=":")
-    axPha.set_ylabel("phase")
+    if subplotPha:
+        axPha = fig.add_subplot(grid[2,0])
+        prepara_eje_frecuencias(axPha)
+        axPha.set_ylim([-180.0,180.0])
+        #axPha.set_yticks(range(-135, 180, 45))
+        axPha.set_yticks(range(-180, 225, 45))
+        axPha.grid(linestyle=":")
+        axPha.set_ylabel("phase")
 
-    return axMag, axPha
+        return axMag, axPha
+
+    else:
+        return axMag, None
 
 def lee_command_line():
-    global frdnames, fmin, fmax, dBrange
-    global autobalance, normalize, maskPhaseIfLow, Noct
+    global frdnames, fmin, fmax, dBrange, subplotPha
+    global autobalance, normalize, maskPhaseIfLow, Noct, f0
 
     frdnames = []
 
@@ -77,41 +87,47 @@ def lee_command_line():
     else:
         for opc in sys.argv[1:]:
 
-            if opc in ("-h", "-help", "--help"):
+            if opc in ('-h', '-help', '--help'):
                 print __doc__
                 sys.exit()
 
-            elif "-f" in opc and opc[2].isdigit() and opc[-1].isdigit:
-                fmin, fmax = opc[2:].split("-")
+            elif opc[:2] == '-f' and opc[2].isdigit() and opc[-1].isdigit and '-' in opc[1:]:
+                fmin, fmax = opc[2:].split('-')
                 fmin = float(fmin)
                 fmax = float(fmax)
 
-            elif "-m" in opc and opc[2].isdigit() and opc[-1].isdigit:
-                ymin, ymax = opc[2:].split("-")
+            elif '-m' in opc and opc[2].isdigit() and opc[-1].isdigit:
+                ymin, ymax = opc[2:].split('-')
                 ymin = -float(ymin)
                 ymax = float(ymax)
 
-            elif "-" in opc and opc[0].isdigit() and opc[-1].isdigit:
-                fmin, fmax = opc.split("-")
+            elif '-' in opc and opc[0].isdigit() and opc[-1].isdigit:
+                fmin, fmax = opc.split('-')
                 fmin = float(fmin)
                 fmax = float(fmax)
 
-            elif "-auto" in opc:
+            elif '-auto' in opc:
                 autobalance = True
 
-            elif "-norm" in opc:
+            elif '-norm' in opc:
                 normalize = True
-                
-            elif "-nomask" in opc:
+
+            elif opc.lower()[:3] == '-db':
+                dBrange = round(float(opc[3:].strip()))
+
+            elif '-pha' in opc:
+                subplotPha = True
+
+            elif '-nomask' in opc:
                 maskPhaseIfLow = False
 
-            elif opc[0] == "-" and opc[-3:] == "oct":
-                Noct = int(opc.replace("-", "").replace("oct", "").strip())
-                
-            elif opc.lower()[:3] == "-db":
-                dBrange = round(float(opc[3:].strip()))
-                
-            elif not "-" in opc:
+            elif opc[0] == '-' and opc[-3:] == 'oct':
+                Noct = int(opc.replace('-', '').replace('oct', '').strip())
+
+            elif opc[:4] == '-f0=':
+                f0 = int(opc[4:])
+
+            elif opc[-4:].lower() in ['.txt', '.frd']:
                 frdnames.append(opc)
 
     # si no hay pcms o si no hay (Fs xor ini)
@@ -126,7 +142,7 @@ def BPavg(curve):
     # En todo caso la suavizamos para aplanarla.
     smoothed = smooth(mag, freq, Noct=1)
 
-    # Elegimos los bins que distan poco del máximo de la curva suavizada 1/1oct    
+    # Elegimos los bins que distan poco del máximo de la curva suavizada 1/1oct
     bandpass_locations = np.where( curve > max(smoothed) - 12)
     bandpass = np.take( curve, bandpass_locations)
 
@@ -146,12 +162,14 @@ def limpia(curva, curvaRef, th):
 if __name__ == "__main__":
 
     # Por defecto
-    fmin = 20;  fmax = 20000    # Hz
-    dBrange = 50                # dB
-    autobalance = False
-    normalize = False
-    maskPhaseIfLow = True
-    Noct = 0                    # Sin suavizado
+    fmin = 20;     fmax = 20000     # Hz
+    dBrange             = 50        # dB
+    autobalance         = False
+    normalize           = False
+    subplotPha          = False
+    maskPhaseIfLow      = True
+    Noct                = 0         # Sin suavizado
+    f0                  = None      # f0 para transicion del suavizado hasta 1/1 oct en Nyq
 
     # Umbral dB de descarte para pintar la fase
     magThr = -40.0
@@ -206,31 +224,37 @@ if __name__ == "__main__":
         axMag.plot(freq, mag, ls=ls, label=curvename)
         color = axMag.lines[-1].get_color() # anotamos el color
 
-        # Fase mínima (BETA pendiente)
-        H = signal.hilbert(mag)
-        mpha = np.angle(H, deg=True)
-        mpha = limpia(curva=mpha, curvaRef=mag, th=magThr)
+        if subplotPha:
+            # Fase mínima (BETA pendiente)
+            H = signal.hilbert(mag)
+            mpha = np.angle(H, deg=True)
+            mpha = limpia(curva=mpha, curvaRef=mag, th=magThr)
 
-        # Plot de la minPhase
-        # axPha.plot(freq, mpha, "--", linewidth=1.0, color=color)
+            # Plot de la minPhase
+            # axPha.plot(freq, mpha, "--", linewidth=1.0, color=color)
 
-        if frd_con_fase:
+            if frd_con_fase:
 
-            # La interpolamos sobre nuestro vector de frecuencias 
-            pha0  = frd[:, 2]
-            Ipha = interpolate.interp1d(freq0, pha0, kind="linear", bounds_error=False)
-            pha = Ipha(freq)
-            # Limpieza opcional dejamos de pintar la phase si la amplitud es muy baja.
-            if maskPhaseIfLow:
-                pha = limpia(curva=pha, curvaRef=mag, th=magThr)
+                # La interpolamos sobre nuestro vector de frecuencias
+                pha0  = frd[:, 2]
+                Ipha = interpolate.interp1d(freq0, pha0, kind="linear", bounds_error=False)
+                pha = Ipha(freq)
+                # Limpieza opcional dejamos de pintar la phase si la amplitud es muy baja.
+                if maskPhaseIfLow:
+                    pha = limpia(curva=pha, curvaRef=mag, th=magThr)
 
-            # Plot de la phase
-            axPha.set_ylabel("pha")
-            axPha.plot(freq, pha, "-", linewidth=1.0, color=color)
+                # Plot de la phase
+                axPha.set_ylabel("pha")
+                axPha.plot(freq, pha, "-", linewidth=1.0, color=color)
+
+            axPha.legend(loc='lower left', prop={'size':'small', 'family':'monospace'})
 
         # Plot de la curva suavizada
         if Noct <> 0:
-            smoothed = smooth(mag, freq, Noct=Noct)
+            if f0:
+                smoothed = smooth(mag, freq, Noct=Noct, f0=f0)
+            else:
+                smoothed = smooth(mag, freq, Noct=Noct)
             axMag.plot(freq, smoothed, color=color)
 
     # Encuadre vertical (magnitudes)
@@ -239,10 +263,6 @@ if __name__ == "__main__":
     else:
         centerY = 10 * np.floor(BPavg(mag) / 10)
 
-    axMag.set_ylim( centerY + 10 - dBrange, centerY + 10 )    
+    axMag.set_ylim( centerY + 10 - dBrange, centerY + 10 )
     axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
-    axPha.legend(loc='lower left', prop={'size':'small', 'family':'monospace'})
     plt.show()
-
-
-
