@@ -223,7 +223,7 @@ if __name__ == "__main__":
         if autobalance:
             mag -= BPavg(mag)
             if len(frdnames) > 1:
-                axMag.set_title("(!) Curves level have an automatic offset")
+                axMag.set_title("(!) Curves level has an automatic offset")
 
         # Plot de la magnitud
         ls = "-"        # linestyle solid
