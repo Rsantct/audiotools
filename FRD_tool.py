@@ -7,9 +7,9 @@
     Uso:
      FRD_tool.py   file1.frd  file2.txt .. [-opciones ..]
 
+    -dBXX           Rango XX dBs del eje de magnitudes
     -norm           Ajusta el máx de la curva en 0 dB
     -autobal        Presenta las curvas niveladas con su banda de paso en 0 dB
-    -dB50           Rango en dBs del eje de magnitudes
 
     -phase          Incluye gráfico de la phase si la hubiera.
     -nomask         Muestra la phase también en las regiones de magnitud
@@ -33,6 +33,7 @@
 # v0.3b
 #   - Se deja de pintar la curva sin suavizar junto con la suavizada por ser poco legible
 #     sobre todo con varias curvas.
+#   - Se revisa el encuadre en el eje Y
 
 import sys
 import numpy as np
@@ -65,7 +66,7 @@ def prepara_graf():
         grid = gridspec.GridSpec(nrows=1, ncols=1)
 
     axMag = fig.add_subplot(grid[0:2,0])
-    axMag.set_ylim(-40,10)
+    axMag.set_ylim(ymin, ymax)
     prepara_eje_frecuencias(axMag)
     axMag.set_ylabel("magnitude (dB)")
 
@@ -83,8 +84,31 @@ def prepara_graf():
     else:
         return axMag, None
 
+def BPavg(curve):
+    """ Estimación del promedio de una curva de magnitudes dB en la banda de paso
+    """
+    # Suponemos que la curva es de tipo band-pass maomeno plana
+    # En todo caso la suavizamos para aplanarla.
+    smoothed = smooth(curve, freq, Noct=3)
+
+    # Elegimos los bins que distan poco del máximo de la curva suavizada 1/1oct
+    bandpass_locations = np.where( curve > max(smoothed) - 12)
+    bandpass = np.take( curve, bandpass_locations)
+    # Buscamos los valores más frecuentes de la zona plana 'bandpass' redondeada a .1 dB
+    avg = mode(np.round(bandpass,1), axis=None)[0][0]
+
+    return avg
+
+def limpia(curva, curvaRef, th):
+    # Eliminamos (np.nan) los valores del array 'curva' cuando los valores del
+    # array 'curvaRef' estén por debajo de el umbral 'th'.
+    curvaClean  = np.full((len(curva)), np.nan)
+    mask = (curvaRef > th)
+    np.copyto(curvaClean, curva, where=mask)
+    return curvaClean
+
 def lee_command_line():
-    global frdnames, fmin, fmax, dBrange, subplotPha, saveNoct
+    global frdnames, fmin, fmax, dBrange, ymin, ymax, subplotPha, saveNoct
     global autobalance, normalize, maskPhaseIfLow, Noct, f0
 
     frdnames = []
@@ -146,34 +170,13 @@ def lee_command_line():
         print __doc__
         sys.exit()
 
-def BPavg(curve):
-    """ Estimación del promedio de una curva de magnitudes dB en la banda de paso
-    """
-    # Suponemos que la curva es de tipo band-pass maomeno plana
-    # En todo caso la suavizamos para aplanarla.
-    smoothed = smooth(curve, freq, Noct=3)
-
-    # Elegimos los bins que distan poco del máximo de la curva suavizada 1/1oct
-    bandpass_locations = np.where( curve > max(smoothed) - 12)
-    bandpass = np.take( curve, bandpass_locations)
-    # Buscamos los valores más frecuentes de la zona plana 'bandpass' redondeada a .1 dB
-    avg = mode(np.round(bandpass,1), axis=None)[0][0]
-
-    return avg
-
-def limpia(curva, curvaRef, th):
-    # Eliminamos (np.nan) los valores del array 'curva' cuando los valores del
-    # array 'curvaRef' estén por debajo de el umbral 'th'.
-    curvaClean  = np.full((len(curva)), np.nan)
-    mask = (curvaRef > th)
-    np.copyto(curvaClean, curva, where=mask)
-    return curvaClean
-
 if __name__ == "__main__":
 
     # Por defecto
     fmin = 20;     fmax = 20000     # Hz
     dBrange             = 50        # dB
+    ymin                = -40
+    ymax                = 10
     autobalance         = False
     normalize           = False
     subplotPha          = False
@@ -272,12 +275,13 @@ if __name__ == "__main__":
             axPha.legend(loc='lower left', prop={'size':'small', 'family':'monospace'})
 
 
-    # Encuadre vertical (magnitudes)
+    # Encuadre vertical
     if normalize or autobalance:
         centerY = 0
     else:
-        centerY = 10 * np.floor(BPavg(mag) / 10)
+        centerY = 10 + 10 * np.floor(BPavg(mag) / 10)
 
-    axMag.set_ylim( centerY + 10 - dBrange, centerY + 10 )
+    axMag.set_ylim( centerY - dBrange/2.0, centerY + dBrange/2.0 )
+
     axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
     plt.show()
