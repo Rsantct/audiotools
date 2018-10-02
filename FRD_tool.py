@@ -21,6 +21,7 @@
     -f0=xx          Frecuencia en la que deja de suavizar 1/N oct
                     hasta alcanzar 1/1 oct en Nyquist
     -saveNoct       Guarda la curva suavizada en un archivo 'fileX_Noct.frd'
+
 """
 # v0.2
 #   - Mejoras en la estimación del promedio de la curva en la banda de paso
@@ -29,6 +30,9 @@
 #   - La gráfica de phase queda como opcional
 #   - Permite guardar la versión suavizada de una curva:
 #   - Cambio de nombre FRD_viewer.py --> FRD_tool.py
+# v0.3b
+#   - Se deja de pintar la curva sin suavizar junto con la suavizada por ser poco legible
+#     sobre todo con varias curvas.
 
 import sys
 import numpy as np
@@ -148,7 +152,7 @@ def BPavg(curve):
     # Suponemos que la curva es de tipo band-pass maomeno plana
     # En todo caso la suavizamos para aplanarla.
     smoothed = smooth(curve, freq, Noct=3)
-    
+
     # Elegimos los bins que distan poco del máximo de la curva suavizada 1/1oct
     bandpass_locations = np.where( curve > max(smoothed) - 12)
     bandpass = np.take( curve, bandpass_locations)
@@ -214,7 +218,7 @@ if __name__ == "__main__":
 
         # Hallamos la interpolación proyectada sobre nuestro eje 'freq'
         mag = Imag(freq)
-        
+
         # Opcionalmente la bajamos por debajo de 0
         if normalize:
             mag -= np.max(mag)
@@ -226,10 +230,20 @@ if __name__ == "__main__":
                 axMag.set_title("(!) Curves level has an automatic offset")
 
         # Plot de la magnitud
-        ls = "-"        # linestyle solid
-        if Noct <> 0:
-            ls = ":"    # linestyle dotted
-        axMag.plot(freq, mag, ls=ls, label=curvename)
+        if not Noct:
+            axMag.plot(freq, mag, label=curvename)
+        else:
+            if f0:
+                smoothed = smooth(mag, freq, Noct=Noct, f0=f0)
+            else:
+                smoothed = smooth(mag, freq, Noct=Noct)
+            # Ploteo
+            axMag.plot(freq, smoothed, label=curvename)
+            # Opcionalmente guarda la versión suavizada:
+            if saveNoct:
+                utils.saveFRD(curvename + '_' + str(Noct) + 'oct.frd',
+                              freq, smoothed, fs=None)
+
         color = axMag.lines[-1].get_color() # anotamos el color
 
         if subplotPha:
@@ -257,18 +271,6 @@ if __name__ == "__main__":
 
             axPha.legend(loc='lower left', prop={'size':'small', 'family':'monospace'})
 
-        # Curva suavizada
-        if Noct <> 0:
-            if f0:
-                smoothed = smooth(mag, freq, Noct=Noct, f0=f0)
-            else:
-                smoothed = smooth(mag, freq, Noct=Noct)
-            # Ploteo
-            axMag.plot(freq, smoothed, color=color)
-            # Opcionalmente guarda la versión suavizada:
-            if saveNoct:
-                utils.saveFRD(curvename + '_' + str(Noct) + 'oct.frd', 
-                              freq, smoothed, fs=None)
 
     # Encuadre vertical (magnitudes)
     if normalize or autobalance:
