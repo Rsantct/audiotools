@@ -19,16 +19,16 @@ def logTransition(f, f0, speed="medium"):
                \
                 \
      0           \______
-               f0        
+               f0
         <-- semilog f -->
 
-    Proporciona una transición, con la apariencia del esquema de arriba, útil para 
+    Proporciona una transición, con la apariencia del esquema de arriba, útil para
     aplicar un efecto sobre la proyección logarítmica de un semiespectro DFT 'f'.
 
     Nótese que 'f' debe proporcionarse en escala lineal (bins equiespaciados de una DFT).
 
     'speed' (slow, mid, fast) define la velocidad de la transición.
-    
+
     docs/demo_logTransition.py muestra un gráfica ilustrativa del parámetro 'speed'.
     """
     speeds = { "slow":0.5, "medium":1.2, "fast":3.0}
@@ -43,15 +43,15 @@ def read_REW_EQ_txt(rew_eq_fname):
     """
      Lee un archivo .txt de filtros paramétricos de RoomEqWizard
      y devuelve un diccionario con los parámetros de los filtros
- 
+
      (i) Se precisa que en REW se utilice [Equaliser: Generic]
     """
     f = open(rew_eq_fname, 'r')
     txt = f.read()
     f.close()
- 
+
     PEQs = {}   # Diccionario con el resultado de paramétricos leidos
- 
+
     i = 0
     for linea in txt.split("\n"):
         if "Filter" in linea and (not "Settings" in linea) and ("Fc") in linea:
@@ -63,50 +63,50 @@ def read_REW_EQ_txt(rew_eq_fname):
             # Añadimos el filtro
             PEQs[i] = {'active':active, 'fc':fc, 'gain':gain, 'Q':Q, 'BW':BW}
             i += 1
- 
+
     return PEQs
 
 def MP2LP(imp, windowed=True, kaiserBeta=6):
     """
     audiotools/utils/MP2LP(imp, windowed=True, kaiserBeta=3)
- 
+
     Obtiene un impulso linear phase cuyo espectro se corresponde
     en magnitud con la del impulso causal proporcionado.
- 
+
     imp:        Impulso a procesar
     windowed:   Boolean para aplicar una ventana al impulso resultante, True por defecto (*)
     kaiserBeta: Ajuste de forma de la ventana kaiser (6	Similar to a Hann)
                 https://docs.scipy.org/doc/scipy-1.0.0/reference/generated/scipy.signal.kaiser.html
- 
+
     (*) El enventado afectará a la resolución en IRs con espectro en magnitud muy accidentado.
         Por contra suaviza los microartifactos de retardo de grupo del impulso resultante,
         que son visibles haciendo zoom con 'IRs_viewer.py'. El GD debe ser constante.
      """
     # MUESTRA LA DOC DE ESTA FUNCIÓN:
     # print MP2LP.__doc__
- 
+
     # Obtenemos el espectro completo del impulso dado
     Nbins = len(imp)
     _, h = signal.freqz(imp, worN=Nbins, whole=True)
     wholemag = np.abs(h)
- 
+
     # Obtenemos el impulso equivalente en linear phase
     return wholemag2LP(wholemag , windowed=windowed, kaiserBeta=kaiserBeta)
- 
+
 def ba2LP(b, a, m, windowed=True, kaiserBeta=3):
     """
     audiotools/utils/ba2LP(b, a, m, windowed=True, kaiserBeta=4)
- 
+
     Obtiene un impulso linear phase de longitud m cuyo espectro
     se corresponde en magnitud con la de la función de
     transferencia definida por los coeff 'b,a' proporcionados.
- 
+
     b, a:       Coeffs numerador y denominador de la func de transferencia a procesar
     m:          Longitud del impulso resultante
     windowed:   Boolean para aplicar una ventana al impulso resultante, True por defecto (*)
     kaiserBeta: Ajuste de forma de la ventana kaiser (3	Similar to a Hamming)
                 https://docs.scipy.org/doc/scipy-1.0.0/reference/generated/scipy.signal.kaiser.html
- 
+
     (*) El enventanado afecta a la resolución final y se nota sustancialmente
         si procesamos coeffs 'b,a' correspondientes a un biquad type='peakingEQ' estrecho.
         Por contra suaviza los microartifactos de retardo de grupo del impulso resultante
@@ -114,37 +114,37 @@ def ba2LP(b, a, m, windowed=True, kaiserBeta=3):
     """
     # MUESTRA LA DOC DE ESTA FUNCIÓN:
     # print ba2LP.__doc__
- 
+
     # Obtenemos el espectro completo correspondiente
     # a los coeff b,a de func de transferencia
     Nbins = m
     _, h = signal.freqz(b, a, worN=Nbins, whole=True)
     wholemag = np.abs(h)
- 
+
     # Obtenemos el impulso equivalente en linear phase
     return wholemag2LP(wholemag , windowed=windowed, kaiserBeta=kaiserBeta)
- 
+
 def wholemag2LP(wholemag, windowed=True, kaiserBeta=3):
     """
-    Obtiene un impulso linear phase cuyo espectro se corresponde 
+    Obtiene un impulso linear phase cuyo espectro se corresponde
     en magnitud con el espectro fft proporcionado 'wholemag',
     que debe ser un espectro fft completo y causal.
- 
+
     La longitud del impulso resultante ifft se corresponde con la longitud del espectro de entrada.
- 
+
     Se le aplica una ventana kaiser con 'beta' ajustable.
-    
+
     wholemag:   La magnitud de espectro completo y causal a procesar
     windowed:   Boolean para aplicar una ventana al impulso resultante, True por defecto (*)
     kaiserBeta: Ajuste de forma de la ventana kaiser
                 https://docs.scipy.org/doc/scipy-1.0.0/reference/generated/scipy.signal.kaiser.html
     """
- 
+
     # Volvemos al dom de t, tomamos la parte real de IFFT
     imp = np.real( np.fft.ifft( wholemag ) )
     # y shifteamos la IFFT para conformar el IR con el impulso centrado:
     imp = np.roll(imp, len(wholemag)/2)
- 
+
     # Enventanado simétrico
     if windowed:
         # imp = pydsd.blackmanharris(len(imp)) * imp
@@ -191,7 +191,7 @@ def Ktaps(x):
         return str(x / 1024) + " Ktaps"
     else:
         return str(x) + " taps"
-    
+
 def KHz(f):
     """ cutre formateo de frecuencias en Hz o KHz """
     f = int(round(f, 0))
@@ -211,7 +211,7 @@ def readPCM32(fname):
     """
     #return np.fromfile(fname, dtype='float32')
     return np.memmap(fname, dtype='float32', mode='r')
-    
+
 def savePCM32(raw, fout):
     # guardamos en raw binary float32
     f = open(fout, 'wb')
@@ -224,36 +224,54 @@ def readFRD(fname):
         que no está comentada '#' lo que ocasiona un error con np.loadtxt().
         Aquí los comentaremos en un archivo temporal que será el que
         leamos con np.loadtxt()
+
+        v2.0 lee también la FS si viene en el archivo
+
+        devuelve: ndarray[freq, mag, phase], fs
     """
+    fs = 0
     f = open(fname, 'r')
     lineas = f.read().split("\n")
     f.close()
     ftmp = open("tmp", "w")
     # tab2spc y descarta lineas vacías:
     for linea in [x.replace("\t", " ").strip() for x in lineas if x]:
+
+        if 'rate' in linea.lower() or 'fs' in linea.lower():
+            items = linea.split()
+            for item in items:
+                if item.isdigit():
+                    fs = int(item)
+
         if not linea[0].isdigit():
             lineatmp = "# " + linea
         else:
             lineatmp = linea
         ftmp.write(lineatmp + "\n")
     ftmp.close()
+
     # Lectura en un array con las columnas del .FRD
     columnas = np.loadtxt("tmp")
     os_remove("tmp")
-    return columnas
 
-def saveFRD(fname, freq, mag, fs=None):
+    return columnas, fs
+
+def saveFRD(fname, freq, mag, pha=None, fs=None):
     """ NOTAS: 'mag' al ser esta una función que guarda FRDs, se debe dar en dBs.
                'fs'  se usa para la cabecera informativa del archivo de texto guardado.
+        v2.0   Incluimos la phase
     """
     if not fs:
         fs = "unknwon"
     header =  "DFT Frequency Response\n"
     header += "Numpoints = " + str(len(freq)) + "\n"
     header += "SamplingRate = " + str(fs) + " Hz\n"
-    header += "Frequency(Hz)   Magnitude(dB)"
+    header += "Frequency(Hz)   Magnitude(dB) Phase"
+    # Si no hay phase, nos inventamos una columna de zeros
+    if not pha:
+        pha = np.zeros(len(mag))
     print "Guardando " + fname
-    np.savetxt( fname, np.column_stack((freq, mag)), 
+    np.savetxt( fname, np.column_stack((freq, mag, pha)),
              delimiter="\t", fmt='%1.4e', header=header)
 
 def readPCMini(f):

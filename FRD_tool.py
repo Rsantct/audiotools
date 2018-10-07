@@ -206,7 +206,7 @@ if __name__ == "__main__":
 
         # Leemos el contenido del archivo .frd. NOTA: np.loadtxt() no admite
         # los .frd de ARTA por que tienen cabecera sin comentar '#'
-        frd = utils.readFRD(frdname)
+        frd, _ = utils.readFRD(frdname)
 
         # Vemos si hay columna de phase
         frd_con_fase = (frd.shape[1] == 3)

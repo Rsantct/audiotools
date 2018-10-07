@@ -10,7 +10,7 @@
     Cada 'viaX.pcm' puede tener asociado un archivo 'viaX.ini'
     que especifica la Fs y la ganacia aplicada en el convolver.
 
-    Además, si se proporcionan archivos 'viaX.frd' con la FRD del altavoz usado 
+    Además, si se proporcionan archivos 'viaX.frd' con la FRD del altavoz usado
     en cada via, se visualizará el resultado estimado al aplicar los filtros.
 
     También se pueden visualizar archivos FIR .pcm o .bin sueltos,
@@ -22,7 +22,7 @@
     Archivo de configuración del ploteo: FIRtro_viewer.cfg
 
     Uso:
-    
+
     FIRtro_viewer.py [ini|xxx] path/to/filtro1.pcm  [path/to/filtro2.pcm ... ] [flow-fhigh] [-1]
 
           ini:        Lee Fs y Gain en los archivos '.ini' asociados a '.pcm'
@@ -37,9 +37,9 @@
         gain    = -6.8     # Ganancia ajustada en el convolver.
         gainext = 8.0      # Resto de ganancia incluyendo la potencia final
                              radiada en el eje de escucha.
-                             
+
     See also: FRD_tool.py, IRs_viewer.py
-    
+
 """
 #
 # v0.1
@@ -56,10 +56,10 @@
 #   Detecta clips en los FIR de xover
 #   Rango de frecuencias en linea de comandos opcional, útil para representar una sola vía.
 # v0.4b
-#   El semiespectro se computa sobre frecuecias logespaciadas 
+#   El semiespectro se computa sobre frecuecias logespaciadas
 #   para mejor resolución gráfica en graves.
 # v0.4c
-#   Umbral para dejar de pintar la phase configurable, se entrega a -50dB 
+#   Umbral para dejar de pintar la phase configurable, se entrega a -50dB
 #   ya que parece más conveniente para FIRs cortos con rizado alto.
 #   PkOffset en ms
 #   El GD recoge en la gráfica el delay del pico del filtro.
@@ -173,11 +173,11 @@ def frd_of_pcm(f):
         path = "/".join(f.split("/")[:-1]) + "/"
         f = f.split("/")[-1]
     else:
-        path = "./" 
+        path = "./"
     return path + f[3:].replace(".pcm", ".frd").replace(".bin", ".frd")
-    
+
 def BPavg(curve):
-    """ cutre estimación del promedio de una curva de magnitudes dB en la banda de paso 
+    """ cutre estimación del promedio de una curva de magnitudes dB en la banda de paso
     """
     # Suponemos que la curva es de tipo band-pass maomeno plana
     # Elegimos los bins que están a poca distancia del máximo de la curva
@@ -201,18 +201,18 @@ def hroomInfo(magdB, via):
 def prepararaGraficas():
     global fig, grid, axMag, axDrv, axPha, axGD, axIR
     numIRs = len(pcmnames)
-    
+
     #-------------------------------------------------------------------------------
     # Preparamos el tamaño de las gráficas 'fig'
     #-------------------------------------------------------------------------------
     if plotIRsInOneRow:
         fig = plt.figure(figsize=(9, 6))
     else:
-        fig = plt.figure(figsize=(9, 8 + numIRs)) 
-        
+        fig = plt.figure(figsize=(9, 8 + numIRs))
+
     # Tamaño de la fuente usada en los títulos de los axes
     plt.rcParams.update({'axes.titlesize': 'medium'})
-    
+
     # Para que no se solapen los rótulos
     fig.set_tight_layout(True)
 
@@ -220,7 +220,7 @@ def prepararaGraficas():
     # Preparamos una matriz de Axes (gráficas).
     # Usamos GridSpec que permite construir un array chachi.
     # Las gráficas de MAG ocupan 3 filas, la de PHA ocupa 2 filas,
-    # y gráfica de IR según la opcion elegida:                      
+    # y gráfica de IR según la opcion elegida:
     #   - en una fila única simple declaramos 6 filas y numIRs columnas
     #   - en filas independientes de altura doble declaramos 5 + 2*numIRs filas.
     #-------------------------------------------------------------------------------
@@ -228,22 +228,22 @@ def prepararaGraficas():
         grid = gridspec.GridSpec(nrows = 6, ncols = numIRs)
     else:
         grid = gridspec.GridSpec(nrows = 5 + 2*numIRs, ncols = 1)
-        
+
     # --- SUBPLOT para pintar las FRs (alto 3 filas, ancho todas las columnas)
     axMag = fig.add_subplot(grid[0:3, :])
     axMag.grid(linestyle=":")
     axMag.set_ylim([top_dBs - range_dBs, top_dBs])
     axMag.set_ylabel("filter magnitude dB")
-    
+
     # --- SUBPLOT compartido para pintar los .FRD de los altavoces
     axDrv = axMag.twinx()
     axDrv.grid(linestyle=":")
     axDrv.set_ylabel("--- driver magnitude dB")
-    # Lo reubicamos 10 dB abajo para claridad de lectura 
+    # Lo reubicamos 10 dB abajo para claridad de lectura
     axDrv.set_ylim([top_dBs - range_dBs + 10, top_dBs + 10])
     prepara_eje_frecuencias(axDrv)
 
-    # --- SUBPLOT para pintar el GD 
+    # --- SUBPLOT para pintar el GD
     # comparte el eje X (twinx) con el de la phase
     # https://matplotlib.org/gallery/api/two_scales.html
     axGD = fig.add_subplot(grid[3:5, :])
@@ -265,7 +265,7 @@ def prepararaGraficas():
 if __name__ == "__main__":
 
     # Lee la configuración de ploteo
-    readConfig()        
+    readConfig()
 
     # Lee opciones command line: fs_commandline, lee_inis, pcmnames, fmin, fmax
     lee_command_line()
@@ -277,16 +277,16 @@ if __name__ == "__main__":
     vias = []
 
     hay_FRDs = False
-    
+
     for pcmname in pcmnames:
-    
+
         #--- Nombre de la vía
         tmp = pcmname.replace("\\", "/") # windows
         via = tmp.split("/")[-1].replace(".pcm", "").replace(".bin", "")
 
         #--- Leemos el impulso IR y sus parámetros (Fs, gain)
         IR = utils.readPCM32(pcmname)
-        fs, gain, gainext = lee_params(pcmname)        
+        fs, gain, gainext = lee_params(pcmname)
         fny = fs / 2.0 # Nyquist
 
         #   Semiespectro, whole=False para computar hasta pi (Nyquist)
@@ -301,7 +301,7 @@ if __name__ == "__main__":
 
         #--- Extraemos la wrapped PHASE de la FR 'h'
         firPhase = np.angle(h, deg=True)
-        # Eliminamos (np.nan) los valores de phase fuera de 
+        # Eliminamos (np.nan) los valores de phase fuera de
         # la banda de paso, por debajo de un umbral configurable.
         firPhaseClean  = np.full((len(firPhase)), np.nan)
         mask = (firMagdB > phaVsMagThr)
@@ -310,7 +310,7 @@ if __name__ == "__main__":
         #--- Obtenemos el GD 'gd' en N bins:
         wgd, gd = signal.group_delay((IR, 1), w=len(IR)/2, whole=False)
         # GD es en radianes los convertimos a en milisegundos
-        firGDms = gd / fs * 1000 
+        firGDms = gd / fs * 1000
         # Limpiamos con la misma mask de valores fuera de la banda de paso usada arriba
         firGDmsClean  = np.full((len(firGDms)), np.nan)
         np.copyto(firGDmsClean, firGDms, where=mask)
@@ -334,20 +334,20 @@ if __name__ == "__main__":
         frdname = frd_of_pcm(pcmname)
         if os.path.isfile(frdname):
             hay_FRDs = True
-            frd = utils.readFRD(frdname)
+            frd, _ = utils.readFRD(frdname)
             frdFreqs = frd[::, 0]
             frdMag = frd[::, 1]
-            
+
             # Como las frecuencias del FRD no van a coincidir con las 'freqs' de nuestra FFT,
-            # hay que interpolar. Usamos los valores del FRD para definir la función de 
+            # hay que interpolar. Usamos los valores del FRD para definir la función de
             # interpolación. Y eludimos errores si se pidieran valores fuera de rango.
-            I = interpolate.interp1d(frdFreqs, frdMag, kind="linear", bounds_error=False, 
+            I = interpolate.interp1d(frdFreqs, frdMag, kind="linear", bounds_error=False,
                                      fill_value="extrapolate")
             # Obtenemos las magnitudes interpoladas en nuestras 'freqs':
             frdMagIpol = I(freqs)
             # Y la reubicamos maomeno en 0 dBs
             frdMagIpol -= BPavg(frdMagIpol)
-                        
+
             # Curva FR resultado de aplicar el filtro PCM a la FR del altavoz
             resMag = firMagdB + frdMagIpol
             # La reubicamos en 0 dB maomeno
@@ -374,7 +374,7 @@ if __name__ == "__main__":
             mezclaTot = 20.0 * np.log10(10**(resultado/20.0) + 10**(mezclaTot/20.0))
         # La reubicamos en 0 dB
         mezclaTot -= BPavg(mezclaTot)
-    
+
     #----------------------------------------------------------------
     # PLOTEOS
     #----------------------------------------------------------------
@@ -417,7 +417,7 @@ if __name__ == "__main__":
         else:
             # Cada IR en una fila de altura doble:
             axIR = fig.add_subplot(grid[5+2*IRnum:5+2*IRnum+2, :])
-            # Rotulamos dentro del axe:        
+            # Rotulamos dentro del axe:
             axIR.annotate(rotuloIR, xy=(.6,.8), xycoords='axes fraction') # coords referidas al area gráfica
         IRnum += 1
         axIR.set_xticks(range(0,len(imp),10000))
@@ -437,7 +437,7 @@ if __name__ == "__main__":
 
     # La leyenda mostrará las label indicadas en el ploteo de cada curva en 'axMag'
     axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
-    
+
     # Y los GDs de cada impulso
     GDtitle = 'GD avg:    ' + '    '.join([str(x) for x in GDavgs]) + ' (ms)'
     axGD.set_title(GDtitle)
@@ -454,9 +454,9 @@ if __name__ == "__main__":
     # Y guardamos la gráficas en un PDF:
     #----------------------------------------------------------------
     print "\nGuardando en el archivo 'filters.pdf'"
-    # evitamos los warnings del pdf 
-    # C:\Python27\lib\site-packages\matplotlib\figure.py:1742: UserWarning: 
-    # This figure includes Axes that are not compatible with tight_layout, so 
+    # evitamos los warnings del pdf
+    # C:\Python27\lib\site-packages\matplotlib\figure.py:1742: UserWarning:
+    # This figure includes Axes that are not compatible with tight_layout, so
     # its results might be incorrect.
     import warnings
     warnings.filterwarnings("ignore")
