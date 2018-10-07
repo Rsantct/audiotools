@@ -57,7 +57,7 @@ if __name__ == "__main__":
     # arrays de freq, mag y pha
     freq = frd[:, 0]
     mag  = frd[:, 1]
-    if tiene_fase:
+    if tiene_phase:
         pha = frd[:, 2]
 
     # Aplicamos la ganancia:
