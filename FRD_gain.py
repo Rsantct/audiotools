@@ -52,7 +52,7 @@ if __name__ == "__main__":
     frd, fs = utils.readFRD(frdname)
     
     # Vemos si hay columna de phase
-    tiene_fase = (frd.shape[1] == 3)
+    tiene_phase = (frd.shape[1] == 3)
     
     # arrays de freq, mag y pha
     freq = frd[:, 0]
