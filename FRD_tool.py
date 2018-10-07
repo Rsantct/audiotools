@@ -165,7 +165,7 @@ def lee_command_line():
             elif opc[-4:].lower() in ['.txt', '.frd']:
                 frdnames.append(opc)
 
-    # si no hay pcms o si no hay (Fs xor ini)
+    # si no hay frdname
     if not frdnames:
         print __doc__
         sys.exit()
