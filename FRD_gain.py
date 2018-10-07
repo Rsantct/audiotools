@@ -3,7 +3,7 @@
 """
     v0.1
     Aplica ganacia a un archivo .frd y lo guarda en otro archivo.
-    
+
     Uso:
      FRD_gain.py   file.frd  GAIN (dB)
 
@@ -47,13 +47,13 @@ def lee_command_line():
 if __name__ == "__main__":
 
     lee_command_line()
-    
+
     # Leemos los datos de la respuesta en frecuencia
     frd, fs = utils.readFRD(frdname)
-    
+
     # Vemos si hay columna de phase
     tiene_phase = (frd.shape[1] == 3)
-    
+
     # arrays de freq, mag y pha
     freq = frd[:, 0]
     mag  = frd[:, 1]
