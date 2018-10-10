@@ -233,7 +233,7 @@ def readFRD(fname):
     f = open(fname, 'r')
     lineas = f.read().split("\n")
     f.close()
-    ftmp = open("tmp", "w")
+    ftmp = open("tmpreadfrd", "w")
     # tab2spc y descarta lineas vacías:
     for linea in [x.replace("\t", " ").strip() for x in lineas if x]:
 
@@ -251,19 +251,22 @@ def readFRD(fname):
     ftmp.close()
 
     # Lectura en un array con las columnas del .FRD
-    columnas = np.loadtxt("tmp")
-    os_remove("tmp")
+    columnas = np.loadtxt("tmpreadfrd")
+    os_remove("tmpreadfrd")
 
     return columnas, fs
 
-def saveFRD(fname, freq, mag, pha=None, fs=None):
+def saveFRD(fname, freq, mag, pha=None, fs=None, comments=''):
     """ NOTAS: 'mag' al ser esta una función que guarda FRDs, se debe dar en dBs.
                'fs'  se usa para la cabecera informativa del archivo de texto guardado.
         v2.0   Incluimos la phase
+        v2.0a  + opcion 'Processed by'
     """
     if not fs:
         fs = "unknwon"
-    header =  "DFT Frequency Response\n"
+    header =  "Frequency Response\n"
+    if comments:
+        header += comments + "\n"
     header += "Numpoints = " + str(len(freq)) + "\n"
     header += "SamplingRate = " + str(fs) + " Hz\n"
     header += "Frequency(Hz)   Magnitude(dB) Phase"

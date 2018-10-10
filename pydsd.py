@@ -23,6 +23,8 @@
 # + funciones de crossover
 # v0.03
 # + biquads como as 'DSP EQ cookbook', + shelfs como 'Linkwitzlab'
+# v0.04
+# - revisión de lininterp
 # -----------------------------------------------------------
 # NOTAS:
 # - Abajo podemos ver código original de DSD en octave comentado con %%
@@ -55,7 +57,7 @@ def biquad(fs, f0, Q, type, dBgain=0.0):
     #######################################################
     # http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt #
     #######################################################
-    
+
     A     = np.sqrt(10**(dBgain/20.0)) # (!) dividir por 20.0 para que Python no divida enteros
     w0    = 2.0 * np.pi * f0/fs
     alpha = np.sin(w0) / (2.0 * Q)
@@ -231,7 +233,7 @@ def crossButterworth(fs=44100, m=32768, n=2, flp=0 , fhp=0):
 
 def crossButterworthLP(fs=44100, m=32768, n=2, flp=0 , fhp=0):
     """
-    %% Obtiene el filtro FIR de fase lineal con 
+    %% Obtiene el filtro FIR de fase lineal con
     %% la magnitud de un filtro Butterworth de orden n.
     %%
     %% Si se proporcionan las dos frecuencias 'flp' y 'fhp' genera un pasabanda.
@@ -244,7 +246,7 @@ def crossButterworthLP(fs=44100, m=32768, n=2, flp=0 , fhp=0):
     %%      m   = Número de muestras.
     %%      n   = Orden del filtro.
     %%      flp = Frecuencia de corte pasabajos, si 0 u omitida sin corte pasabajos.
-    %%      fhp = Frecuencia de corte pasaaltos, si 0 u omitida sin corte pasaaltos.    
+    %%      fhp = Frecuencia de corte pasaaltos, si 0 u omitida sin corte pasaaltos.
     """
 
     wlp  = flp / (fs/2.0)   # freq normalizadas de los cortes
@@ -297,7 +299,7 @@ def crossButterworthLP(fs=44100, m=32768, n=2, flp=0 , fhp=0):
     # Cód. original en Octave
     # %% imp = blackmanharris (m) .* imp;
     return blackmanharris(m) * imp
-    
+
 def crossLinkwitzRiley(fs=44100, m=32768, n=2, flp=0 , fhp=0):
     """
     %% Obtiene el filtro FIR de un filtro Linkwitz-Riley de orden n, n par.
@@ -383,97 +385,116 @@ def minphsp(sp):
     # !!!!
     # NOTA: La versión original de DSD hace un log al espectro antes de hacerle
     #       la transf. de Hilbert y luego se aplica un exp al resultado.
-    #       Aquí omitimos dicha conversión entendiendo los spectrum 
+    #       Aquí omitimos dicha conversión entendiendo los spectrum
     #       de entrada y salida con magnitudes lineales.
     # !!!!
-    # %% minph = exp(conj(hilbert(log(abs(sp)))));  # Cód. original Octave
+    # Cód. original DSD en Octave
+    # minph = exp(conj(hilbert(log(abs(sp)))));
+
     return np.conj( signal.hilbert( np.abs(sp) ) )
 
-def wholespmp(ssp): # whole spectrum minimum phase
+def wholespmp(ssp):
     """
-    %% Obtiene el espectro CAUSAL completo a partir
-    %% del espectro de las frecuencias positivas.
-    %%
-    %% ssp = Espectro de las frecuencias positivas entre 0 y m/2.
-    %% wsp = Espectro completo entre 0 y m-1 (m par).
-
-    Nota del traductor:
-        entrada: un semiespectro de trabajo de freq positivas
-        salida:  el espectro completo
+    'whole spectrum minimum phase'
+    
+    Obtiene el espectro CAUSAL completo 'wsp' necesario para IDFT,
+    a partir de un semiespectro de frecuencias positivas 'ssp'.
+    Nota del trad: normalmente procede de un programa de medición DTF.
+    
+    ssp: semiespectro de frecuencias positivas entre 0 y m/2,
+         longitud impar, incluye DC (0Hz) y Nyquist (m/2)
+    wsp: espectro completo longitud m, par.
     """
 
+    # Solo procesamos aquí las magnitudes, ignoramos el vector de frecuencias
     if not ssp.ndim == 1:
         raise ValueError("ssp must be a column vector")
 
-    m = len(ssp)
     # Verifica que la longitud del espectro proporcionado sea impar
+    m = len(ssp)
     if m % 2 == 0:
         raise ValueError("wholespmp: Spectrum length must be odd")
 
-    # nsp = flipud(conj(ssp(2:m-1)));   # Cód. Octave
-    nsp = np.conj(ssp[1:m-1])           # OjO 1:m-1 equivale a la slice de Octave
-    nsp = np.flip(nsp)
+    # Códido DSD en Octave:
+	# nsp = flipud( conj( ssp(2:m-1) ) );
+	# wsp = [ssp; nsp];
 
-    # wsp = [ssp;nsp];                  # Cód. octave
-    return np.concatenate([ssp, nsp])
+    nsp = np.flip( np.conj( ssp[1:m-1] ) )  # freqs negativas
+    wsp = np.concatenate([ssp, nsp])        # y ensamblamos
+    return wsp
 
-def wholesplp(ssp): # whole spectrum linear phase
+def wholesplp(ssp):
     """
-    %% Obtiene el espectro SIMÉTRICO completo a partir 
-    %% del espectro de las frecuencias positivas.
-    %%
-    %% ssp = Espectro de las frecuencias positivas entre 0 y m/2.
-    %% wsp = Espectro completo entre 0 y m-1 (m par).
+    'whole spectrum linear phase'
+
+    Obtiene el espectro SIMETRICO completo 'wsp' necesario para IDFT,
+    a partir de un semiespectro de frecuencias positivas 'ssp'.
+    Nota del trad: normalmente procede de un programa de medición DTF.
+    
+    ssp: semiespectro de frecuencias positivas entre 0 y m/2,
+         longitud impar, incluye DC (0Hz) y Nyquist (m/2)
+    wsp: espectro completo longitud m, par.
     """
 
+    # Solo procesamos aquí las magnitudes, ignoramos el vector de frecuencias
     if not ssp.ndim == 1:
         raise ValueError("ssp must be a column vector")
 
-    m = len(ssp) 
-    # Verifica que la longitud del espectro proporcionado sea impar 
+    # Verifica que la longitud del espectro proporcionado sea impar
+    m = len(ssp)
     if m % 2 == 0:
         raise ValueError("wholesplp: Spectrum length must be odd")
 
-    # nsp = flipud(ssp(2:m-1));         # desglosamos el cód. octave en dos líneas:
-    nsp = ssp[1 : m-2]
-    nsp = nsp[::-1]                     # flipud
-
-    # wsp = [ssp;nsp];                  # cód. octave
-    return np.concatenate([ssp, nsp])
+    # Códido DSD en Octave:
+ 	# nsp = flipud( ssp(2:m-1) );
+	# wsp = [ssp; nsp];
+ 
+    nsp = np.flip( ssp[1:m-1] )         # freqs negativas
+    wsp = np.concatenate([ssp, nsp])    # y ensamblamos
+    return wsp
     
-def lininterp(F, mag, m, fs):
+def lininterp(freq, mag, m, fs):
     """
     %% Obtiene la valores de magnitud interpolados sobre el semiespectro.
-    %% mag    = Magnitud a interpolar.
-    %% F      = Vector de frecuencias.
-    %% m      = Longitud del espectro completo (debe ser par).
-    %% fs     = Frecuencia de muestreo.
+    %% freq:    vector de frecuencias semiespectro original.
+    %% mag:     vector de magnitudes original.
+    %% m:       longitud del nuevo espectro completo (debe ser par).
+    %% fs:      nueva frecuencia de muestreo.
+
+    devuelve:   newFreq, newMag
     """
 
-    if not F.ndim == 1:
-        raise ValueError("F must be a column vector")
-    if not m % 2 == 0:
-        raise ValueError("m must be even")
+    # --- Código original Octave DSD ---
+    # NOTAs: 'maglin' es el nuevo vector de magnitudes.
+    #        La función de DSD solo devuelve las magnitudes, aquí tb las frecuencias.
+	# fnew = (0:m/2)' * fs / m; % column vector
+	# maglin = interp1(frec, mag, fnew, "spline");  # Se usa una spline
+	# maglin( fnew < freq(1)   ) = mag(1);          # Se rellena en los extremos
+	# maglin( fnew > freq(end) ) = mag(end);        # replicando los extremos originales
 
-    # Prepara el nuevo vector de frecuencias OjO lo genera de long impar m/2+1
-    #%% fnew = (0:m/2)'*fs/m; % column vector
-    fnew = np.arange(0, m/2) * fs/m
-    
-    # DSD usa a la funcion de interpolación interp1:
-    # (nota: maglin es la variable resultado que entregará esta función)
-    #%% maglin = interp1(F, mag, fnew, "spline");
-    #   Traducción a scipy de la función de interpolación.
-    #   Primero se define, luego se usa.
+    if not freq.ndim == 1:
+        raise ValueError("'freq' must be a column vector")
+    if not m % 2 == 0:
+        raise ValueError("'m' must be even")
+
+    # Prepara el nuevo vector de frecuencias
+    newFreq = np.arange(0, m/2) * fs / m
+
+    # DSD usa la funcion de interpolación de Octave interp1, que es de uso directo.
+    # En Python-Scipy primero se define la función de interpolación, y luego se usa.
     #   Eludimos errores si se pidieran valores fuera de rango,
     #   y rellenamos extrapolando si fuera necesario.
     #   'cubic' == 'spline 3th order'
-    I = interpolate.interp1d(F, mag, kind="cubic", bounds_error=False, 
-                             fill_value="extrapolate")
-    # Obtenemos las magnitudes interpoladas en las 'fnew':
-    maglin = I(fnew)
-    
-    # Y esto ¿¿¿??
-    #%% maglin(fnew<F(1)  )=mag(1);
-    #%% maglin(fnew>F(end))=mag(end);
+    try:
+        I = interpolate.interp1d(freq, mag, kind="cubic", bounds_error=False,
+                                 fill_value="extrapolate")
+    except: # Por si falla cubic
+        I = interpolate.interp1d(freq, mag, kind="linear", bounds_error=False,
+                                 fill_value="extrapolate")
+        print "(pyDSD: error interpolando spline 'cubic', usando 'linear')"
 
-    return maglin        
+    # Obtenemos las magnitudes interpoladas en las 'newFreq':
+    newMag = I(newFreq)
+
+    return newFreq, newMag
+
