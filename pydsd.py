@@ -396,11 +396,11 @@ def minphsp(sp):
 def wholespmp(ssp):
     """
     'whole spectrum minimum phase'
-    
+
     Obtiene el espectro CAUSAL completo 'wsp' necesario para IDFT,
     a partir de un semiespectro de frecuencias positivas 'ssp'.
     Nota del trad: normalmente procede de un programa de medición DTF.
-    
+
     ssp: semiespectro de frecuencias positivas entre 0 y m/2,
          longitud impar, incluye DC (0Hz) y Nyquist (m/2)
     wsp: espectro completo longitud m, par.
@@ -419,7 +419,7 @@ def wholespmp(ssp):
 	# nsp = flipud( conj( ssp(2:m-1) ) );
 	# wsp = [ssp; nsp];
 
-    nsp = np.flip( np.conj( ssp[1:m-1] ) )  # freqs negativas
+    nsp = np.flipud( np.conj( ssp[1:m-1] ) )  # freqs negativas
     wsp = np.concatenate([ssp, nsp])        # y ensamblamos
     return wsp
 
@@ -430,7 +430,7 @@ def wholesplp(ssp):
     Obtiene el espectro SIMETRICO completo 'wsp' necesario para IDFT,
     a partir de un semiespectro de frecuencias positivas 'ssp'.
     Nota del trad: normalmente procede de un programa de medición DTF.
-    
+
     ssp: semiespectro de frecuencias positivas entre 0 y m/2,
          longitud impar, incluye DC (0Hz) y Nyquist (m/2)
     wsp: espectro completo longitud m, par.
@@ -448,11 +448,11 @@ def wholesplp(ssp):
     # Códido DSD en Octave:
  	# nsp = flipud( ssp(2:m-1) );
 	# wsp = [ssp; nsp];
- 
-    nsp = np.flip( ssp[1:m-1] )         # freqs negativas
+
+    nsp = np.flipud( ssp[1:m-1] )         # freqs negativas
     wsp = np.concatenate([ssp, nsp])    # y ensamblamos
     return wsp
-    
+
 def lininterp(freq, mag, m, fs):
     """
     %% Obtiene la valores de magnitud interpolados sobre el semiespectro.
@@ -477,21 +477,20 @@ def lininterp(freq, mag, m, fs):
     if not m % 2 == 0:
         raise ValueError("'m' must be even")
 
-    # Prepara el nuevo vector de frecuencias
-    newFreq = np.arange(0, m/2) * fs / m
+    # Prepara el nuevo vector de frecuencias, primer bin=0 Hz, último bin=Nyquist
+    newFreq = np.arange(0, m/2+1) * fs / m
 
     # DSD usa la funcion de interpolación de Octave interp1, que es de uso directo.
     # En Python-Scipy primero se define la función de interpolación, y luego se usa.
     #   Eludimos errores si se pidieran valores fuera de rango,
     #   y rellenamos extrapolando si fuera necesario.
-    #   'cubic' == 'spline 3th order'
     try:
-        I = interpolate.interp1d(freq, mag, kind="cubic", bounds_error=False,
+        I = interpolate.interp1d(freq, mag, kind="quadratic", bounds_error=False,
                                  fill_value="extrapolate")
-    except: # Por si falla cubic
+    except: # Por si falla quadratic
         I = interpolate.interp1d(freq, mag, kind="linear", bounds_error=False,
                                  fill_value="extrapolate")
-        print "(pyDSD: error interpolando spline 'cubic', usando 'linear')"
+        print "(pyDSD: error interpolando spline 'quadratic', usando 'linear')"
 
     # Obtenemos las magnitudes interpoladas en las 'newFreq':
     newMag = I(newFreq)
