@@ -46,7 +46,10 @@
 import numpy as np
 from utils import logTransition # used for variable smoothing feature
 
-def smoothSpectrum(X, f, Noct, f0=0, Tspeed="medium"):
+def smoothSpectrum(f, X, Noct, f0=0, Tspeed="medium"):
+# Nota: el código original Matlab recibe X,f aquí hemos preferido recibir f,X
+#       por ser más habitual manejar primero el vector de frecuencias de muestreo.
+
     """
     Applies 1/NOCT-octave smoothing to the frequency spectrum contained 
     in vector 'X' sampled at frequencies in vector 'f'. 

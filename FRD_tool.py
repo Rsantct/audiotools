@@ -17,7 +17,7 @@
 
     -f300-3000      Eje de frecuencias p.ej: 300 a 3000 Hz
 
-    -Noct           Suaviza la curva a 1/N oct
+    -Noct           Suaviza la curva a 1/N oct, ejemplo de uso: -6oct
     -f0=xx          Frecuencia en la que deja de suavizar 1/N oct
                     hasta alcanzar 1/1 oct en Nyquist
     -saveNoct       Guarda la curva suavizada en un archivo 'fileX_Noct.frd'
@@ -89,7 +89,7 @@ def BPavg(curve):
     """
     # Suponemos que la curva es de tipo band-pass maomeno plana
     # En todo caso la suavizamos para aplanarla.
-    smoothed = smooth(curve, freq, Noct=3)
+    smoothed = smooth(freq, curve, Noct=3)
 
     # Elegimos los bins que distan poco del máximo de la curva suavizada 1/1oct
     bandpass_locations = np.where( curve > max(smoothed) - 12)
@@ -237,9 +237,9 @@ if __name__ == "__main__":
             axMag.plot(freq, mag, label=curvename)
         else:
             if f0:
-                smoothed = smooth(mag, freq, Noct=Noct, f0=f0)
+                smoothed = smooth(freq, mag, Noct=Noct, f0=f0)
             else:
-                smoothed = smooth(mag, freq, Noct=Noct)
+                smoothed = smooth(freq, mag, Noct=Noct)
             # Ploteo
             axMag.plot(freq, smoothed, label=curvename)
             # Opcionalmente guarda la versión suavizada:
