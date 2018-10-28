@@ -1,4 +1,4 @@
-#!/usr/env/python
+#!/usr/env/python2
 # -*- coding: utf-8 -*-
 
 # Para que este script pueda estar fuera de ~/audiotools

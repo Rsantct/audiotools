@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
     Ejemplo de uso de la función audiotools/smoothSpectrum.py
     para el suavizado de respuestas en frecuencia.
-    
+
     Uso:  python smooth_test.py altavoz.frd
 """
 
@@ -27,7 +27,7 @@ import numpy as np
 # Lee el nombre de archivo .frd
 if len(sys.argv) == 1:
     print __doc__
-    sys.exit() 
+    sys.exit()
 try:
     fname = sys.argv[1]
     # Lee el contenido del archivo .frd
