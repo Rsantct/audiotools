@@ -490,7 +490,7 @@ def lininterp(freq, mag, m, fs):
     except: # Por si falla quadratic
         I = interpolate.interp1d(freq, mag, kind="linear", bounds_error=False,
                                  fill_value="extrapolate")
-        print "(pyDSD: error interpolando spline 'quadratic', usando 'linear')"
+        print( "(pyDSD: error interpolando spline 'quadratic', usando 'linear')" )
 
     # Obtenemos las magnitudes interpoladas en las 'newFreq':
     newMag = I(newFreq)
