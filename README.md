@@ -17,6 +17,10 @@ Se incluye una traslación a Python/Scipy de funciones del paquete Octave **rrip
     rm -f master.zip*
     rm -f testing.zip*
 
+If you plan to import python modules, e.g. `pydsd`, update your `~/.profile` with:
+
+    export PYTHONPATH="$PYTHONPATH:/home/yourHome/audiotools"
+
 ### Update:
 
     sh ~/audiotools/update-audiotools.sh  [ master | testing ]
