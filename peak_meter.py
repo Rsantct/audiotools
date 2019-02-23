@@ -108,7 +108,7 @@ if __name__ == '__main__':
             # Reading from the FIFO (a numpy array for both channels)
             audiodata = q.get()
             
-            # prints out a rough peak meter bar (only for testing purposes)
+            # prints out a rough peak meter bar
             if args.print:
                 print_bars( audiodata )
 
