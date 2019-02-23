@@ -5,7 +5,7 @@
 
     Will write it to an --output_file
     
-    You can reset the current (I) by writing 'reset' into --input-file
+    You can reset the current (I) by writing 'reset' into --control-file
 """
 # Thanks to https://python-sounddevice.readthedocs.io
 
