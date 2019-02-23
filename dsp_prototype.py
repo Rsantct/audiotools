@@ -104,7 +104,7 @@ if __name__ == '__main__':
             # Reading captured audio blocks
             indata = qIn.get()
             
-            # DSP: aplying some filters
+            # DSP: applying some filters
             filtered = lfilter( indata,   hpf_coeffs)
             filtered = lfilter( filtered, hshelf_coeffs)
 
