@@ -14,6 +14,8 @@ import numpy as np
 from scipy import signal
 import sounddevice as sd
 import queue
+
+# https://github.com/AudioHumLab/audiotools
 import pydsd
 
 def int_or_str(text):
