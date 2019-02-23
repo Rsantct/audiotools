@@ -102,14 +102,16 @@ if __name__ == '__main__':
     # Initialize 400ms stereo block window
     w400 = np.zeros( (4*BS, 2) , dtype='float32')
 
-    # Intialize [I]ntegrated Loudness and gate1
+    # Intialize (I)ntegrated Loudness and gates to -23.0 dBFS => 0 LU
     M = -23.0
     I = -23.0
-    G1mean = -23.0  # for 0 LU
-    G1 = 0          # gated counters to calculate the accu mean
+    G1mean = -23.0
+    G1 = 0          # gate counters to calculate the accu mean
     G2 = 0
-    reset = False
 
+    # Reset the accumulated (I) on the fly by reading the control_file
+    reset = False
+    
     # Main loop: open a capturing stream processing 100ms audio blocks
     with sd.InputStream( device=args.input_device, 
                           callback=callback,
