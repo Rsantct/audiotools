@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
     conversor BW oct <---> Q
@@ -47,7 +47,7 @@ def bw2q(N):
 if __name__ == '__main__':
 
     if len(sys.argv) <= 1:
-        print __doc__
+        print( __doc__ )
         sys.exit()
 
     modo = "q2bw"
@@ -59,10 +59,10 @@ if __name__ == '__main__':
             modo = "bw2q"
 
     if not valor:
-        print __doc__
+        print( __doc__ )
         sys.exit()
             
     if modo == "bw2q":
-        print bw2q(valor)
+        print( bw2q(valor) )
     else:
-        print q2bw(valor)
+        print( q2bw(valor) )
