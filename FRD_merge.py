@@ -13,7 +13,7 @@
 
     You can try
 
-        FRDtool.py frd_LOW  frd_HIGH -auto
+        FRD_tool.py frd_LOW  frd_HIGH -auto
 
     as a start point to estimate scales and merging frequency.
 
