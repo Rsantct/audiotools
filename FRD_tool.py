@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
-    v0.3
+    v0.4
     Visor de archivos de respuesta en frecuencia .frd .txt
 
     Uso:
@@ -10,6 +10,8 @@
     -dBXX           Rango XX dBs del eje de magnitudes
     -norm           Ajusta el máx de la curva en 0 dB
     -autobal        Presenta las curvas niveladas con su banda de paso en 0 dB
+                    De utilidad para estimar la combinación de curvas,
+                    por ejemplo de un woofer campo cercano + campo libre
 
     -phase          Incluye gráfico de la phase si la hubiera.
     -nomask         Muestra la phase también en las regiones de magnitud
@@ -34,6 +36,8 @@
 #   - Se deja de pintar la curva sin suavizar junto con la suavizada por ser poco legible
 #     sobre todo con varias curvas.
 #   - Se revisa el encuadre en el eje Y
+# v0.4
+#   - muestra los offset aplicados para la opción '-autobal'
 
 import sys
 import numpy as np
@@ -59,7 +63,10 @@ def prepara_eje_frecuencias(ax):
     ax.set_xlim([fmin2, fmax2])
 
 def prepara_graf():
+
     fig = plt.figure()
+    plt.rcParams.update({'font.size': 8})
+
     if subplotPha:
         grid = gridspec.GridSpec(nrows=3, ncols=1)
     else:
@@ -201,6 +208,7 @@ if __name__ == "__main__":
     #     la interpolación resulta en una resolución escasa en graves.
     freq = np.logspace(np.log10(fmin), np.log10(fmax), num=500)
 
+    graph_title = ''
     for frdname in frdnames:
         curvename = frdname.split("/")[-1].split(".")[:-1][0]
 
@@ -228,9 +236,10 @@ if __name__ == "__main__":
 
         # Opcionalmente la nivela a 0dB en su banda de paso
         if autobalance:
-            mag -= BPavg(mag)
+            offset = BPavg(mag)
+            mag -= offset
             if len(frdnames) > 1:
-                axMag.set_title("(!) Curves level has an automatic offset")
+                graph_title += curvename + ' offset: ' + str(round(-offset,1)) + '\n'
 
         # Plot de la magnitud
         if not Noct:
@@ -284,4 +293,7 @@ if __name__ == "__main__":
     axMag.set_ylim( centerY - dBrange/2.0, centerY + dBrange/2.0 )
 
     axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
+
+    axMag.set_title( graph_title[:-1] )  # omit last \n
+
     plt.show()
