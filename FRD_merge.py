@@ -3,7 +3,7 @@
 """
     Merge two .frd files 'frd_LOW' , 'frd_HIGH'
 
-    Takes LOW magnitudes below 'freq', and HI magnitudes above.
+    Takes LOW magnitudes below 'freq', and HIGH magnitudes above.
 
     Usage:
 
