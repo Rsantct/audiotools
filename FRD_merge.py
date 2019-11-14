@@ -48,7 +48,7 @@ if __name__ == '__main__':
         sHI = float(sys.argv[4])
     except:
         print(__doc__)
-        print( 'Error parsing scale1 and scale2 (mandatories)' )
+        print( 'Error parsing scale_LO and scale_HI (mandatories)' )
         sys.exit()
 
     try:
