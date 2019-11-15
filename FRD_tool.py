@@ -73,7 +73,7 @@ def prepara_graf():
         grid = gridspec.GridSpec(nrows=1, ncols=1)
 
     axMag = fig.add_subplot(grid[0:2,0])
-    axMag.set_ylim(ymin, ymax)
+    axMag.set_ylim(ymax-dBrange, ymax)
     prepara_eje_frecuencias(axMag)
     axMag.set_ylabel("magnitude (dB)")
 
@@ -115,7 +115,7 @@ def limpia(curva, curvaRef, th):
     return curvaClean
 
 def lee_command_line():
-    global frdnames, fmin, fmax, dBrange, ymin, ymax, subplotPha, saveNoct
+    global frdnames, fmin, fmax, dBrange, subplotPha, saveNoct
     global autobalance, normalize, maskPhaseIfLow, Noct, f0
 
     frdnames = []
@@ -132,16 +132,6 @@ def lee_command_line():
 
             elif opc[:2] == '-f' and opc[2].isdigit() and opc[-1].isdigit and '-' in opc[1:]:
                 fmin, fmax = opc[2:].split('-')
-                fmin = float(fmin)
-                fmax = float(fmax)
-
-            elif '-m' in opc and opc[2].isdigit() and opc[-1].isdigit:
-                ymin, ymax = opc[2:].split('-')
-                ymin = -float(ymin)
-                ymax = float(ymax)
-
-            elif '-' in opc and opc[0].isdigit() and opc[-1].isdigit:
-                fmin, fmax = opc.split('-')
                 fmin = float(fmin)
                 fmax = float(fmax)
 
@@ -182,7 +172,6 @@ if __name__ == "__main__":
     # Por defecto
     fmin = 20;     fmax = 20000     # Hz
     dBrange             = 50        # dB
-    ymin                = -40
     ymax                = 10
     autobalance         = False
     normalize           = False
@@ -208,8 +197,14 @@ if __name__ == "__main__":
     #     la interpolación resulta en una resolución escasa en graves.
     freq = np.logspace(np.log10(fmin), np.log10(fmax), num=500)
 
-    graph_title = ''
+    # We can add info from each curve
+    graph_title = []
+
+    # We'll collect the avg magnitude of each curve, just for display fitting
+    BPavgs = []
+
     for frdname in frdnames:
+
         curvename = frdname.split("/")[-1].split(".")[:-1][0]
 
         # Leemos el contenido del archivo .frd. NOTA: np.loadtxt() no admite
@@ -229,6 +224,8 @@ if __name__ == "__main__":
 
         # Hallamos la interpolación proyectada sobre nuestro eje 'freq'
         mag = Imag(freq)
+        BPavg_mag = round(BPavg(mag), 2)
+        BPavgs.append( BPavg_mag )
 
         # Opcionalmente la bajamos por debajo de 0
         if normalize:
@@ -236,10 +233,9 @@ if __name__ == "__main__":
 
         # Opcionalmente la nivela a 0dB en su banda de paso
         if autobalance:
-            offset = BPavg(mag)
-            mag -= offset
+            mag -= BPavg_mag
             if len(frdnames) > 1:
-                graph_title += curvename + ' offset: ' + str(round(-offset,1)) + '\n'
+                graph_title.append( curvename + ' offset: ' + str(-BPavg_mag) )
 
         # Plot de la magnitud
         if not Noct:
@@ -288,12 +284,13 @@ if __name__ == "__main__":
     if normalize or autobalance:
         centerY = 0
     else:
-        centerY = 10 + 10 * np.floor(BPavg(mag) / 10)
+        avg_mags = np.average(BPavgs)
+        centerY = ( avg_mags // 10 ) * 10
 
     axMag.set_ylim( centerY - dBrange/2.0, centerY + dBrange/2.0 )
 
     axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
 
-    axMag.set_title( graph_title[:-1] )  # omit last \n
+    axMag.set_title( '\n'.join(graph_title) )
 
     plt.show()
