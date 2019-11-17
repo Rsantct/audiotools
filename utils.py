@@ -75,7 +75,7 @@ def MP2LP(imp, windowed=True, kaiserBeta=6):
 
     imp:        Impulso a procesar
     windowed:   Boolean para aplicar una ventana al impulso resultante, True por defecto (*)
-    kaiserBeta: Ajuste de forma de la ventana kaiser (6	Similar to a Hann)
+    kaiserBeta: Ajuste de forma de la ventana kaiser (6 Similar to a Hann)
                 https://docs.scipy.org/doc/scipy-1.0.0/reference/generated/scipy.signal.kaiser.html
 
     (*) El enventado afectará a la resolución en IRs con espectro en magnitud muy accidentado.
@@ -104,7 +104,7 @@ def ba2LP(b, a, m, windowed=True, kaiserBeta=3):
     b, a:       Coeffs numerador y denominador de la func de transferencia a procesar
     m:          Longitud del impulso resultante
     windowed:   Boolean para aplicar una ventana al impulso resultante, True por defecto (*)
-    kaiserBeta: Ajuste de forma de la ventana kaiser (3	Similar to a Hamming)
+    kaiserBeta: Ajuste de forma de la ventana kaiser (3 Similar to a Hamming)
                 https://docs.scipy.org/doc/scipy-1.0.0/reference/generated/scipy.signal.kaiser.html
 
     (*) El enventanado afecta a la resolución final y se nota sustancialmente
@@ -256,7 +256,7 @@ def readFRD(fname):
 
     return columnas, fs
 
-def saveFRD(fname, freq, mag, pha=None, fs=None, comments=''):
+def saveFRD(fname, freq, mag, pha=np.array(0), fs=None, comments=''):
     """ NOTAS: 'mag' al ser esta una función que guarda FRDs, se debe dar en dBs.
                'fs'  se usa para la cabecera informativa del archivo de texto guardado.
         v2.0   Incluimos la phase
@@ -271,9 +271,10 @@ def saveFRD(fname, freq, mag, pha=None, fs=None, comments=''):
     header += "SamplingRate = " + str(fs) + " Hz\n"
     header += "Frequency(Hz)   Magnitude(dB) Phase"
     # Si no hay phase, nos inventamos una columna de zeros
-    if not pha:
+    if not pha.any():
+        print('(saveFRD) phase is zeroed')
         pha = np.zeros(len(mag))
-    print "Guardando " + fname
+    print "(saveFRD) saving file: " + fname
     np.savetxt( fname, np.column_stack((freq, mag, pha)),
              delimiter="\t", fmt='%1.4e', header=header)
 
