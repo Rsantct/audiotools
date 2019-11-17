@@ -64,6 +64,7 @@ if __name__ == "__main__":
     mag2 = mag + gain
 
     tmp = frdname.replace('.frd','_'+gainStr+'dB.frd').replace('.txt','_'+gainStr+'.txt')
+
     if tiene_phase:
         utils.saveFRD(tmp, freq, mag2, pha, fs=fs)
     else:
