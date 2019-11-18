@@ -14,7 +14,7 @@ rm -f ~/$branch.zip*
 
 # Bajamos el zip de GitHUb
 wget https://github.com/Rsantct/audiotools/archive/$branch.zip
-# Descomprimos (se descomprime en audiotools-master)
+# Descomprimos ( se descomprime en audiotools-$branch )
 unzip -o $branch.zip
 
 # Borramos lo antiguo
