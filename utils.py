@@ -10,7 +10,7 @@ from scipy.io import wavfile
 from scipy import signal
 import pydsd
 from q2bw import *
-#from ConfigParser import ConfigParser
+import yaml
 
 def logTransition(f, f0, speed="medium"):
     """
@@ -277,20 +277,26 @@ def saveFRD(fname, freq, mag, pha=np.array(0), fs=None, comments=''):
     np.savetxt( fname, np.column_stack((freq, mag, pha)),
              delimiter="\t", fmt='%1.4e', header=header)
 
-# OBSOLETE
-#def readPCMini(f):
-#    """ lee el .ini asociado a un filtro .pcm de FIRtro
-#    """
-#    iniPcm = ConfigParser()
-#    fs = 0
-#    gain = 0.0
-#    gainext = 0.0
-#    if os.path.isfile(f):
-#        iniPcm.read(f)
-#        fs      = float(iniPcm.get("miscel", "fs"))
-#        gain    = float(iniPcm.get("miscel", "gain"))
-#        gainext = float(iniPcm.get("miscel", "gainext"))
-#    else:
-#        print( f'(!) no se puede accecer a: {f}' )
-#        sys.exit()
-#    return fs, gain, gainext
+def readPCMcfg(f):
+    """ lee el .cfg asociado a un filtro .pcm de FIRtro
+
+        Ejemplo de archivo 'viaX.cfg' (La sintaxis es YAML):
+
+        fs      : 44100
+        gain    : -6.8     # Ganancia ajustada en el convolver.
+        gainext : 8.0      # Resto de ganancia.
+    """
+    fs = 0
+    gain = 0.0
+    gainext = 0.0
+
+    if os.path.isfile(f):
+        with open(f,'r') as f:
+            config = yaml.load(f)
+        fs      = config["fs"]
+        gain    = config["gain"]
+        gainext = config["gainext"]
+    else:
+        print( f'(!) no se puede accecer a: {f}' )
+        sys.exit()
+    return fs, gain, gainext
