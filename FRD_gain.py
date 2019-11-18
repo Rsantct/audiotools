@@ -1,5 +1,5 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+
 """
     v0.1
     Aplica ganacia a un archivo .frd y lo guarda en otro archivo.
@@ -19,13 +19,13 @@ def lee_command_line():
     frdname = ''
 
     if len(sys.argv) == 1:
-        print __doc__
+        print (__doc__)
         sys.exit()
     else:
         for opc in sys.argv[1:]:
 
             if opc in ('-h', '-help', '--help'):
-                print __doc__
+                print (__doc__)
                 sys.exit()
 
             elif opc[-4:].lower() in ['.txt', '.frd']:
@@ -36,12 +36,12 @@ def lee_command_line():
                 gain    = float(opc)
 
             else:
-                print __doc__
+                print (__doc__)
                 sys.exit()
 
     # si no hay frdname
     if not frdname:
-        print __doc__
+        print (__doc__)
         sys.exit()
 
 if __name__ == "__main__":
