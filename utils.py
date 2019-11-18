@@ -1,17 +1,16 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 """
     common use tools
 """
 import os.path
 from os import remove as os_remove # para borrar el archivo temporal de readFRD()
 import sys
-from ConfigParser import ConfigParser
 import numpy as np
 from scipy.io import wavfile
 from scipy import signal
 import pydsd
 from q2bw import *
+#from ConfigParser import ConfigParser
 
 def logTransition(f, f0, speed="medium"):
     """
@@ -274,23 +273,24 @@ def saveFRD(fname, freq, mag, pha=np.array(0), fs=None, comments=''):
     if not pha.any():
         print('(saveFRD) phase is zeroed')
         pha = np.zeros(len(mag))
-    print "(saveFRD) saving file: " + fname
+    print( f'(saveFRD) saving file: {fname}' )
     np.savetxt( fname, np.column_stack((freq, mag, pha)),
              delimiter="\t", fmt='%1.4e', header=header)
 
-def readPCMini(f):
-    """ lee el .ini asociado a un filtro .pcm de FIRtro
-    """
-    iniPcm = ConfigParser()
-    fs = 0
-    gain = 0.0
-    gainext = 0.0
-    if os.path.isfile(f):
-        iniPcm.read(f)
-        fs      = float(iniPcm.get("miscel", "fs"))
-        gain    = float(iniPcm.get("miscel", "gain"))
-        gainext = float(iniPcm.get("miscel", "gainext"))
-    else:
-        print "(!) no se puede accecer a " + f
-        sys.exit()
-    return fs, gain, gainext
+# OBSOLETE
+#def readPCMini(f):
+#    """ lee el .ini asociado a un filtro .pcm de FIRtro
+#    """
+#    iniPcm = ConfigParser()
+#    fs = 0
+#    gain = 0.0
+#    gainext = 0.0
+#    if os.path.isfile(f):
+#        iniPcm.read(f)
+#        fs      = float(iniPcm.get("miscel", "fs"))
+#        gain    = float(iniPcm.get("miscel", "gain"))
+#        gainext = float(iniPcm.get("miscel", "gainext"))
+#    else:
+#        print( f'(!) no se puede accecer a: {f}' )
+#        sys.exit()
+#    return fs, gain, gainext
