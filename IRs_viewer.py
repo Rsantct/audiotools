@@ -44,7 +44,8 @@
 #   Revisar la gráfica de fases
 #   Revisar la información mostrada "GD avg" que pretende ser la moda de los valores
 version = 'v0.2j'
-#   Python3
+#   Python3 (!) signal.freqz y signal.group_delay ahora necesitan
+#               que worN sea un entero (antes funcionaba con len(imp)/2 float)
 
 import sys
 import numpy as np, math
@@ -228,9 +229,7 @@ if __name__ == "__main__":
 
         # Semiespectro
         # whole=False --> hasta Nyquist
-        w, h = signal.freqz(imp, worN=len(imp)/2, whole=False)
-        print(w)
-        print(h)
+        w, h = signal.freqz(imp, worN=int(len(imp)/2), whole=False)
 
         # frecuencias trasladadas a Fs
         freqs = w / np.pi * fny
@@ -247,7 +246,7 @@ if __name__ == "__main__":
         np.copyto(phaseClean, phase, where=mask)
 
         # Group Delay:
-        wgd, gd = signal.group_delay((imp, 1), w=len(imp)/2, whole=False)
+        wgd, gd = signal.group_delay((imp, 1), w=int(len(imp)/2), whole=False)
         # Eliminamos (np.nan) los valores fuera de
         # la banda de paso, por debajo de un umbral configurable.
         gdClean  = np.full((len(gd)), np.nan)
