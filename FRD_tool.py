@@ -1,7 +1,7 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+
 """
-    v0.4
+    v0.5
     Visor de archivos de respuesta en frecuencia .frd .txt
 
     Uso:
@@ -38,6 +38,8 @@
 #   - Se revisa el encuadre en el eje Y
 # v0.4
 #   - muestra los offset aplicados para la opción '-autobal'
+# v0.5
+#   - Python 2 --> 3
 
 import sys
 import numpy as np
@@ -121,13 +123,13 @@ def lee_command_line():
     frdnames = []
 
     if len(sys.argv) == 1:
-        print __doc__
+        print (__doc__)
         sys.exit()
     else:
         for opc in sys.argv[1:]:
 
             if opc in ('-h', '-help', '--help'):
-                print __doc__
+                print (__doc__)
                 sys.exit()
 
             elif opc[:2] == '-f' and opc[2].isdigit() and opc[-1].isdigit and '-' in opc[1:]:
@@ -164,7 +166,7 @@ def lee_command_line():
 
     # si no hay frdname
     if not frdnames:
-        print __doc__
+        print (__doc__)
         sys.exit()
 
 if __name__ == "__main__":
