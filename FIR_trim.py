@@ -9,7 +9,7 @@
 
     Uso y opciones:
 
-      python trimFIR.py  file.pcm[.wav] -tM [-pP] [-asym[R]] [-o] [-lp|-mp]
+      python FIR_trim.py  file.pcm[.wav] -tM [-pP] [-asym[R]] [-o] [-lp|-mp]
 
       -tM       M taps de salida potencia de 2 (sin espacios)
 
