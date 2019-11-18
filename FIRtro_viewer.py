@@ -1,5 +1,5 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+
 """
     Visor de archivos FIR xover y de archivos FRD (freq. response).
     Se muestra la magnitud y fase de los FIR.
@@ -7,7 +7,7 @@
     Este visor está orientado al proyecto FIRtro
         https://github.com/AudioHumLab/FIRtro
 
-    Cada 'viaX.pcm' puede tener asociado un archivo 'viaX.ini'
+    Cada 'viaX.pcm' puede tener asociado un archivo 'viaX.cfg'
     que especifica la Fs y la ganacia aplicada en el convolver.
 
     Además, si se proporcionan archivos 'viaX.frd' con la FRD del altavoz usado
@@ -23,19 +23,18 @@
 
     Uso:
 
-    FIRtro_viewer.py [ini|xxx] path/to/filtro1.pcm  [path/to/filtro2.pcm ... ] [flow-fhigh] [-1]
+    FIRtro_viewer.py [-cfg|xxx] path/to/filtro1.pcm  [path/to/filtro2.pcm ... ] [flow-fhigh] [-1]
 
-          ini:        Lee Fs y Gain en los archivos '.ini' asociados a '.pcm'
+          -cfg:       Lee Fs y Gain en los archivos '.cfg' asociados a '.pcm'
           xxx:        Toma xxxx como Fs y se ignoran los '.ini'
           flow-fhigh: Rango de frecuencias de la gráfica (opcional, util para un solo fir)
           -1:         Para mostrar las gráficas de los impulsos en una fila única.
 
-    Ejemplo de archivo 'viaX.ini':
+    Ejemplo de archivo 'viaX.cfg' (La sintaxis es YAML):
 
-        [miscel]
-        fs      = 441000
-        gain    = -6.8     # Ganancia ajustada en el convolver.
-        gainext = 8.0      # Resto de ganancia incluyendo la potencia final
+        fs      : 44100
+        gain    : -6.8     # Ganancia ajustada en el convolver.
+        gainext : 8.0      # Resto de ganancia incluyendo la potencia final
                              radiada en el eje de escucha.
 
     See also: FRD_tool.py, IRs_viewer.py
@@ -44,7 +43,7 @@
 #
 # v0.1
 #   Límites de ploteo en .cfg
-#   Lee 'filterN.ini' asociado a 'filterN.pcm'
+#   Lee 'filterN.cfg' asociado a 'filterN.pcm'
 #   Fs opcional en command line
 # v0.2
 #   Uso de scipy.signal.freqz
@@ -65,9 +64,12 @@
 #   El GD recoge en la gráfica el delay del pico del filtro.
 #   Se deja de mostrar los taps en 'Ktaps'
 #   Se deja opcional pintar la phase
-version = 'v0.4d'
+#version = 'v0.4d'
 #   Axes de impulsos en una fila opcinalmente
 #   Se muestra la versión del programa al pie de las gráficas.
+version = 'v0.4e'
+#   Python3
+
 # TO DO:
 #   Revisar la gráfica de fases
 #   Revisar la información mostrada "GD avg" que pretende ser la moda de los valores
@@ -80,28 +82,30 @@ from scipy.stats import mode    # Usada en la función BPavg
 from matplotlib import pyplot as plt
 from matplotlib import ticker   # Para rotular a medida
 from matplotlib import gridspec # Para ajustar disposición de los subplots
-from ConfigParser import ConfigParser
+import yaml
 import utils
 
 def readConfig():
     """ lee la gonfiguracion del ploteo desde FIRtro_viewer.cfg"""
-    config = ConfigParser()
-    cfgfile = os.path.dirname(os.path.realpath(__file__)).replace("\\", "/") + "/FIRtro_viewer.cfg"
-    config.read(cfgfile)
     global DFTresol
     global frec_ticks, fig_size
     global phaVsMagThr, top_dBs, range_dBs, fmin, fmax
 
-    phaVsMagThr     = config.getfloat   ("plot", "phaVsMagThr")
-    top_dBs         = config.getfloat   ("plot", "top_dBs")
-    range_dBs       = config.getfloat   ("plot", "range_dBs")
-    fmin            = config.getfloat   ("plot", "fmin")
-    fmax            = config.getfloat   ("plot", "fmax")
-    fig_width       = config.getfloat   ("plot", "fig_width")
-    fig_height      = config.getfloat   ("plot", "fig_height")
-    tmp             = config.get        ("plot", "frec_ticks").split()
-    frec_ticks      = [int(x) for x in tmp]
+    cfgfile = os.path.dirname(os.path.realpath(__file__)).replace("\\", "/") + "/FIRtro_viewer.cfg"
+    with open(cfgfile, 'r') as f:
+        config = yaml.load(f)
+
+    phaVsMagThr     = config["plot"]["phaVsMagThr"]
+    top_dBs         = config["plot"]["top_dBs"]
+    range_dBs       = config["plot"]["range_dBs"]
+    fmin            = config["plot"]["fmin"]
+    fmax            = config["plot"]["fmax"]
+    fig_width       = config["plot"]["fig_width"]
+    fig_height      = config["plot"]["fig_height"]
+    tmp             = config["plot"]["frec_ticks"]
+    frec_ticks      = [ float(x) for x in tmp.split(',') ]
     fig_size        = (fig_width, fig_height)
+
 
 def prepara_eje_frecuencias(ax):
     """ según las opciones fmin, fmax, frec_ticks de fir_viewer.cgf """
@@ -116,26 +120,28 @@ def prepara_eje_frecuencias(ax):
     ax.set_xlim([fmin2, fmax2])
 
 def lee_command_line():
-    global fs_commandline, lee_inis, pcmnames, fmin, fmax, plotPha
+
+    global fs_commandline, lee_cfgs, pcmnames, fmin, fmax, plotPha
     global plotIRsInOneRow
+
     plotIRsInOneRow = False
     plotPha = False
     fs_commandline = ""
-    lee_inis = False
+    lee_cfgs = False
     pcmnames = []
 
     if len(sys.argv) == 1:
-        print __doc__
+        print (__doc__)
         sys.exit()
     else:
         for opc in sys.argv[1:]:
             if opc in ("-h", "-help", "--help"):
-                print __doc__
+                print (__doc__)
                 sys.exit()
             elif opc.isdigit():
                 fs_commandline = float(opc)
-            elif opc == "ini":
-                lee_inis = True
+            elif opc == "-cfg":
+                lee_cfgs = True
             elif "-" in opc and opc[0].isdigit() and opc[-1].isdigit():
                 fmin, fmax = opc.split("-")
                 fmin = float(fmin)
@@ -147,21 +153,21 @@ def lee_command_line():
             else:
                 pcmnames.append(opc)
 
-    # si no hay pcms o si no hay (Fs xor ini)
-    if not pcmnames or not (bool(fs_commandline) ^ lee_inis):  # '^' = 'xor'
-        print __doc__
+    # si no hay pcms o si no hay (Fs xor cfgs)
+    if not pcmnames or not (bool(fs_commandline) ^ lee_cfgs):  # '^' = 'xor'
+        print (__doc__)
         sys.exit()
 
 def lee_params(pcmname):
-    """ Lee ganancias y Fs indicadas el el .ini asociado al filtro .pcm """
+    """ Lee ganancias y Fs indicadas el el .cfg asociado al filtro .pcm """
     gain    = 0.0
     gainext = 0.0
 
-    if fs_commandline:      # no se lee el .ini
+    if fs_commandline:      # no se lee el .cfg
         fs = fs_commandline
-    else:                   # se lee el .ini
-        fini = pcmname[:-4] + ".ini"
-        fs, gain, gainext = utils.readPCMini(fini)
+    else:                   # se lee el .cfg
+        fcfg = pcmname[:-4] + ".cfg"
+        fs, gain, gainext = utils.readPCMcfg(fcfg)
 
     return fs, gain, gainext
 
@@ -195,7 +201,7 @@ def hroomInfo(magdB, via):
     info = via[:12].ljust(12) + " max:" + tmp1 + "@ " + tmp2
     # Tenemos en cuenta la gain del .INI si se hubiera facilitado
     if gmax + gain > 0:
-        print "(!) Warning CLIP: " + info
+        print( f'(!) Warning CLIP: {info}' )
     return info
 
 def prepararaGraficas():
@@ -267,7 +273,7 @@ if __name__ == "__main__":
     # Lee la configuración de ploteo
     readConfig()
 
-    # Lee opciones command line: fs_commandline, lee_inis, pcmnames, fmin, fmax
+    # Lee opciones command line: fs_commandline, lee_cfgs, pcmnames, fmin, fmax
     lee_command_line()
 
     # Prepara la parrilla de gráficas
@@ -291,12 +297,12 @@ if __name__ == "__main__":
 
         #   Semiespectro, whole=False para computar hasta pi (Nyquist)
         #   devuelve: h - la FT  y w - las frec normalizadas hasta Nyquist
-        w, h = signal.freqz(IR, worN=len(IR)/2, whole=False)
+        w, h = signal.freqz(IR, worN=int(len(IR)/2), whole=False)
         # convertimos las frecuencias normalizadas en reales según la Fs
         freqs = (w / np.pi) * fny
 
         #--- Extraemos la MAG de la FR 'h'
-        #    tomamos en cuenta la 'gain' del .ini que se aplicará como coeff del convolver
+        #    tomamos en cuenta la 'gain' del .cfg que se aplicará como coeff del convolver
         firMagdB = 20 * np.log10(abs(h)) + gain
 
         #--- Extraemos la wrapped PHASE de la FR 'h'
@@ -308,7 +314,7 @@ if __name__ == "__main__":
         np.copyto(firPhaseClean, firPhase, where=mask)
 
         #--- Obtenemos el GD 'gd' en N bins:
-        wgd, gd = signal.group_delay((IR, 1), w=len(IR)/2, whole=False)
+        wgd, gd = signal.group_delay((IR, 1), w=int(len(IR)/2), whole=False)
         # GD es en radianes los convertimos a en milisegundos
         firGDms = gd / fs * 1000
         # Limpiamos con la misma mask de valores fuera de la banda de paso usada arriba
@@ -358,7 +364,7 @@ if __name__ == "__main__":
             curva['resultado'] = resMag
 
         else:
-            print "(i) No se localiza la FR del driver: '" + frdname + "'"
+            print( f'(i) No se localiza la FR del driver: {frdname}' )
 
         vias.append( curva )
 
@@ -424,7 +430,7 @@ if __name__ == "__main__":
         axIR.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
         axIR.plot(imp, "-", linewidth=1.0, color=color)
 
-        if curva.has_key('driver'):
+        if 'driver' in curva.keys():
             driver      = curva['driver']
             resultado   = curva['resultado']
             #--- FR del driver
@@ -453,7 +459,7 @@ if __name__ == "__main__":
     #----------------------------------------------------------------
     # Y guardamos la gráficas en un PDF:
     #----------------------------------------------------------------
-    print "\nGuardando en el archivo 'filters.pdf'"
+    print( "\nGuardando en el archivo 'filters.pdf'" )
     # evitamos los warnings del pdf
     # C:\Python27\lib\site-packages\matplotlib\figure.py:1742: UserWarning:
     # This figure includes Axes that are not compatible with tight_layout, so
@@ -462,4 +468,4 @@ if __name__ == "__main__":
     warnings.filterwarnings("ignore")
     fig.savefig("filters.pdf", bbox_inches='tight')
 
-    print "Bye!"
+    print("Bye!")
