@@ -1,5 +1,5 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+
 """
 v0.1
 Script para combinar dos filtros FIR en formato '.pcm' 32 bits.
@@ -43,7 +43,7 @@ try:
     yfile = sys.argv[2]
     zfile = "filter.pcm"
 except:
-    print __doc__
+    print (__doc__)
     sys.exit()
 
 
