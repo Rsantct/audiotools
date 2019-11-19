@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-    WORK IN PROGRESS
+    (!!!) WORK IN PROGRESS (!!!)
 
     An experimental purpose tool to remake the phase of
     a set of curves from those used in the EQ stage of
@@ -93,7 +93,7 @@ if __name__ == '__main__':
     #     where x is the curve selector index, each having 63 freq bands
 
 
-    # Derive the phase ( notice mag is in dB )
+    # --- Let's derive the phase from the bare magnitude:
 
     # Prepare a new <D>erivated set of phase curves
     DphaSet = np.ndarray( magSet.shape )
@@ -103,20 +103,20 @@ if __name__ == '__main__':
 
         mag = magSet[:,i]
 
-        # Derivate the analytic signal from the bare magnitude
-        # (foa make a whole spectrum and adding bins for 0 Hz)
+        # Deriving the analytic signal from the bare magnitude
+        # (f.o.a. we make a whole spectrum by adding bins for 0 Hz)
         whole_mag = np.concatenate( (   mag[::-1],
                                         [ mag[0], mag[0] ],
                                         mag    ) )
         analytic = np.conj( hilbert( np.abs(10**(whole_mag/20.0)) ) )
 
-        # <D>erivated phase
+        # The <D>erived phase
         Dpha = np.angle( analytic )
 
         # rad -> deg
         Dpha = Dpha * 180.0 / np.pi
 
-        # Take only the semi spectrum and skip the bin 0
+        # Undo whole: take only the semi spectrum and skip the bin 0
         semi_Dpha = Dpha[ Dpha.shape[0]//2 + 1  : ]
 
         # Adding the curve to the set of phase curves
@@ -127,10 +127,10 @@ if __name__ == '__main__':
         axes[1].plot(semi_Dpha)
 
 
-    # Plotting the mags and the result phase curves
+    # Plotting the mags and the resulting phase curves
     plt.show()
 
-    # Saving the new set under an underlying directory ./rephased
+    # Saving the new set under an underlying directory './rephased'
     freq_fname_new = 'repha_' + freq_fname
     mag_fname_new  = 'repha_' + mag_fname
     pha_fname_new  = 'repha_' + pha_fname
