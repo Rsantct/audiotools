@@ -18,6 +18,7 @@
 import sys, os
 import numpy as np
 from scipy.signal import hilbert
+from matplotlib import pyplot as plt
 
 def get_curve_files(fpattern):
 
@@ -53,8 +54,7 @@ if __name__ == '__main__':
     HOME = os.path.expanduser("~")
 
 
-    print(  '\n(!) WORK IN PROGRESS, the calculated phase '
-            'is NOT correct' )
+    print( '(!) WORK IN PROGRESS: ANALYTICAL PHASE CURVES HAVE A STRANGE SHIFT' )
 
     # Try to read the optional /path/to/eq_files_folder
     pha = False
@@ -78,44 +78,70 @@ if __name__ == '__main__':
         print(__doc__)
         sys.exit()
 
+    # Load the frequency vector
     freq = np.loadtxt( f'{EQ_FOLDER}/{freq_fname}' )
-    mags = np.loadtxt( f'{EQ_FOLDER}/{mag_fname}' )
-    phas = np.loadtxt( f'{EQ_FOLDER}/{pha_fname}' )
+    # Load the set of magnitude curves
+    magSet = np.loadtxt( f'{EQ_FOLDER}/{mag_fname}' )
+    # Load the set of phase curves
+    phaSet = np.loadtxt( f'{EQ_FOLDER}/{pha_fname}' )
 
     if 'target' in mag_fname:
-        mags = mags.transpose()
-        phas = phas.transpose()
+        magSet = magSet.transpose()
+        phaSet = phaSet.transpose()
 
     # Derive the phase ( notice mag is in dB )
 
-    # target curves have only one dimension
-    if len( mags.shape ) == 1:
+    # Target curves have only one dimension
+    if len( magSet.shape ) == 1:
 
         dphas = np.angle( ( hilbert( np.abs( 10**(mags/20) ) ) ) )
         dphas = dphas * 180.0 / np.pi
 
-    # loudness and tone have severals inside
+    # Loudness and tone have severals inside, in a shape (63,x)
+    # where x is the curve selector index, each having 63 freq bands
     else:
 
-        dphas = np.ndarray( mags.shape )
-        i = 0
-        for mag in mags:
-            dpha = np.angle( ( hilbert( np.abs( 10**(mag/20) ) ) ) )
+        # Prepare a new <d>erived set of phase curves
+        dphaSet = np.ndarray( magSet.shape )
+
+        # Iterate each magnitude curve
+        for i in range(magSet.shape[1]):
+
+            mag = magSet[:,i]
+
+            # make a complete spectrum
+            whole_mag = np.concatenate( (   mag[::-1],
+                                            [ mag[0], mag[0] ],
+                                            mag    ) )
+
+            # Derivated analytic signal
+            analytic = np.conj( hilbert( np.abs(10**(whole_mag/20)) ) )
+
+            # Derivated phase
+            dpha = np.angle( analytic )
+
+            # rad -> deg
             dpha = dpha * 180.0 / np.pi
-            dphas[i,:] = dpha
-            i += 1
+
+            # Take only the semi spectrum and skip the bin 0
+            semi_dpha = dpha[ dpha.shape[0]//2 + 1  : ]
+
+            # Adding to set of phase curves
+            dphaSet[:,i] = semi_dpha
+
+
 
     freq_fname_new = 'repha_' + freq_fname
     mag_fname_new  = 'repha_' + mag_fname
     pha_fname_new  = 'repha_' + pha_fname
 
-    # Saving new set under an underlying directory ./repha/
+    # Saving the new set under an underlying directory ./repha
     try:
         os.mkdir('repha')
     except:
         pass
-    np.savetxt( f'./repha/{freq_fname_new}', freq)
-    np.savetxt( f'./repha/{mag_fname_new}',  mags)
-    np.savetxt( f'./repha/{pha_fname_new}', dphas)
+    np.savetxt( f'./repha/{freq_fname_new}', freq   )
+    np.savetxt( f'./repha/{mag_fname_new}',  magSet )
+    np.savetxt( f'./repha/{pha_fname_new}', dphaSet )
 
 
