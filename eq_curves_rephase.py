@@ -50,12 +50,11 @@ def get_curve_files(fpattern):
 
 if __name__ == '__main__':
 
-    print(  '\n(!) WORK IN PROGRESS, the calculated phase '
-            'is NOT correct' ) 
-
     HOME = os.path.expanduser("~")
-    EQ_FOLDER = f'{HOME}/pe.audio.sys/share/eq'
-    EQ_FILES = os.listdir(EQ_FOLDER)
+
+
+    print(  '\n(!) WORK IN PROGRESS, the calculated phase '
+            'is NOT correct' )
 
     # Try to read the optional /path/to/eq_files_folder
     pha = False
@@ -67,6 +66,10 @@ if __name__ == '__main__':
             else:
                 EQ_FOLDER = opc
                 EQ_FILES = os.listdir(EQ_FOLDER)
+    else:
+        EQ_FOLDER = f'{HOME}/pe.audio.sys/share/eq'
+        EQ_FILES = os.listdir(EQ_FOLDER)
+
 
     try:
         pattern = sys.argv[1]
@@ -74,7 +77,7 @@ if __name__ == '__main__':
     except:
         print(__doc__)
         sys.exit()
-    
+
     freq = np.loadtxt( f'{EQ_FOLDER}/{freq_fname}' )
     mags = np.loadtxt( f'{EQ_FOLDER}/{mag_fname}' )
     phas = np.loadtxt( f'{EQ_FOLDER}/{pha_fname}' )
@@ -90,14 +93,14 @@ if __name__ == '__main__':
 
         dphas = np.angle( ( hilbert( np.abs( 10**(mags/20) ) ) ) )
         dphas = dphas * 180.0 / np.pi
-        
+
     # loudness and tone have severals inside
     else:
 
         dphas = np.ndarray( mags.shape )
         i = 0
         for mag in mags:
-            dpha = np.angle( ( hilbert( np.abs( 10**(mag/20) ) ) ) )    
+            dpha = np.angle( ( hilbert( np.abs( 10**(mag/20) ) ) ) )
             dpha = dpha * 180.0 / np.pi
             dphas[i,:] = dpha
             i += 1
@@ -115,4 +118,4 @@ if __name__ == '__main__':
     np.savetxt( f'./repha/{mag_fname_new}',  mags)
     np.savetxt( f'./repha/{pha_fname_new}', dphas)
 
-    
+
