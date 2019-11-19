@@ -1,8 +1,8 @@
 # audiotools
 
-Algunas herramientas, orientadas al manejo de FIRs para **AudioHumLab/FIRtro**.
+Some tools, intended to manage FIRs files, FRD files, and more.
 
-Se incluye una traslación a Python/Scipy de funciones del paquete Octave **rripio/DSD**
+It is included an Octave to Python/Scipy translation of **[rripio/DSD](https://github.com/rripio/DSD)**
 
 ### Install:
 
@@ -17,15 +17,22 @@ Se incluye una traslación a Python/Scipy de funciones del paquete Octave **rrip
     rm -f master.zip*
     rm -f testing.zip*
 
-Para poder importar módulos python, ej. `pydsd`, actualizar `~/.profile` con:
+If you want to import modules from here, just update yor `~/.profile` file:
 
-    export PYTHONPATH="$PYTHONPATH:/home/yourHome/audiotools"
+    export PYTHONPATH=$PYTHONPATH:$HOME/audiotools
+
 
 ### Update:
 
-    sh ~/audiotools/update-audiotools.sh  [ master | testing ]
+    sh ~/audiotools/update-audiotools.sh  [ master | other_branch ]
 
-### Referencias:
-#### https://github.com/rripio/DSD
-#### https://github.com/AudioHumLab/FIRtro
+### References:
+
+https://github.com/rripio/DSD
+
+https://github.com/rripio/pre.di.c
+
+https://github.com/rsantct/pe.audio.sys
+
+https://github.com/AudioHumLab/FIRtro/wiki
 
