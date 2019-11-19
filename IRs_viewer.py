@@ -1,5 +1,5 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+
 """
     visor de impulsos IR wav o raw (.pcm, .txt)
 
@@ -38,11 +38,14 @@
 #   La impresión a PDF se deja opcional
 # version = 'v0.2h'
 #   Opción -eq para ver FIRs de ecualización.
-version = 'v0.2i'
+#version = 'v0.2i'
 #   Admite IRs en archivos de texto.
 # TO DO:
 #   Revisar la gráfica de fases
 #   Revisar la información mostrada "GD avg" que pretende ser la moda de los valores
+version = 'v0.2j'
+#   Python3 (!) signal.freqz y signal.group_delay ahora necesitan
+#               que worN sea un entero (antes funcionaba con len(imp)/2 float)
 
 import sys
 import numpy as np, math
@@ -68,7 +71,7 @@ def lee_commandline(opcs):
 
     for opc in opcs:
         if opc in ("-h", "-help", "--help"):
-            print __doc__
+            print (__doc__)
             sys.exit()
 
         elif opc.isdigit():
@@ -96,7 +99,7 @@ def lee_commandline(opcs):
 
     # si no hay fnames
     if not fnames:
-        print __doc__
+        print (__doc__)
         sys.exit()
 
     for fname in fnames:
@@ -110,7 +113,7 @@ def lee_commandline(opcs):
                 imp = np.loadtxt(fname)
                 IRs.append( (fs, imp, fname) )
             else:
-                print __doc__
+                print (__doc__)
                 sys.exit()
 
         elif fname.endswith('.pcm'):
@@ -118,10 +121,10 @@ def lee_commandline(opcs):
                 imp = utils.readPCM32(fname)
                 IRs.append( (fs, imp, fname) )
             else:
-                print __doc__
+                print (__doc__)
                 sys.exit()
         else:
-            print __doc__
+            print (__doc__)
             sys.exit()
 
     return IRs
@@ -206,7 +209,7 @@ if __name__ == "__main__":
     magThr = -50.0
 
     if len(sys.argv) == 1:
-        print __doc__
+        print (__doc__)
         sys.exit()
 
     IRs = lee_commandline(sys.argv[1:])
@@ -214,7 +217,9 @@ if __name__ == "__main__":
     preparaGraficas()
 
     GDavgs = [] # los promedios de GD de cada impulso, para mostrarlos por separado
+
     IRnum = 0
+
     for IR in IRs:
 
         fs, imp, info = IR
@@ -224,7 +229,7 @@ if __name__ == "__main__":
 
         # Semiespectro
         # whole=False --> hasta Nyquist
-        w, h = signal.freqz(imp, worN=len(imp)/2, whole=False)
+        w, h = signal.freqz(imp, worN=int(len(imp)/2), whole=False)
 
         # frecuencias trasladadas a Fs
         freqs = w / np.pi * fny
@@ -241,7 +246,7 @@ if __name__ == "__main__":
         np.copyto(phaseClean, phase, where=mask)
 
         # Group Delay:
-        wgd, gd = signal.group_delay((imp, 1), w=len(imp)/2, whole=False)
+        wgd, gd = signal.group_delay((imp, 1), w=int(len(imp)/2), whole=False)
         # Eliminamos (np.nan) los valores fuera de
         # la banda de paso, por debajo de un umbral configurable.
         gdClean  = np.full((len(gd)), np.nan)
@@ -318,7 +323,7 @@ if __name__ == "__main__":
     if generaPDF:
         # Y guardamos las gráficas en un PDF:
         pdfName = ",".join([x for x in sys.argv[1:] if '.' in x]) + '.pdf'
-        print "\nGuardando en el archivo " + pdfName
+        print ( f'\nGuardando en el archivo: {pdfName}' )
         # evitamos los warnings del pdf
         # C:\Python27\lib\site-packages\matplotlib\figure.py:1742: UserWarning:
         # This figure includes Axes that are not compatible with tight_layout, so
@@ -327,4 +332,4 @@ if __name__ == "__main__":
         warnings.filterwarnings("ignore")
         fig.savefig(pdfName, bbox_inches='tight')
 
-    print "Bye!"
+    print ("Bye!")

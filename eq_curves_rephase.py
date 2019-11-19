@@ -11,13 +11,15 @@
         pattern: loudness | bass | treble | xxxxtarget
 
         It is expected to found a UNIQUE set of curves, so
-        if you have several sets please preprare a dedicated folder.
+        if you have several sets please prepare a dedicated folder.
 
 """
+print( '(!) WORK IN PROGRESS: ANALYTICAL PHASE CURVES HAVE A STRANGE SHIFT' )
 
 import sys, os
 import numpy as np
 from scipy.signal import hilbert
+from matplotlib import pyplot as plt
 
 def get_curve_files(fpattern):
 
@@ -50,12 +52,9 @@ def get_curve_files(fpattern):
 
 if __name__ == '__main__':
 
-    print(  '\n(!) WORK IN PROGRESS, the calculated phase '
-            'is NOT correct' ) 
-
     HOME = os.path.expanduser("~")
-    EQ_FOLDER = f'{HOME}/pe.audio.sys/share/eq'
-    EQ_FILES = os.listdir(EQ_FOLDER)
+
+    fig, axes = plt.subplots(2)
 
     # Try to read the optional /path/to/eq_files_folder
     pha = False
@@ -67,6 +66,10 @@ if __name__ == '__main__':
             else:
                 EQ_FOLDER = opc
                 EQ_FILES = os.listdir(EQ_FOLDER)
+    else:
+        EQ_FOLDER = f'{HOME}/pe.audio.sys/share/eq'
+        EQ_FILES = os.listdir(EQ_FOLDER)
+
 
     try:
         pattern = sys.argv[1]
@@ -74,45 +77,69 @@ if __name__ == '__main__':
     except:
         print(__doc__)
         sys.exit()
-    
+
+    # Load the frequency vector
     freq = np.loadtxt( f'{EQ_FOLDER}/{freq_fname}' )
-    mags = np.loadtxt( f'{EQ_FOLDER}/{mag_fname}' )
-    phas = np.loadtxt( f'{EQ_FOLDER}/{pha_fname}' )
+    # Load the set of magnitude curves
+    magSet = np.loadtxt( f'{EQ_FOLDER}/{mag_fname}' )
+    # Load the set of phase curves
+    phaSet = np.loadtxt( f'{EQ_FOLDER}/{pha_fname}' )
 
     if 'target' in mag_fname:
-        mags = mags.transpose()
-        phas = phas.transpose()
+        magSet = magSet.transpose()
+        phaSet = phaSet.transpose()
+
+    # (i) Loudness and tone have severals inside, in a shape (63,x)
+    #     where x is the curve selector index, each having 63 freq bands
+
 
     # Derive the phase ( notice mag is in dB )
 
-    # target curves have only one dimension
-    if len( mags.shape ) == 1:
+    # Prepare a new <D>erivated set of phase curves
+    DphaSet = np.ndarray( magSet.shape )
 
-        dphas = np.angle( ( hilbert( np.abs( 10**(mags/20) ) ) ) )
-        dphas = dphas * 180.0 / np.pi
-        
-    # loudness and tone have severals inside
-    else:
+    # Iterate each magnitude curve
+    for i in range(magSet.shape[1]):
 
-        dphas = np.ndarray( mags.shape )
-        i = 0
-        for mag in mags:
-            dpha = np.angle( ( hilbert( np.abs( 10**(mag/20) ) ) ) )    
-            dpha = dpha * 180.0 / np.pi
-            dphas[i,:] = dpha
-            i += 1
+        mag = magSet[:,i]
 
+        # Derivate the analytic signal from the bare magnitude
+        # (foa make a whole spectrum and adding bins for 0 Hz)
+        whole_mag = np.concatenate( (   mag[::-1],
+                                        [ mag[0], mag[0] ],
+                                        mag    ) )
+        analytic = np.conj( hilbert( np.abs(10**(whole_mag/20.0)) ) )
+
+        # <D>erivated phase
+        Dpha = np.angle( analytic )
+
+        # rad -> deg
+        Dpha = Dpha * 180.0 / np.pi
+
+        # Take only the semi spectrum and skip the bin 0
+        semi_Dpha = Dpha[ Dpha.shape[0]//2 + 1  : ]
+
+        # Adding the curve to the set of phase curves
+        DphaSet[:,i] = semi_Dpha
+
+        # Plot
+        axes[0].plot(mag)
+        axes[1].plot(semi_Dpha)
+
+
+    # Plotting the mags and the result phase curves
+    plt.show()
+
+    # Saving the new set under an underlying directory ./rephased
     freq_fname_new = 'repha_' + freq_fname
     mag_fname_new  = 'repha_' + mag_fname
     pha_fname_new  = 'repha_' + pha_fname
-
-    # Saving new set under an underlying directory ./repha/
     try:
-        os.mkdir('repha')
+        os.mkdir('rephased')
     except:
         pass
-    np.savetxt( f'./repha/{freq_fname_new}', freq)
-    np.savetxt( f'./repha/{mag_fname_new}',  mags)
-    np.savetxt( f'./repha/{pha_fname_new}', dphas)
+    np.savetxt( f'./rephased/{freq_fname_new}', freq   )
+    np.savetxt( f'./rephased/{mag_fname_new}',  magSet )
+    np.savetxt( f'./rephased/{pha_fname_new}', DphaSet )
 
-    
+

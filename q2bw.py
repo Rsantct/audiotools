@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+
 """
     conversor BW oct <---> Q
 
@@ -61,7 +61,7 @@ if __name__ == '__main__':
     if not valor:
         print( __doc__ )
         sys.exit()
-            
+
     if modo == "bw2q":
         print( bw2q(valor) )
     else:

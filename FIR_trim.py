@@ -1,7 +1,6 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 """
-    v0.1b
+    v0.1c
 
     Recorta un FIR .pcm float32 o .wav int16
     El recorte se efectúa aplicando Blackmann-Harris
@@ -9,7 +8,7 @@
 
     Uso y opciones:
 
-      python trimFIR.py  file.pcm[.wav] -tM [-pP] [-asym[R]] [-o] [-lp|-mp]
+      FIR_trim.py  file.pcm[.wav] -tM [-pP] [-asym[R]] [-o] [-lp|-mp]
 
       -tM       M taps de salida potencia de 2 (sin espacios)
 
@@ -46,6 +45,8 @@
 # v0.1b
 #   Por defecto enventanado simétrico
 #   Ratio ajustable para la semiventana por la izq del pico vs el ancho total (wizq+wder)
+# v0.1c
+#   Python3
 
 import sys
 import numpy as np
@@ -53,8 +54,10 @@ import pydsd as dsd
 import utils
 
 def lee_opciones():
+
     global f_in, f_out, m, phasetype
     global pkPos, sym, wratio, overwriteFile
+
     f_in = ''
     m = 0
     phaseType= ''
@@ -62,46 +65,48 @@ def lee_opciones():
     overwriteFile = False
     sym = True
     wratio = 0.001
-    
+
     if len(sys.argv) == 1:
-        print __doc__
+        print (__doc__)
         sys.exit()
+
     for opc in sys.argv[1:]:
 
         if opc.startswith('-t'):
             m = int(opc.replace('-t', ''))
             if not utils.isPowerOf2(m):
-                print __doc__
+                print (__doc__)
+                print( f'    {m} is not power of 2\n' )
                 sys.exit()
-                
+
         elif opc.startswith('-p'):
             pkPos = int(opc.replace('-p', ''))
-            
+
         elif opc == '-h' or opc == '--help':
-            print __doc__
+            print (__doc__)
             sys.exit()
-            
+
         elif opc == '-o':
             overwriteFile = True
-            
+
         elif opc.startswith('-asym'):
             sym = False
             if opc[5:]:
                 wpercent = float(opc[5:])
                 wratio = wpercent / 100.0
-            
+
         elif opc == '-lp':
             phaseType = 'lp'
-            
+
         elif opc == '-mp':
             phaseType = 'mp'
-            
+
         else:
             if not f_in:
                 f_in = opc
-                
+
     if not m:
-        print __doc__
+        print (__doc__)
         sys.exit()
 
     if phaseType == 'lp':
@@ -111,7 +116,7 @@ def lee_opciones():
         sym = False
         pkPos = 0
 
-        
+
     # El nombre de archivo de salida depende de si se pide sobreescribir
     if not overwriteFile:
         f_out = str(m) + "taps_" + f_in.replace('.wav', '.pcm')
@@ -130,7 +135,7 @@ if __name__ == "__main__":
     elif f_in[-4:] == '.wav':
         fs, imp1 = utils.readWAV16(f_in)
     else:
-        print "(i) trimFIR.py '" + f_in + "' no se reconoce :-/"
+        print( f'(i) trimFIR.py \'{f_in}\' no se reconoce :-/' )
         sys.exit()
 
     # Buscamos el pico si no se ha indicado una posición predefinida:
@@ -153,11 +158,11 @@ if __name__ == "__main__":
     # Enventanado simétrico
     else:
         # Aplicamos la ventana centrada en el pico
-        imp2 = imp1[pkPos-m/2 : pkPos+m/2] * dsd.blackmanharris(m)
+        imp2 = imp1[int(pkPos-m/2) : int(pkPos+m/2)] * dsd.blackmanharris(m)
 
     # Informativo
     pkPos2 = abs(imp2).argmax()
 
     # Y lo guardamos en formato pcm float 32
     utils.savePCM32(imp2, f_out)
-    print "FIR recortado en: " + f_out + " (peak:" + str(pkPos) + " peak_" + str(m) + ":" + str(pkPos2) + ")"
+    print( f'FIR recortado en: {f_out} (peak: {str(pkPos)}, peak_{str(m)}: {str(pkPos2)})' )
