@@ -11,7 +11,7 @@
         pattern: loudness | bass | treble | xxxxtarget
 
         It is expected to found a UNIQUE set of curves, so
-        if you have several sets please preprare a dedicated folder.
+        if you have several sets please prepare a dedicated folder.
 
 """
 
