@@ -104,7 +104,7 @@ if __name__ == '__main__':
         mag = magSet[:,i]
 
         # Deriving the analytic signal from the bare magnitude
-        # (f.o.a. we make a whole spectrum by adding bins for 0 Hz)
+        # (f.o.a. we make a whole spectrum, also adding bins for 0 Hz)
         whole_mag = np.concatenate( (   mag[::-1],
                                         [ mag[0], mag[0] ],
                                         mag    ) )
