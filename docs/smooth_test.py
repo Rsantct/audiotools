@@ -14,7 +14,7 @@ HOME = os.path.expanduser("~")
 sys.path.append(HOME + "/audiotools")
 # modulos de audiotools:
 try:
-    import utils
+    import tools
     import pydsd
 except:
     raise ValueError("rew2fir.py necesita https://githum.com/AudioHumLab/audiotools")
@@ -31,7 +31,7 @@ if len(sys.argv) == 1:
 try:
     fname = sys.argv[1]
     # Lee el contenido del archivo .frd
-    FR = utils.readFRD(fname)
+    FR = tools.readFRD(fname)
 except:
     print "No se puede leer " + fname
     sys.exit()

@@ -22,7 +22,7 @@
 # v0.1
 
 import sys
-import utils
+import tools
 import numpy as np
 
 if __name__ == '__main__':
@@ -30,8 +30,8 @@ if __name__ == '__main__':
     try:
         fnameLO = sys.argv[1]
         fnameHI = sys.argv[2]
-        cLO, fsLO = utils.readFRD(fnameLO)
-        cHI, fsHI = utils.readFRD(fnameHI)
+        cLO, fsLO = tools.readFRD(fnameLO)
+        cHI, fsHI = tools.readFRD(fnameHI)
     except:
         print(__doc__)
         print( 'Error in path/to/frds' )
@@ -71,5 +71,5 @@ if __name__ == '__main__':
     freq = cLO[:,0]
     mag  = np.where( freq < f, cLO[:,1], cHI[:,1] )
 
-    utils.saveFRD( 'merged.frd', freq, mag )
+    tools.saveFRD( 'merged.frd', freq, mag )
 

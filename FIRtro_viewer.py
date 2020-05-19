@@ -83,7 +83,7 @@ from matplotlib import pyplot as plt
 from matplotlib import ticker   # Para rotular a medida
 from matplotlib import gridspec # Para ajustar disposición de los subplots
 import yaml
-import utils
+import tools
 
 def readConfig():
     """ lee la gonfiguracion del ploteo desde FIRtro_viewer.cfg"""
@@ -167,7 +167,7 @@ def lee_params(pcmname):
         fs = fs_commandline
     else:                   # se lee el .cfg
         fcfg = pcmname[:-4] + ".cfg"
-        fs, gain, gainext = utils.readPCMcfg(fcfg)
+        fs, gain, gainext = tools.readPCMcfg(fcfg)
 
     return fs, gain, gainext
 
@@ -197,7 +197,7 @@ def hroomInfo(magdB, via):
     gmax = np.amax(magdB)
     fgmax = freqs[np.argmax(magdB)]
     tmp1 = str(round(gmax, 1)).rjust(5) + "dBFS"   # dBs maquillados
-    tmp2 = utils.KHz(fgmax)                              # frec en Hz o KHz
+    tmp2 = tools.KHz(fgmax)                              # frec en Hz o KHz
     info = via[:12].ljust(12) + " max:" + tmp1 + "@ " + tmp2
     # Tenemos en cuenta la gain del .INI si se hubiera facilitado
     if gmax + gain > 0:
@@ -291,7 +291,7 @@ if __name__ == "__main__":
         via = tmp.split("/")[-1].replace(".pcm", "").replace(".bin", "")
 
         #--- Leemos el impulso IR y sus parámetros (Fs, gain)
-        IR = utils.readPCM32(pcmname)
+        IR = tools.readPCM32(pcmname)
         fs, gain, gainext = lee_params(pcmname)
         fny = fs / 2.0 # Nyquist
 
@@ -340,7 +340,7 @@ if __name__ == "__main__":
         frdname = frd_of_pcm(pcmname)
         if os.path.isfile(frdname):
             hay_FRDs = True
-            frd, _ = utils.readFRD(frdname)
+            frd, _ = tools.readFRD(frdname)
             frdFreqs = frd[::, 0]
             frdMag = frd[::, 1]
 

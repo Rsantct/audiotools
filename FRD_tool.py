@@ -48,7 +48,7 @@ from scipy.stats import mode
 from matplotlib import pyplot as plt
 from matplotlib import gridspec
 from matplotlib import ticker
-import utils
+import tools
 from smoothSpectrum import smoothSpectrum as smooth
 
 def prepara_eje_frecuencias(ax):
@@ -211,7 +211,7 @@ if __name__ == "__main__":
 
         # Leemos el contenido del archivo .frd. NOTA: np.loadtxt() no admite
         # los .frd de ARTA por que tienen cabecera sin comentar '#'
-        frd, _ = utils.readFRD(frdname)
+        frd, _ = tools.readFRD(frdname)
 
         # Vemos si hay columna de phase
         frd_con_fase = (frd.shape[1] == 3)
@@ -251,7 +251,7 @@ if __name__ == "__main__":
             axMag.plot(freq, smoothed, label=curvename)
             # Opcionalmente guarda la versión suavizada:
             if saveNoct:
-                utils.saveFRD(curvename + '_' + str(Noct) + 'oct.frd',
+                tools.saveFRD(curvename + '_' + str(Noct) + 'oct.frd',
                               freq, smoothed, fs=None)
 
         color = axMag.lines[-1].get_color() # anotamos el color

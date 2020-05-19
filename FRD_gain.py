@@ -11,7 +11,7 @@
 
 import sys
 import numpy as np
-import utils
+import tools
 
 def lee_command_line():
     global frdname, gainStr, gain
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     lee_command_line()
 
     # Leemos los datos de la respuesta en frecuencia
-    frd, fs = utils.readFRD(frdname)
+    frd, fs = tools.readFRD(frdname)
 
     # Vemos si hay columna de phase
     tiene_phase = (frd.shape[1] == 3)
@@ -66,6 +66,6 @@ if __name__ == "__main__":
     tmp = frdname.replace('.frd','_'+gainStr+'dB.frd').replace('.txt','_'+gainStr+'.txt')
 
     if tiene_phase:
-        utils.saveFRD(tmp, freq, mag2, pha, fs=fs)
+        tools.saveFRD(tmp, freq, mag2, pha, fs=fs)
     else:
-        utils.saveFRD(tmp, freq, mag2, fs=fs)
+        tools.saveFRD(tmp, freq, mag2, fs=fs)

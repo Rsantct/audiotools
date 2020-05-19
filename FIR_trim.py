@@ -51,7 +51,7 @@
 import sys
 import numpy as np
 import pydsd as dsd
-import utils
+import tools
 
 def lee_opciones():
 
@@ -74,7 +74,7 @@ def lee_opciones():
 
         if opc.startswith('-t'):
             m = int(opc.replace('-t', ''))
-            if not utils.isPowerOf2(m):
+            if not tools.isPowerOf2(m):
                 print (__doc__)
                 print( f'    {m} is not power of 2\n' )
                 sys.exit()
@@ -131,9 +131,9 @@ if __name__ == "__main__":
 
     # Leemos el impulso de entrada imp1
     if   f_in[-4:] == '.pcm':
-        imp1 = utils.readPCM32(f_in)
+        imp1 = tools.readPCM32(f_in)
     elif f_in[-4:] == '.wav':
-        fs, imp1 = utils.readWAV16(f_in)
+        fs, imp1 = tools.readWAV16(f_in)
     else:
         print( f'(i) trimFIR.py \'{f_in}\' no se reconoce :-/' )
         sys.exit()
@@ -164,5 +164,5 @@ if __name__ == "__main__":
     pkPos2 = abs(imp2).argmax()
 
     # Y lo guardamos en formato pcm float 32
-    utils.savePCM32(imp2, f_out)
+    tools.savePCM32(imp2, f_out)
     print( f'FIR recortado en: {f_out} (peak: {str(pkPos)}, peak_{str(m)}: {str(pkPos2)})' )
