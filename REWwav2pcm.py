@@ -18,7 +18,7 @@
 import sys
 import numpy as np
 import pydsd as dsd
-import utils
+import tools
 
 if __name__ == "__main__":
 
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     fout = fin.replace(".wav", ".pcm")
 
     # Leemos el impulso de entrada imp1
-    fs, imp1 = utils.readWAV16(fin)
+    fs, imp1 = tools.readWAV16(fin)
     
     # Espectro completo
     h = np.fft.fft(imp1)
@@ -49,5 +49,5 @@ if __name__ == "__main__":
     imp2 = dsd.semiblackmanharris(m) * imp2[:m]
 
     # Y lo guardamos en formato pcm float 32
-    utils.savePCM32(raw=imp2, fout=fout)
+    tools.savePCM32(raw=imp2, fout=fout)
     print "Guardado en:", fout
