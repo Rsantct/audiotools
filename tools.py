@@ -390,7 +390,7 @@ def read_REW_EQ_txt(rew_eq_fname):
 
 def MP2LP(imp, windowed=True, kaiserBeta=6):
     """
-    audiotools/utils/MP2LP(imp, windowed=True, kaiserBeta=3)
+    audiotools/tools.MP2LP(imp, windowed=True, kaiserBeta=3)
 
     Obtiene un impulso linear phase cuyo espectro se corresponde
     en magnitud con la del impulso causal proporcionado.
@@ -422,7 +422,7 @@ def MP2LP(imp, windowed=True, kaiserBeta=6):
 
 def ba2LP(b, a, m, windowed=True, kaiserBeta=3):
     """
-    audiotools/utils/ba2LP(b, a, m, windowed=True, kaiserBeta=4)
+    audiotools/tools.ba2LP(b, a, m, windowed=True, kaiserBeta=4)
 
     Obtiene un impulso linear phase de longitud m cuyo espectro
     se corresponde en magnitud con la de la función de
