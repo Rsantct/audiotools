@@ -24,14 +24,16 @@
 """
 
 import sys
+import os
 import numpy as np
 from scipy.signal import freqz
 from matplotlib import pyplot as plt
+
+HOME = os.path.expanduser("~")
+sys.path.append(f'{HOME}/audiotools')
 from iso_R import get_iso_R
 from smoothSpectrum import smoothSpectrum
 from utils import shelf1low, shelf2low, min_phase_from_real_mag
-import os
-HOME = os.path.expanduser("~")
 
 
 def make_low(fc, gain):
@@ -63,7 +65,7 @@ def doplotexample():
     axMag.semilogx(f, hc["mag"], label='hc', color='blue')
     axPha.semilogx(f, hc["pha"], label='hc', color='blue')
 
-    samples_f = f'{HOME}/audiotools/eq_samples/'
+    samples_f = f'{HOME}/audiotools/brutefir_eq/eq_samples/'
     f2       = np.loadtxt(f'{samples_f}/R20-freq.dat').transpose()
     DSS      = np.loadtxt(f'{samples_f}/R20-DSS_mag.dat').transpose()
     DSSpha   = np.loadtxt(f'{samples_f}/R20-DSS_mag.dat').transpose()
@@ -198,7 +200,7 @@ if __name__ == '__main__':
           f' from {int(f[0])} Hz to {int(f[-1])} Hz (fs: {fs})')
     print(f'Low shelf center freq: {fc_low} Hz, slope: {shelf_slope}')
     print(f'High roll-off corner: {fc_high} Hz')
-    sys.exit()
+
     dB_steps = np.arange(0, dB_range + dB_step, dB_step)
     print('cumputing curves...')
     curves   = make_curves()
