@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 """
-    (!!!) WORK IN PROGRESS (!!!)
-
     An experimental purpose tool to remake the phase of
     a set of curves from those used in the EQ stage of
-    FIRtro / pre.di.c
+    FIRtro
 
     usage:   eq_curves_rephase.py  pattern  /path/to/your/eq_folder
 
@@ -14,12 +12,13 @@
         if you have several sets please prepare a dedicated folder.
 
 """
-print( '(!) WORK IN PROGRESS: ANALYTICAL PHASE CURVES HAVE A STRANGE SHIFT' )
 
 import sys, os
 import numpy as np
 from scipy.signal import hilbert
 from matplotlib import pyplot as plt
+from utils import min_phase_from_real_mag
+
 
 def get_curve_files(fpattern):
 
@@ -103,21 +102,7 @@ if __name__ == '__main__':
 
         mag = magSet[:,i]
 
-        # Deriving the analytic signal from the bare magnitude
-        # (f.o.a. we make a whole spectrum, also adding bins for 0 Hz)
-        whole_mag = np.concatenate( (   mag[::-1],
-                                        [ mag[0], mag[0] ],
-                                        mag    ) )
-        analytic = np.conj( hilbert( np.abs(10**(whole_mag/20.0)) ) )
-
-        # The <D>erived phase
-        Dpha = np.angle( analytic )
-
-        # rad -> deg
-        Dpha = Dpha * 180.0 / np.pi
-
-        # Undo whole: take only the semi spectrum and skip the bin 0
-        semi_Dpha = Dpha[ Dpha.shape[0]//2 + 1  : ]
+        _,_,semi_Dpha = min_phase_from_real_mag(freq, mag)
 
         # Adding the curve to the set of phase curves
         DphaSet[:,i] = semi_Dpha
