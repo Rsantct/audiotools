@@ -25,6 +25,7 @@ mv ~/audiotools-$branch ~/audiotools
 
 # Hacemos ejecutables los archivos
 chmod +x ~/audiotools/*
+chmod +x ~/audiotools/brutefir_eq/*py
 
 # Dejamos una marca indicando la branch contenida
 touch ~/audiotools/THIS_BRANCH_IS_$branch
