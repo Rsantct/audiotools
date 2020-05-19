@@ -33,7 +33,7 @@ HOME = os.path.expanduser("~")
 sys.path.append(f'{HOME}/audiotools')
 from iso_R import get_iso_R
 from smoothSpectrum import smoothSpectrum
-from utils import shelf1low, shelf2low, min_phase_from_real_mag
+from tools import shelf1low, shelf2low, min_phase_from_real_mag
 
 
 def make_low(fc, gain):
