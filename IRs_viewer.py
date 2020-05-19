@@ -53,7 +53,7 @@ from scipy import signal
 from matplotlib import pyplot as plt
 from matplotlib import ticker   # Para rotular a medida
 from matplotlib import gridspec # Para ajustar disposición de los subplots
-import utils
+import tools
 
 def lee_commandline(opcs):
     global fmin, fmax, plotPha, IRtype
@@ -105,7 +105,7 @@ def lee_commandline(opcs):
     for fname in fnames:
 
         if fname.endswith('.wav'):
-            fswav, imp = utils.readWAV16(fname)
+            fswav, imp = tools.readWAV16(fname)
             IRs.append( (fswav, imp, fname) )
 
         elif fname.endswith('.txt'):
@@ -118,7 +118,7 @@ def lee_commandline(opcs):
 
         elif fname.endswith('.pcm'):
             if fs:
-                imp = utils.readPCM32(fname)
+                imp = tools.readPCM32(fname)
                 IRs.append( (fs, imp, fname) )
             else:
                 print (__doc__)
