@@ -35,7 +35,7 @@ Uso:
 import numpy as np
 from scipy import signal
 import sys
-import utils
+import tools
 import pydsd
 
 try:
@@ -49,8 +49,8 @@ except:
 
 
 # Leemos los FIR desde los archivos
-x = utils.readPCM32(xfile)
-y = utils.readPCM32(yfile)
+x = tools.readPCM32(xfile)
+y = tools.readPCM32(yfile)
 
 # Ventana que aplicaremos
 m = max([len(x), len(y)])
@@ -60,5 +60,5 @@ w = pydsd.semiblackmanharris(m)
 z = w * signal.lfilter(y, [1.0], x)#[:, len(x) - 1:] # este slice no lo entiendo
 
 # Guardamos el resultado en el archivo de salida
-utils.savePCM32(z, zfile)
+tools.savePCM32(z, zfile)
 print( f'saved: {zfile}' )
