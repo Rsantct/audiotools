@@ -1,8 +1,6 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
-    pydsd v0.03
-
     %%%%%%%%%%%%%%%%%%%%%%%%%%%  DSD  %%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Traslación a python/scipy de funciones del paquete DSD  %%
     %%             https://github.com/rripio/DSD               %%
@@ -11,7 +9,7 @@
     DISCLAIMER: El autor de DSD no garantiza ni supervisa
                 esta traslación.
 
-    ACHTUNG:    WORK IN PROGRESS
+    ACHTUNG:    WORK IN PROGRESS XD
 """
 
 # -----------------------------------------------------------
@@ -27,10 +25,10 @@
 # - revisión de lininterp
 # -----------------------------------------------------------
 # NOTAS:
-# - Abajo podemos ver código original de DSD en octave comentado con %%
+# - Abajo podremos ver código original de DSD en octave comentado con %%
 # - Algunas convenciones usadas en DSD:
-#   'sp'    suele referirse al spectrum completo
-#   'ssp'   suele referirse al semi spectrum
+#   'sp'    suele referirse a un spectro completo (frec positivas y negativas)
+#   'ssp'   suele referirse a un semi spectro
 # -----------------------------------------------------------
 
 import numpy as np
@@ -117,6 +115,7 @@ def biquad(fs, f0, Q, type, dBgain=0.0):
     b = np.array([b0, b1, b2])
     return b, a
 
+
 def biqshelving(fs, f1, f2, type):
     """
     %% Obtiene los coeficientes 'b,a' del filtro IIR asociado a
@@ -143,6 +142,7 @@ def biqshelving(fs, f1, f2, type):
 
     return biquad(fs, f0, Q, type, dBgain)
 
+
 def delta(m):
     """
     %% Obtiene un impulso de longitud m con valor uno en su primera muestra.
@@ -153,6 +153,7 @@ def delta(m):
     imp = np.zeros(m)
     imp[0] = 1.0
     return imp
+
 
 def deltacentered(m):
     """
@@ -167,6 +168,7 @@ def deltacentered(m):
     ptomedio = int(np.ceil(m/2.0))
     imp[ptomedio] = 1.0         # ponemos un uno en tolmedio
     return imp
+
 
 def centerimp(imp, m):
     """
@@ -194,6 +196,7 @@ def centerimp(imp, m):
     extra2 = extra - extra1
     imp = np.append( np.zeros(extra1), imp )
     return np.append( imp, np.zeros(extra2) )
+
 
 def crossButterworth(fs=44100, m=32768, n=2, flp=0 , fhp=0):
     """
@@ -230,6 +233,7 @@ def crossButterworth(fs=44100, m=32768, n=2, flp=0 , fhp=0):
 
     # 2. Aplicamos el Butterwoth al FIR
     return signal.lfilter(b, a , imp)
+
 
 def crossButterworthLP(fs=44100, m=32768, n=2, flp=0 , fhp=0):
     """
@@ -300,6 +304,7 @@ def crossButterworthLP(fs=44100, m=32768, n=2, flp=0 , fhp=0):
     # %% imp = blackmanharris (m) .* imp;
     return blackmanharris(m) * imp
 
+
 def crossLinkwitzRiley(fs=44100, m=32768, n=2, flp=0 , fhp=0):
     """
     %% Obtiene el filtro FIR de un filtro Linkwitz-Riley de orden n, n par.
@@ -343,6 +348,7 @@ def crossLinkwitzRiley(fs=44100, m=32768, n=2, flp=0 , fhp=0):
     imp = signal.lfilter(b, a , imp)
     return imp
 
+
 def semiblackmanharris(m):
     """
     %% Obtiene la mitad derecha de una ventana Blackman-Harris de longitud m.
@@ -354,11 +360,13 @@ def semiblackmanharris(m):
     # devolvemos la mitad derecha
     return w[m:]
 
+
 def blackmanharris(m):
     """
     %% Obtiene una ventana Blackman-Harris de longitud m.
     """
     return signal.blackmanharris(m)
+
 
 def minphsp(sp):
     """
@@ -367,31 +375,16 @@ def minphsp(sp):
     %%
     %% Obtiene el espectro de fase mínima a partir de un espectro completo.
     %%
-    %% minph    = Espectro completo de fase mínima con la misma magnitud de espectro que imp. (**)
+    %% minph    = Espectro completo de fase mínima
+    %%            con la misma magnitud de espectro que sp.
     %% sp       = Espectro completo. Longitud par.
-
-    ### Notas del traductor:
-
-        -   El espectro min-pha se obtine haciendo la transformada de Hilbert
-            del espectro de magnitudes 'sp' que debe ser completo (simétrico).
-
-        -   El comentario de arriba original de DSD (**) me temo que
-            tiene un typo debería decir "...con la misma magnitud de espectro que sp."
     """
 
     if not sp.ndim == 1:
         raise ValueError("sp must be a vector")
 
-    # !!!!
-    # NOTA: La versión original de DSD hace un log al espectro antes de hacerle
-    #       la transf. de Hilbert y luego se aplica un exp al resultado.
-    #       Aquí omitimos dicha conversión entendiendo los spectrum
-    #       de entrada y salida con magnitudes lineales.
-    # !!!!
-    # Cód. original DSD en Octave
-    # minph = exp(conj(hilbert(log(abs(sp)))));
+    return np.exp( np.conj( signal.hilbert( np.log(np.abs(sp)) ) ) )
 
-    return np.conj( signal.hilbert( np.abs(sp) ) )
 
 def wholespmp(ssp):
     """
@@ -420,8 +413,9 @@ def wholespmp(ssp):
 	# wsp = [ssp; nsp];
 
     nsp = np.flipud( np.conj( ssp[1:m-1] ) )  # freqs negativas
-    wsp = np.concatenate([ssp, nsp])        # y ensamblamos
+    wsp = np.concatenate([ssp, nsp])          # y ensamblamos
     return wsp
+
 
 def wholesplp(ssp):
     """
@@ -452,6 +446,7 @@ def wholesplp(ssp):
     nsp = np.flipud( ssp[1:m-1] )         # freqs negativas
     wsp = np.concatenate([ssp, nsp])    # y ensamblamos
     return wsp
+
 
 def lininterp(freq, mag, m, fs):
     """
