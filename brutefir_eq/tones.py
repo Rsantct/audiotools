@@ -31,7 +31,7 @@ from matplotlib import pyplot as plt
 HOME = os.path.expanduser("~")
 sys.path.append(f'{HOME}/audiotools')
 from iso_R import get_iso_R
-from utils import shelf1low, shelf2low, shelf1high, shelf2high
+from tools import shelf1low, shelf2low, shelf1high, shelf2high
 
 
 def make_curves():
