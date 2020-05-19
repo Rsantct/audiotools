@@ -28,7 +28,7 @@ HOME = os.path.expanduser("~")
 sys.path.append(f'{HOME}/audiotools')
 import iso226
 from iso_R import get_iso_R
-from utils import extrap1d, min_phase_from_real_mag
+from tools import extrap1d, min_phase_from_real_mag
 
 def doplot():
 
