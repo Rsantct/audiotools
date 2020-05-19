@@ -22,15 +22,16 @@
         --plot
 
 """
-
 import sys
+import os
 import numpy as np
 from scipy import signal
 from matplotlib import pyplot as plt
+
+HOME = os.path.expanduser("~")
+sys.path.append(f'{HOME}/audiotools')
 from iso_R import get_iso_R
 from utils import shelf1low, shelf2low, shelf1high, shelf2high
-import os
-HOME = os.path.expanduser("~")
 
 
 def make_curves():
