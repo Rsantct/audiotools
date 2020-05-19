@@ -8,13 +8,13 @@ HOME = os.path.expanduser("~")
 sys.path.append(HOME + "/audiotools")
 # modulos de audiotools:
 try:
-    import utils
+    import tools
     import pydsd
 except:
     raise ValueError("rew2fir.py necesita https://githum.com/AudioHumLab/audiotools")
     sys.exit()
 
-from utils import logTransition
+from tools import logTransition
 import numpy as np
 from matplotlib import pyplot as plt
 
