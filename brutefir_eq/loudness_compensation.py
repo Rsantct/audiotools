@@ -19,14 +19,16 @@
 """
 
 import sys
+import os
 import numpy as np
 from scipy.interpolate import interp1d
 from matplotlib import pyplot as plt
+
+HOME = os.path.expanduser("~")
+sys.path.append(f'{HOME}/audiotools')
 import iso226
 from iso_R import get_iso_R
 from utils import extrap1d, min_phase_from_real_mag
-import os
-HOME = os.path.expanduser("~")
 
 def doplot():
 
@@ -151,7 +153,7 @@ if __name__ == '__main__':
     ld_compens_curves_RXX = extrapolate_curves(freqs_isoR)
 
     print(f'Using {Rseries} from {freqs_isoR[0]} Hz to {freqs_isoR[-1]} Hz')
-    print(f'Ref dBSPL: {refSPL} (flat curve index)')
+    print(f'Ref dBSPL: {refSPL} phon (flat curve index)')
 
     if save:
         save_curves()
