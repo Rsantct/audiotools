@@ -4,20 +4,22 @@
 
     usage:
 
-    bfconfig_logic.py  --RXX
+    bfconfig_logic.py  -RXX -fsXX
 
-        --RXX:  R10 | R20 | R40 | R80  iso R series (default: R20 ~ 1/3 oct)
+        -RXX:   R10 | R20 | R40 | R80  iso R series (default: R20 ~ 1/3 oct)
 
-        --fsXX: 44100 | 48000 | 96000  sampling frequency Hz
+        -fsXX:  44100 | 48000 | 96000  sampling frequency Hz
                 (default: 44100, upper limits RXX to 20000 Hz)
 
 """
 
 import sys
-import numpy as np
-from iso_R import get_iso_R
 import os
+import numpy as np
+
 HOME = os.path.expanduser("~")
+sys.path.append(f'{HOME}/audiotools')
+from iso_R import get_iso_R
 
 
 logic_str = \
@@ -55,8 +57,8 @@ if __name__ == '__main__':
         if opc == '-h' or opc == '--help':
             print(__doc__)
             sys.exit()
-        elif '--R' in opc:
-            Rseries = opc[2:]
+        elif '-R' in opc:
+            Rseries = opc[1:]
         elif '--fs' in opc:
             value = int(opc[4:])
             if value in (44100, 48000, 96000):
