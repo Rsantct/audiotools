@@ -244,7 +244,7 @@ if __name__ == "__main__":
         # Magnitud:
         magdB = 20 * np.log10(abs(h))
 
-        # Wrapped Phase:
+        # Phase:
         phase = np.unwrap( np.angle(h, deg=True) )
         # Eliminamos (np.nan) los valores de phase fuera de
         # la banda de paso, por debajo de un umbral configurable.
