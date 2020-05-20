@@ -7,21 +7,28 @@
 
     Ejemplo de uso:
 
-    IR_viewer.py  drcREW_test1.wav  drcREW_test2.pcm   44100  [ fmin-fmax -1 -eq ]
+    IR_viewer.py  drc_test1.wav  drc_test2.pcm   44100  [ -pha fmin-fmax -1 -eq ]
 
     Opciones:
-        fmin-fmax:  Permite visualizar un rango en Hz, útil para ver graves.
-        -1:         Muestra las gráficas de los impulsos en una fila única.
-        -pdf:       Guarda la gráfica en archivo PDF, incluyendo el zoom
+
+        -pha        Muestra la fase
+
+        fmin-fmax   Permite visualizar un rango en Hz, útil para ver graves.
+
+        -1          Muestra las gráficas de los impulsos en una fila única.
+
+        -pdf        Guarda la gráfica en archivo PDF, incluyendo el zoom
                     que se hiciese durante la visualización.
+
         -eq         Para ver curvas de un FIR de EQ (abcisas de -15 a +5 dB)
+
 """
 # version = 'v0.2'
 #   Se añade un visor de la fase y otro pequeño visor de los impulsos
 # version = 'v0.2b'
 #   Opción del rango de frecuencias a visualizar
 # version = 'v0.2c'
-#   Opcion -pha (oculta beta) para pintar la phase. ESTO NO ESTÁ CLARO PTE INVESTIGARLO DEEPER
+#   Opcion -pha (oculta beta) para pintar la phase.
 # version = 'v0.2d'
 #   Dejamos de pintar phases o gd fuera de la banda de paso,
 #   con nuevo umbral a -50dB parece más conveniente para FIRs cortos con rizado alto.
@@ -41,11 +48,11 @@
 #version = 'v0.2i'
 #   Admite IRs en archivos de texto.
 # TO DO:
-#   Revisar la gráfica de fases
 #   Revisar la información mostrada "GD avg" que pretende ser la moda de los valores
+# version = 'v0.2ip3'
+#   Python3
 version = 'v0.2j'
-#   Python3 (!) signal.freqz y signal.group_delay ahora necesitan
-#               que worN sea un entero (antes funcionaba con len(imp)/2 float)
+#   opción -pha visible
 
 import sys
 import numpy as np, math
@@ -238,7 +245,7 @@ if __name__ == "__main__":
         magdB = 20 * np.log10(abs(h))
 
         # Wrapped Phase:
-        phase = np.angle(h, deg=True)
+        phase = np.unwrap( np.angle(h, deg=True) )
         # Eliminamos (np.nan) los valores de phase fuera de
         # la banda de paso, por debajo de un umbral configurable.
         phaseClean  = np.full((len(phase)), np.nan)
