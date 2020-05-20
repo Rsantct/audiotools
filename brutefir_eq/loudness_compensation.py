@@ -39,8 +39,10 @@ def doplot():
     ax1.set_title("iso226")
     ax1.set_ylabel('phon')
     ax2.set_xlim(10, 30000)
-    ax2.set_title(f'loudness compensation for listening levels referred to {refSPL} dBSPL\n'
-                  f'--- extrapolated values for {Rseries} from {freqs_isoR[0]} Hz to {freqs_isoR[-1]} Hz')
+    ax2.set_title(f'loudness compensation for listening levels referred to '
+                  f'{refSPL} dBSPL\n'
+                  f'--- extrapolated values for {Rseries} from {freqs_isoR[0]} Hz '
+                  f' to {freqs_isoR[-1]} Hz')
     fig.subplots_adjust(hspace = 0.5)
 
     # ax1: plot equal loudness contour curves (10 dB stepped samples)
@@ -75,18 +77,25 @@ def save_curves():
     """ FIRtro manages Matlab/Octave arrays kind of, so
         transpose() will save them with a column vector form factor.
     """
+    # (i) Will flipud because FIRtro computes compensation curves in
+    # reverse order from the one found inside the _mag.dat and _pha.dat files.
+    # So the flat curve index changes from natural flatIdx => refSPL (e.g.: 83)
+    # to flatIdx => (90-refSPL) (e.g.: 7)
+    curves = np.flipud(ld_compens_curves_RXX)
+
+    # Retrieving phase from mag will be done only when saving to disk
+    print( 'retrieving phase from curves, will take a while ...' )
+
     folder=f'{HOME}/tmp/audiotools/eq'
     if not os.path.isdir(folder):
         os.makedirs(folder)
 
-
     fname = f'{folder}/freq.dat'
     mname = f'{folder}/ref_{refSPL}_loudness_mag.dat'
     pname = f'{folder}/ref_{refSPL}_loudness_pha.dat'
-    np.savetxt( fname, freqs_isoR.transpose(),                  fmt='%.4e' )
-    np.savetxt( mname, ld_compens_curves_RXX.transpose(),       fmt='%.4e' )
-    np.savetxt( pname, phase_from_mag(ld_compens_curves_RXX).transpose(),
-                                                                fmt='%.4e' )
+    np.savetxt( fname, freqs_isoR.transpose(),              fmt='%.4e' )
+    np.savetxt( mname, curves.transpose(),                  fmt='%.4e' )
+    np.savetxt( pname, phase_from_mag(curves).transpose(),  fmt='%.4e' )
     print(f'freqs saved to:  {fname}')
     print(f'curves saved to: {mname}')
     print(f'                 {pname}')
@@ -153,7 +162,8 @@ if __name__ == '__main__':
     ld_compens_curves_RXX = extrapolate_curves(freqs_isoR)
 
     print(f'Using {Rseries} from {freqs_isoR[0]} Hz to {freqs_isoR[-1]} Hz')
-    print(f'Ref dBSPL: {refSPL} phon (flat curve index)')
+    print(f'Ref dBSPL: {refSPL} phon')
+    print(f'flat curve index: {refSPL}, but in disk will flip to index: {90-refSPL}')
 
     if save:
         save_curves()
