@@ -127,23 +127,28 @@ def save_dat():
     """ FIRtro manages Matlab/Octave arrays kind of, so
         transpose() will save them with a column vector form factor.
     """
+    # (i) Will flipud because FIRtro computes curves in
+    # reverse order from the one found inside the _mag.dat and _pha.dat files.
+    # So curve at index 0 has +gain and the last index one has -gain
+    bass_mag   = np.flipud(curves_bass_mag).transpose()
+    bass_pha   = np.flipud(curves_bass_pha).transpose()
+    treble_mag = np.flipud(curves_treble_mag).transpose()
+    treble_pha = np.flipud(curves_treble_pha).transpose()
+
     folder=f'{HOME}/tmp/audiotools/eq'
     if not os.path.isdir(folder):
         os.makedirs(folder)
 
-    np.savetxt( f'{folder}/freq.dat', freqs.transpose(), fmt='%.4e' )
-    np.savetxt( f'{folder}/bass_mag.dat',   curves_bass_mag.transpose(),
-                                            fmt='%.4e' )
-    np.savetxt( f'{folder}/bass_pha.dat',   curves_bass_pha.transpose(),
-                                            fmt='%.4e' )
-    np.savetxt( f'{folder}/treble_mag.dat', curves_treble_mag.transpose(),
-                                            fmt='%.4e' )
-    np.savetxt( f'{folder}/treble_pha.dat', curves_treble_pha.transpose(),
-                                            fmt='%.4e' )
+    np.savetxt( f'{folder}/freq.dat',       freqs.transpose(),  fmt='%.4e' )
+    np.savetxt( f'{folder}/bass_mag.dat',   bass_mag,           fmt='%.4e' )
+    np.savetxt( f'{folder}/bass_pha.dat',   bass_pha,           fmt='%.4e' )
+    np.savetxt( f'{folder}/treble_mag.dat', treble_mag,         fmt='%.4e' )
+    np.savetxt( f'{folder}/treble_pha.dat', treble_pha,         fmt='%.4e' )
 
     print(f'freqs saved to:  {folder}/freq.dat')
     print(f'curves saved to: {folder}/<bass|treble>_mag.dat')
     print(f'                 {folder}/<bass|treble>_pha.dat')
+
 
 if __name__ == '__main__':
 
@@ -205,5 +210,3 @@ if __name__ == '__main__':
     if plot:
         #plot_all()
         plot_single_settings( [6, 0], [0, 6], [-4, -2] )
-
-
