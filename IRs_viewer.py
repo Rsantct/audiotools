@@ -3,15 +3,15 @@
 """
     visor de impulsos IR wav o raw (.pcm, .txt)
 
-    Si se pasan impulsos raw (.pcm) se precisa pasar también la Fs
+    Si se pasan impulsos raw (.pcm, .txt) se precisa indicar la Fs
 
     Ejemplo de uso:
 
-    IR_viewer.py  drc_test1.wav  drc_test2.pcm   44100  [ -pha fmin-fmax -1 -eq ]
+    IR_viewer.py  file1.wav  file2.pcm  [FS]  [ fmin-fmax -1 -eq -lptolX -pha]
 
     Opciones:
 
-        -pha        Muestra la fase
+        FS          sampling frequency
 
         fmin-fmax   Permite visualizar un rango en Hz, útil para ver graves.
 
@@ -22,13 +22,18 @@
 
         -eq         Para ver curvas de un FIR de EQ (abcisas de -15 a +5 dB)
 
+        -lptol=X    X umbral en dB para evaluar si el impulso es linear phase
+                    (por defecto -60 dB)
+
+        -pha        Muestra la fase (experimental)
+
 """
 # version = 'v0.2'
 #   Se añade un visor de la fase y otro pequeño visor de los impulsos
 # version = 'v0.2b'
 #   Opción del rango de frecuencias a visualizar
 # version = 'v0.2c'
-#   Opcion -pha (oculta beta) para pintar la phase.
+#   Opcion -pha oculta para pintar la phase (WORK IN PROGRESS)
 # version = 'v0.2d'
 #   Dejamos de pintar phases o gd fuera de la banda de paso,
 #   con nuevo umbral a -50dB parece más conveniente para FIRs cortos con rizado alto.
@@ -49,10 +54,13 @@
 #   Admite IRs en archivos de texto.
 # TO DO:
 #   Revisar la información mostrada "GD avg" que pretende ser la moda de los valores
-# version = 'v0.2ip3'
+#version = 'v0.2ip3'
 #   Python3
 version = 'v0.2j'
-#   opción -pha visible
+#   Pinta la phase symmetrical log scale (experimental):
+#       - En filtros lin-pha se aproxima a una recta,
+#       - En filtros no lin-pha veremos una curva clara
+#       - Se informa si el filtro es lin-pha (simétrico respecto del pico)
 
 import sys
 import numpy as np, math
@@ -62,8 +70,9 @@ from matplotlib import ticker   # Para rotular a medida
 from matplotlib import gridspec # Para ajustar disposición de los subplots
 import tools
 
+
 def lee_commandline(opcs):
-    global fmin, fmax, plotPha, IRtype
+    global fmin, fmax, plotPha, IRtype, lp_tolerance
     global plotIRsInOneRow, generaPDF
     plotIRsInOneRow = False
     generaPDF = False
@@ -94,6 +103,13 @@ def lee_commandline(opcs):
 
         elif "-ph" in opc:
             plotPha = True
+
+        elif opc[:7] == "-lptol=":
+            value = float(opc[7:])
+            if value <= 0:
+                lp_tolerance = value
+            else:
+                raise ValueError('-lptol <= 0 dB')
 
         elif opc == "-1":
             plotIRsInOneRow = True
@@ -136,6 +152,7 @@ def lee_commandline(opcs):
 
     return IRs
 
+
 def prepara_eje_frecuencias(ax):
     """ según las opciones fmin, fmax, frec_ticks """
     frec_ticks = 20, 100, 1000, 10000
@@ -148,6 +165,7 @@ def prepara_eje_frecuencias(ax):
     ax.set_xticks(frec_ticks)
     ax.get_xaxis().set_major_formatter(ticker.ScalarFormatter())
     ax.set_xlim([fmin2, fmax2])
+
 
 def preparaGraficas():
     numIRs = len(IRs)
@@ -202,9 +220,25 @@ def preparaGraficas():
         axPha = axGD.twinx()
         axPha.grid(linestyle=":")
         prepara_eje_frecuencias(axPha)
-        axPha.set_ylim([-180.0,180.0])
-        axPha.set_yticks(range(-135, 180, 45))
-        axPha.set_ylabel(u"filter phase")
+        axPha.set_ylabel(u"filter unwrapped phase")
+        axPha.set_yscale('symlog')
+        # Hide y-ticks
+        axPha.yaxis.set_major_locator(plt.NullLocator())
+
+
+def check_lin_pha(imp, tol):
+    # Ensure the impulse is centered
+    center = np.argmax(imp)
+    if center - imp.shape[0] // 2 > 1:
+        return False
+    # Check if symmetric with tolerance
+    atol = 10 ** (tol/20.0)
+    if imp.shape[0] % 2 == 0:
+        begin = 1
+    else:
+        begin = 0
+    return np.allclose(imp[begin:center], imp[center + 1:][::-1], atol=atol)
+
 
 if __name__ == "__main__":
 
@@ -214,6 +248,8 @@ if __name__ == "__main__":
     fmax = 20000
     # Umbral de la magnitud en dB para dejar de pintar phases o gd
     magThr = -50.0
+    # Umbral en dB para evaluar si el impulso es linear phase
+    lp_tolerance = -60 # dB
 
     if len(sys.argv) == 1:
         print (__doc__)
@@ -244,13 +280,14 @@ if __name__ == "__main__":
         # Magnitud:
         magdB = 20 * np.log10(abs(h))
 
-        # Phase:
-        phase = np.unwrap( np.angle(h, deg=True) )
+        # Un wrapped Phase:
+        phase = np.unwrap( np.angle(h) )
         # Eliminamos (np.nan) los valores de phase fuera de
         # la banda de paso, por debajo de un umbral configurable.
         phaseClean  = np.full((len(phase)), np.nan)
         mask = (magdB > magThr)
         np.copyto(phaseClean, phase, where=mask)
+        phaseClean *= 180 / (2*np.pi)
 
         # Group Delay:
         wgd, gd = signal.group_delay((imp, 1), w=int(len(imp)/2), whole=False)
@@ -285,6 +322,7 @@ if __name__ == "__main__":
         axMag.plot(freqs, magdB, label=info)
         color = axMag.lines[-1].get_color() # anotamos el color de la última línea
 
+        # Phase
         if plotPha:
             axPha.plot(freqs, phaseClean, "-", linewidth=1.0, color=color)
 
@@ -297,6 +335,10 @@ if __name__ == "__main__":
         # Plot del IR
         # (i) Opcionalmente podemos pintar los impulsos en una sola fila
         rotuloIR = str(limp) + " taps - pk offset " + str(peakOffsetms) + " ms"
+        if check_lin_pha(imp, lp_tolerance):
+            rotuloIR += f'\nlinear phase (tolerance {lp_tolerance} dB)'
+        else:
+            rotuloIR += f'\nnot linear phase (tolerance {lp_tolerance} dB)'
         if plotIRsInOneRow:
             # Todos los IRs en una fila de altura simple, en columnas separadas:
             axIR = fig.add_subplot(grid[5, IRnum]) # (i) grid[rangoVocupado, rangoHocupado]
