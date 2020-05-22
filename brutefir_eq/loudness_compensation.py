@@ -5,13 +5,13 @@
 
     Usage:
 
-    loudness_compensation.py   -refXX -RXX  -fsXX  --save  --plot
+    loudness_compensation.py   -RXX  -ref=X  -fs=X  --save  --plot
 
-        -refXX: 0 ... 90 phon (default: 83)
+        -RXX    R10 | R20 | R40 | R80  iso R series (default: R20 ~ 1/3 oct)
 
-        -RXX:   R10 | R20 | R40 | R80  iso R series (default: R20 ~ 1/3 oct)
+        -ref=X  0 ... 90 phon ~ dBSPL listening reference level (default: 83)
 
-        -fsXX:  44100 | 48000 | 96000  sampling frequency Hz
+        -fs=X   44100 | 48000 | 96000  sampling frequency Hz
                 (default: 44100, upper limits RXX to 20000 Hz)
 
         --save  save curves to disk
@@ -129,19 +129,25 @@ if __name__ == '__main__':
         print(__doc__)
         sys.exit()
     for opc in sys.argv[1:]:
+
         if '-h' in opc:
             print(__doc__)
             sys.exit()
-        elif opc[:4] == '-ref':
-            refSPL = int(opc[4:])
+
+        elif opc[:5] == '-ref=':
+            refSPL = int(opc[5:])
+
         elif opc[:2] == '-R':
             Rseries = opc[1:]
-        elif opc[:3] == '-fs':
-            value = int(opc[3:])
+
+        elif opc[:4] == '-fs=':
+            value = int(opc[4:])
             if value in (44100, 48000, 96000):
                 fs = value
+
         elif '-p' in opc:
             plot = True
+
         elif '-s' in opc:
             save = True
 
@@ -162,7 +168,7 @@ if __name__ == '__main__':
     ld_compens_curves_RXX = extrapolate_curves(freqs_isoR)
 
     print(f'Using {Rseries} from {freqs_isoR[0]} Hz to {freqs_isoR[-1]} Hz')
-    print(f'Ref dBSPL: {refSPL} phon')
+    print(f'Ref: {refSPL} phon ~ dBSPL listening reference level')
     print(f'flat curve index: {refSPL}, but in disk will flip to index: {90-refSPL}')
 
     if save:
@@ -170,4 +176,3 @@ if __name__ == '__main__':
 
     if plot:
         doplot()
-
