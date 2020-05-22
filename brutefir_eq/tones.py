@@ -4,18 +4,18 @@
 
     Usage:
 
-    tones.py    -RXX  -fsXX  -oX -bX -tX   --save  --plot
+    tones.py    -RXX  -fs=X  -o=X -b=X -t=X  --save  --plot
 
         -RXX:   R10 | R20 | R40 | R80  iso R series (default: R20 ~ 1/3 oct)
 
-        -fsXX:  44100 | 48000 | 96000  sampling frequency Hz
+        -fs=X   44100 | 48000 | 96000  sampling frequency Hz
                 (default: 44100, upper limits RXX to 20000 Hz)
 
-        -oN:    1 | 2  low shelf order (default: 1, 1st order 6 dB/oct)
+        -o=X    1 | 2  low shelf order (default: 1, 1st order 6 dB/oct)
 
-        -bX:    set bass   center frequency at X Hz (default 120 Hz)
+        -b=X    set bass   center frequency at X Hz (default 120 Hz)
 
-        -tX:    set treble center frequency at X Hz (default 2500 Hz)
+        -t=X    set treble center frequency at X Hz (default 2500 Hz)
 
         --save  save curves to disk
 
@@ -175,23 +175,31 @@ if __name__ == '__main__':
         print(__doc__)
         sys.exit()
     for opc in sys.argv[1:]:
+
         if '-h' in opc:
             print(__doc__)
             sys.exit()
+
         elif opc[:2] == '-R':
             Rseries = opc[1:]
-        elif opc[:3] == '-fs':
-            value = int(opc[3:])
+
+        elif opc[:4] == '-fs=':
+            value = int(opc[4:])
             if value in (44100, 48000, 96000):
                 fs = value
-        elif opc[:2] == '-o':
-            shelf_order = int(opc[2:])
-        elif opc[:2] == '-b':
-            fc_bass = float(opc[2:])
-        elif opc[:2] == '-t':
-            fc_treble = float(opc[2:])
+
+        elif opc[:3] == '-o=':
+            shelf_order = int(opc[3:])
+
+        elif opc[:3] == '-b=':
+            fc_bass = float(opc[3:])
+
+        elif opc[:3] == '-t=':
+            fc_treble = float(opc[3:])
+
         elif '-p' in opc:
             plot = True
+
         elif '-s' in opc:
             save = True
 
@@ -210,3 +218,5 @@ if __name__ == '__main__':
     if plot:
         #plot_all()
         plot_single_settings( [6, 0], [0, 6], [-4, -2] )
+
+
