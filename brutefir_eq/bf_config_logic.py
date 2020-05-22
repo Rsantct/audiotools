@@ -4,7 +4,7 @@
 
     usage:
 
-    bfconfig_logic.py  -RXX -fsXX
+    bf_config_logic.py  -RXX -fsXX
 
         -RXX:   R10 | R20 | R40 | R80  iso R series (default: R20 ~ 1/3 oct)
 
@@ -35,6 +35,7 @@ logic:
     #debug_dump_filter: "/tmp/brutefir-rendered-%d";
     {
     coeff: "c.eq";
+$INFO
 $BANDS
     };
 };
@@ -67,11 +68,12 @@ if __name__ == '__main__':
     f = get_iso_R(Rseries, fmin=fmin, fs=fs)
     bands = np.array2string(f, max_line_width=70, separator=', ',
                             formatter={'float_kind':lambda x: "%.1f" % x})
-    bands = bands.replace('.0', '')             \
-                 .replace('[','    bands:\n ')  \
-                 .replace(']',';')              \
+    bands = bands.replace('.0', '')                 \
+                 .replace('[', f'    bands:\n ')    \
+                 .replace(']',';')                  \
                  .replace('\n ', '\n    ')
 
+    logic_str = logic_str.replace('$INFO', f'    # using audiotools {Rseries} bands')
     logic_str = logic_str.replace('$BANDS', bands)
 
     print(logic_str)
