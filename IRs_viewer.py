@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 """
-    visor de impulsos IR wav o raw (.pcm, .txt)
+    visor de impulsos IR wav o raw ( binarios .pcm, o plain text)
 
-    Si se pasan impulsos raw (.pcm, .txt) se precisa indicar la Fs
+    Si se pasan impulsos raw (binarios o de texto) se precisa indicar la Fs
 
     Ejemplo de uso:
 
@@ -131,14 +131,6 @@ def lee_commandline(opcs):
             fswav, imp = tools.readWAV16(fname)
             IRs.append( (fswav, imp, fname) )
 
-        elif fname.endswith('.txt'):
-            if fs:
-                imp = np.loadtxt(fname)
-                IRs.append( (fs, imp, fname) )
-            else:
-                print (__doc__)
-                sys.exit()
-
         elif fname.endswith('.pcm'):
             if fs:
                 imp = tools.readPCM32(fname)
@@ -146,9 +138,14 @@ def lee_commandline(opcs):
             else:
                 print (__doc__)
                 sys.exit()
-        else:
-            print (__doc__)
-            sys.exit()
+
+        else:   # it is supposed to be a text file
+            if fs:
+                imp = np.loadtxt(fname)
+                IRs.append( (fs, imp, fname) )
+            else:
+                print (__doc__)
+                sys.exit()
 
     return IRs
 
