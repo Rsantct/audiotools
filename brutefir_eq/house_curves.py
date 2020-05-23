@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
-    Generates house curves sets for target Room Eq
+    Generates house curves sets as target room equalization curves
+    to be used on the Brutefir eq coeff.
 
-    usage:
+    Usage:
 
     house_curves.py  -RXX -fs=X -loS=X -loG=X -loF=X -hiA=X -hiF=X --save --plot
 

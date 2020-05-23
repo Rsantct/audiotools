@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """
-    Prepare tone EQ curves to be used on Brutefir eq coeff
-
+    Prepare tone EQ curves to be used on Brutefir eq coeff.
+    
+    First or second order shelving filters are available.
+    
     Usage:
 
     tones.py    -RXX  -fs=X  -o=X -b=X -t=X  --save  --plot
