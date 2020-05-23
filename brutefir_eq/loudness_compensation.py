@@ -2,6 +2,8 @@
 """
     Prepare loudness compensation curves for listening levels referred
     to a given reference phon (dBSPL), to be used on Brutefir eq coeff.
+    
+    Curves follows the ISO 226:2003 normal equal-loudness-level contours
 
     Usage:
 
