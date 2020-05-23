@@ -14,4 +14,6 @@ Help tool to analize the internal FIR from the Brutefir eq logic runtime module.
     
 ### bf_config_logic.py
 
-A simple tool to generate the necessary eq bands and cli sections for `brutefir_config`
+A simple tool to generate the necessary eq bands and cli sections for `brutefir_config`. See details here:
+
+https://torger.se/anders/brutefir.html#bflogic_eq
