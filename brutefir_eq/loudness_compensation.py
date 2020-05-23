@@ -95,9 +95,9 @@ def save_curves():
     fname = f'{folder}/freq.dat'
     mname = f'{folder}/ref_{refSPL}_loudness_mag.dat'
     pname = f'{folder}/ref_{refSPL}_loudness_pha.dat'
-    np.savetxt( fname, freqs_isoR.transpose(),              fmt='%.4e' )
-    np.savetxt( mname, curves.transpose(),                  fmt='%.4e' )
-    np.savetxt( pname, phase_from_mag(curves).transpose(),  fmt='%.4e' )
+    np.savetxt( fname, freqs_isoR.transpose() )
+    np.savetxt( mname, curves.transpose() )
+    np.savetxt( pname, phase_from_mag(curves).transpose() )
     print(f'freqs saved to:  {fname}')
     print(f'curves saved to: {mname}')
     print(f'                 {pname}')
