@@ -1,4 +1,4 @@
-Scripts to generate the needed files for adjusting bass, treble, loudness contour compensation and target house curves (psychoacoustic room dimension equalization) that will be loaded into the Brutefir's EQ stage
+Scripts to generate the needed files for adjusting bass, treble, loudness contour compensation and target house curves (psychoacoustic room dimension equalization) that can be loaded into the Brutefir's EQ stage
 
 More details here:
 
