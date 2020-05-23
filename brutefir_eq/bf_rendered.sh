@@ -8,7 +8,7 @@ if [[ $1 ]]; then
 else
     echo
     echo "Plots the rendered impulse given from Brutefir eq logic runtime module"
-    echo "at /tmp/brutefir-rendered-0.txt"
+    echo "at /tmp/brutefir-rendered-0"
     echo
     echo "Usage:bf_rendered.sh fs"
     echo
