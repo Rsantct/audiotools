@@ -7,11 +7,11 @@ More details here:
 https://github.com/AudioHumLab/pe.audio.sys/tree/master/pe.audio.sys#the-shareeq-folder
 
 
-## bf_rendered.sh
+### bf_rendered.sh
 
 Help tool to analize the internal FIR from the Brutefir eq logic runtime module. Brutefir dumps the internal FIR coefficient taps in a text file, e.g. `/tmp/brutefir-rendered-0.txt`.
 
     
-## bf_config_logic.py
+### bf_config_logic.py
 
 A simple tool to generate the necessary eq bands and cli sections for `brutefir_config`
