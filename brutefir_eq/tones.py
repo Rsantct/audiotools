@@ -141,11 +141,11 @@ def save_dat():
     if not os.path.isdir(folder):
         os.makedirs(folder)
 
-    np.savetxt( f'{folder}/freq.dat',       freqs.transpose(),  fmt='%.4e' )
-    np.savetxt( f'{folder}/bass_mag.dat',   bass_mag,           fmt='%.4e' )
-    np.savetxt( f'{folder}/bass_pha.dat',   bass_pha,           fmt='%.4e' )
-    np.savetxt( f'{folder}/treble_mag.dat', treble_mag,         fmt='%.4e' )
-    np.savetxt( f'{folder}/treble_pha.dat', treble_pha,         fmt='%.4e' )
+    np.savetxt( f'{folder}/freq.dat',       freqs.transpose() )
+    np.savetxt( f'{folder}/bass_mag.dat',   bass_mag   )
+    np.savetxt( f'{folder}/bass_pha.dat',   bass_pha   )
+    np.savetxt( f'{folder}/treble_mag.dat', treble_mag )
+    np.savetxt( f'{folder}/treble_pha.dat', treble_pha )
 
     print(f'freqs saved to:  {folder}/freq.dat')
     print(f'curves saved to: {folder}/<bass|treble>_mag.dat')

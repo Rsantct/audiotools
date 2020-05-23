@@ -128,15 +128,15 @@ def save_curves():
         os.makedirs(folder)
 
     fname = f'{folder}/freq.dat'
-    np.savetxt( fname, f.transpose(), fmt='%.4e' )
+    np.savetxt( fname, f.transpose() )
 
     for curve in curves:
         mag = curves[curve]['mag']
         pha = curves[curve]['pha']
         mname = f'{folder}/{curve}_target_mag.dat'
         pname = f'{folder}/{curve}_target_pha.dat'
-        np.savetxt( mname, mag, fmt='%.4e' )
-        np.savetxt( pname, pha, fmt='%.4e' )
+        np.savetxt( mname, mag )
+        np.savetxt( pname, pha )
 
     print(f'freqs saved to:  {folder}/freq.dat')
     print(f'curves saved to: {folder}/L-H_target_mag.dat')
