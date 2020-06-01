@@ -7,13 +7,13 @@
     
     You can reset the current (I) by writing 'reset' into --control-file
 """
-# Thanks to https://python-sounddevice.readthedocs.io
-
 import argparse
 import numpy as np
 from scipy import signal
 import sounddevice as sd
 import queue
+
+# Thanks to https://python-sounddevice.readthedocs.io
 
 # https://github.com/AudioHumLab/audiotools
 import pydsd
@@ -104,12 +104,15 @@ if __name__ == '__main__':
     # Initialize 400ms stereo block window
     w400 = np.zeros( (4*BS, 2) , dtype='float32')
 
-    # Intialize (I)ntegrated Loudness and gates to -23.0 dBFS => 0 LU
-    M = -23.0
-    I = -23.0
-    G1mean = -23.0
+    # Intialize (I)ntegrated Loudness and gates to a low level value dBFS
+    M = -100.0
+    I = -100.0
+    Idisk  = I  # used to detect changes then trigger save2disk=True
+    Mdisk  = M
+    G1mean = -100.0
     G1 = 0          # gate counters to calculate the accu mean
     G2 = 0
+    save2disk = True
 
     # Reset the accumulated (I) on the fly by reading the control_file
     reset = False
@@ -142,6 +145,8 @@ if __name__ == '__main__':
             # Stereo (M)omentary Loudness
             if msqL or msqR: # avoid log10(0)
                 M = -0.691 + 10 * np.log10 (msqL + msqR)
+            else:
+                M = -100.0
             
             # Dual gatting to compute (I)ntegrated Loudness.
             if M > -70.0:
@@ -153,15 +158,44 @@ if __name__ == '__main__':
                 G2 += 1
                 I = G1mean + (M - G1mean) / G2
             
+            #print('M:', M)     # *** DEBUG ***
+
+            # Reseting the (I) measurement. <reset> is a global that can
+            # be modified on the fly.
+            if reset:
+                print('(loudness_monitor) restarting (I)ntegrated ' +
+                      'Loudness measurement')
+                # RESET variables
+                I       = -100.0
+                Idisk   = -100.0
+                M       = -100.0
+                Mdisk   = -100.0
+                G1mean  = -100.0
+                G1 = 0
+                G2 = 0
+                save2disk = True
+                reset = False
+
             # Converting FS (Full Scale) to LU (Loudness Units) ref to -23dBFS
             M_LU = M - -23.0
             I_LU = I - -23.0
 
-            # Updating the output file with the accumulated
-            # (I)ntegrated loudness in LU units.
-            with open( args.output_file, 'w') as fout:
-                fout.write( str( round(I_LU,1) ) )
-                fout.close()
+            # End of computing levels.
+
+            # Writing the output file if changes in 1 dB
+            if abs(Idisk - I) > 1.0 or abs(Mdisk - M) > 1.0:
+                save2disk = True
+
+            # Saving to disk rounded to 1 dB
+            if save2disk:
+                with open( args.output_file, 'w') as fout:
+                    d = { "LU_I":  round(I_LU, 0),
+                          "LU_M":  round(M_LU, 0),
+                          "scope": md_key }
+                    fout.write( json.dumps( d ) )
+                Idisk = I
+                Mdisk = M
+                save2disk = False
 
             # Reading the control file waiting for a 'reset' command
             with open( args.control_file, 'r') as fin:
@@ -171,17 +205,6 @@ if __name__ == '__main__':
                         fin.write('')
                     if cmd.startswith('reset'):
                         reset = True
-            if reset:
-                # RESET the accumulated
-                I = -23.0
-                G1mean = -23.0
-                G1 = 0
-                G2 = 0
-                # and zeroes the output file
-                with open( args.output_file, 'w') as fout:
-                    fout.write( '0.0' )
-                    fout.close()
-                reset = False
 
             # Optionally prints to console
             if args.print:
