@@ -72,7 +72,11 @@ class LU_meter(object):
 
         .start()        Start to measure
 
-        .reset=True     Reset current measurement
+        .reset()        Reset current measurement
+
+        .device         The sound device identifier (see -l command line option)
+
+        .display        (boolean) On console use, will display measurements.
 
         .M              [M]omentary loudness measurement
 
@@ -85,10 +89,14 @@ class LU_meter(object):
         self.device  = device
         self.display = display
         # A flag to RESET measures on the fly:
-        self.reset = False
+        self.mReset  = False
         # Intialize measured loudness and gates to a low level value:
         self.M     = -100.0     # (M)omentary Loudness  dBFS
         self.I     = -100.0     # (I)ntegrated Loudness dBFS
+
+
+    def reset(self):
+        self.mReset = True
 
 
     def start(self):
@@ -188,14 +196,14 @@ class LU_meter(object):
                         self.I = G1mean + (self.M - G1mean) / G2
 
                     # Reseting on the fly.
-                    if self.reset:
+                    if self.mReset:
                         print('(lu_meter) restarting measurement')
                         self.M  = -100.0
                         self.I  = -100.0
                         G1mean  = -100.0
                         G1 = 0
                         G2 = 0
-                        self.reset = False  # releasing the reset flag
+                        self.mReset = False  # releasing the meas reset flag
 
                     # Prints to console
                     if self.display:
@@ -239,4 +247,4 @@ if __name__ == '__main__':
     meter.start()
 
     # TODO
-    # A reset keystroke
+    # A reset keystroke for console usage
