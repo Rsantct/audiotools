@@ -19,8 +19,6 @@
     A simple audio meter
 
     To view suported devices use '-l' option
-    
-    For options available use '-h'
 
 """
 import sys
@@ -66,6 +64,21 @@ def parse_cmdline():
 
 
 class Meter(object):
+    """
+        Measures the signal level of an audio stream from a system sound device.
+
+
+        .start()        Start to measure
+
+        .device         The sound device identifier (see -l command line option)
+
+        .mode           'rms' or 'peak'
+
+        .bar            (boolean) On console use, will display a meter bar
+
+        .L              The measured level
+
+    """
 
 
     def __init__(self, device, mode='rms', bar=True):
