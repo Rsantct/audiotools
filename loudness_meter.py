@@ -85,14 +85,24 @@ class LU_meter(object):
     """
 
 
-    def __init__(self, device, display=False):
+    def __init__(self, device, display=False,
+                       M_event=None, M_threshold = 10.0,
+                       I_event=None, I_threshold = 1.0 ):
+        # The sound device
         self.device  = device
+        # Boolean for console display measurements
         self.display = display
         # A flag to RESET measures on the fly:
         self.mReset  = False
         # Intialize measured loudness and gates to a low level value:
         self.M     = -100.0     # (M)omentary Loudness  dBFS
         self.I     = -100.0     # (I)ntegrated Loudness dBFS
+        # Special events to notify the caller when
+        # M or I changes are greater than a given threshold
+        self.event_M = M_event
+        self.event_I = I_event
+        self.M_threshold = M_threshold   # def. 10 dB to avoid stress
+        self.I_threshold = I_threshold   # def. 1 dB because changes softly
 
 
     def reset(self):
@@ -156,6 +166,8 @@ class LU_meter(object):
             G1mean  = -100.0
             G1      = 0         # Gate counters to
             G2      = 0         # compute the accu mean
+            M_rounded = -100.0
+            I_rounded = -100.0
 
             with sd.InputStream(  device=self.device,
                                   callback=callback,
@@ -208,6 +220,14 @@ class LU_meter(object):
                     # Prints to console
                     if self.display:
                         display_measurements()
+
+                    # Notify an event if changes greater than a given threshold
+                    if abs(M_rounded - self.M) > self.M_threshold:
+                        self.event_M.set()
+                        M_rounded = self.M
+                    if abs(I_rounded - self.I) > self.I_threshold:
+                        self.event_I.set()
+                        I_rounded = self.I
 
 
         # Prepare an internal FIFO queue for the callback function
