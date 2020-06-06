@@ -82,6 +82,14 @@ class LU_meter(object):
 
         .I              [I]ntegrated loudness measurement (cummulated)
 
+        .M_event        An event object to notify the caller for changes
+
+        .M_threshold    threshold in dB to notify M changes
+
+        .I_event        An event object to notify the caller for changes
+
+        .I_threshold    threshold in dB to notify I changes
+
     """
 
 
@@ -99,8 +107,8 @@ class LU_meter(object):
         self.I     = -100.0     # (I)ntegrated Loudness dBFS
         # Special events to notify the caller when
         # M or I changes are greater than a given threshold
-        self.event_M = M_event
-        self.event_I = I_event
+        self.M_event = M_event
+        self.I_event = I_event
         self.M_threshold = M_threshold   # def. 10 dB to avoid stress
         self.I_threshold = I_threshold   # def. 1 dB because changes softly
 
@@ -223,10 +231,10 @@ class LU_meter(object):
 
                     # Notify an event if changes greater than a given threshold
                     if abs(M_rounded - self.M) > self.M_threshold:
-                        self.event_M.set()
+                        self.M_event.set()
                         M_rounded = self.M
                     if abs(I_rounded - self.I) > self.I_threshold:
-                        self.event_I.set()
+                        self.I_event.set()
                         I_rounded = self.I
 
 
