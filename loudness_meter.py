@@ -82,13 +82,13 @@ class LU_meter(object):
 
         .I              [I]ntegrated loudness measurement (cummulated)
 
-        .M_event        An event object to notify the caller for changes
+        .M_event        An event object to notify the caller for changes in [M]
 
-        .M_threshold    threshold in dB to notify M changes
+        .M_threshold    threshold in dB to trigger M_event
 
-        .I_event        An event object to notify the caller for changes
+        .I_event        An event object to notify the caller for changes in [I]
 
-        .I_threshold    threshold in dB to notify I changes
+        .I_threshold    threshold in dB to trigger I_event
 
     """
 
@@ -100,17 +100,18 @@ class LU_meter(object):
         self.device  = device
         # Boolean for console display measurements
         self.display = display
-        # A flag to RESET measures on the fly:
-        self.mReset  = False
-        # Intialize measured loudness and gates to a low level value:
-        self.M     = -100.0     # (M)omentary Loudness  dBFS
-        self.I     = -100.0     # (I)ntegrated Loudness dBFS
         # Special events to notify the caller when
         # M or I changes are greater than a given threshold
         self.M_event = M_event
         self.I_event = I_event
-        self.M_threshold = M_threshold   # def. 10 dB to avoid stress
-        self.I_threshold = I_threshold   # def. 1 dB because changes softly
+        self.M_threshold = M_threshold   # default 10 dB to avoid stress
+        self.I_threshold = I_threshold   # default 1 dB because changes softly
+        # A flag to RESET measures on the fly:
+        self.mReset  = False
+        # Measured (M)omentary Loudness  dBFS
+        self.M = -100.0
+        # Measured (I)ntegrated Loudness dBFS
+        self.I = -100.0
 
 
     def reset(self):
@@ -147,7 +148,7 @@ class LU_meter(object):
 
         def k_filter(x):
             """ input:  stereo audio block: x[:, channel]
-                output: x 'K' filtered, 100Hz HPF + 1000Hz High Shelf +4dB
+                output: x K-filtered, 100Hz HPF + 1000Hz High Shelf +4dB
             """
             y = np.copy( x )
             # coeffs includes 'b', 'a' and initial condition 'zi' for lfilter
@@ -161,7 +162,9 @@ class LU_meter(object):
 
 
         def callback(indata, frames, time, status):
-            """ The handler for input stream audio chunks """
+            """ The handler for input stream audio chunks,
+                simply puts data into the input-queue
+            """
             if status:
                 print( f'----- {status} -----' )
             qIn.put( indata )
@@ -170,12 +173,13 @@ class LU_meter(object):
         def loop_forever():
             """ loop capturing stream and processing audio blocks """
 
-            # Initialize gates for cummulative measurement
+            # Initialize cummulative mean and gates
             G1mean  = -100.0
-            G1      = 0         # Gate counters to
-            G2      = 0         # compute the accu mean
-            M_rounded = -100.0
-            I_rounded = -100.0
+            G1      = 0
+            G2      = 0
+            # Memorize last measurements used for evaluate if threshold exceeded
+            M_last = -100.0
+            I_last = -100.0
 
             with sd.InputStream(  device=self.device,
                                   callback=callback,
@@ -185,13 +189,13 @@ class LU_meter(object):
                                   dither_off=True):
                 while True:
 
-                    # Reading captured blocks of 100 ms:
+                    # Reading captured blocks of 100 ms from the input-queue
                     b100 = qIn.get()
 
                     # “K” weight filtering the 100ms chunks
                     k100 = k_filter(b100)
 
-                    # Sliding the 400ms (w)indow
+                    # Sliding the 400ms (w)indow and filling it with k100 chunks
                     w400[ : bs * 3 ] = w400[ bs : ]
                     w400[ bs * 3 : ] = k100
 
@@ -199,9 +203,9 @@ class LU_meter(object):
                     msqL = np.sum( np.square( w400[:,0] ) ) / (fs * 0.4)
                     msqR = np.sum( np.square( w400[:,1] ) ) / (fs * 0.4)
 
-                    # Stereo (M)omentary Loudness
+                    # Stereo (M)omentary Loudness (divided by 2 channels)
                     if msqL or msqR:    # avoid log10(0)
-                        self.M = -0.691 + 20 * np.log10(msqL + msqR) / 2.0
+                        self.M = -0.691 + 20 * np.log10(msqL + msqR) / 2
                     else:
                         self.M = -100.0
 
@@ -214,6 +218,8 @@ class LU_meter(object):
                     if self.M > (G1mean - 10.0):
                         G2 += 1
                         self.I = G1mean + (self.M - G1mean) / G2
+
+                    # End of measurements, let's manage events:
 
                     # Reseting on the fly.
                     if self.mReset:
@@ -230,21 +236,21 @@ class LU_meter(object):
                         display_measurements()
 
                     # Notify an event if changes greater than a given threshold
-                    if abs(M_rounded - self.M) > self.M_threshold:
+                    if abs(M_last - self.M) > self.M_threshold:
                         self.M_event.set()
-                        M_rounded = self.M
-                    if abs(I_rounded - self.I) > self.I_threshold:
+                        M_last = self.M
+                    if abs(I_last - self.I) > self.I_threshold:
                         self.I_event.set()
-                        I_rounded = self.I
+                        I_last = self.I
 
 
-        # Prepare an internal FIFO queue for the callback function
+        # Prepare an internal FIFO queue for the callback process
         qIn = queue.Queue()
 
         # Getting current Fs from the PortAudio device
         fs = sd.query_devices(self.device, 'input')['default_samplerate']
 
-        # lenght in samples of the 100 msec audio block
+        # Block size in samples for 100 msec of audio at Fs
         bs  = int( fs * 0.100 )
 
         # Initialize a 400ms stereo block window
