@@ -94,7 +94,7 @@ class LU_meter(object):
 
 
     def __init__(self, device, display=False,
-                       M_event=None, M_threshold = 10.0,
+                       M_event=None, M_threshold = 1.0,
                        I_event=None, I_threshold = 1.0 ):
         # The sound device
         self.device  = device
@@ -104,8 +104,8 @@ class LU_meter(object):
         # M or I changes are greater than a given threshold
         self.M_event = M_event
         self.I_event = I_event
-        self.M_threshold = M_threshold   # default 10 dB to avoid stress
-        self.I_threshold = I_threshold   # default 1 dB because changes softly
+        self.M_threshold = M_threshold  # default to 1 dB to avoid stress
+        self.I_threshold = I_threshold  # on triggering events
         # A flag to RESET measures on the fly:
         self.mReset  = False
         # Measured (M)omentary Loudness  dBFS
