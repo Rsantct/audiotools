@@ -76,38 +76,40 @@ class LU_meter(object):
 
         .device         The sound device identifier (see -l command line option)
 
-        .display        (boolean) On console use, will display measurements.
+        .display        On console use, will display measurements (boolean)
 
         .M              [M]omentary loudness measurement
 
         .I              [I]ntegrated loudness measurement (cummulated)
 
-        .M_event        An event object to notify the caller for changes in [M]
+        .M_event        Event object to notify the user for changes in [M]
 
-        .M_threshold    threshold in dB to trigger M_event
+        .M_threshold    Threshold in dB to trigger M_event
 
-        .I_event        An event object to notify the caller for changes in [I]
+        .I_event        Event object to notify the user for changes in [I]
 
-        .I_threshold    threshold in dB to trigger I_event
+        .I_threshold    Threshold in dB to trigger I_event
 
     """
 
 
     def __init__(self, device, display=False,
-                       M_event=None, M_threshold = 1.0,
-                       I_event=None, I_threshold = 1.0 ):
+                       M_threshold = 1.0,
+                       I_threshold = 1.0 ):
         # The sound device
         self.device  = device
         # Boolean for console display measurements
         self.display = display
-        # Special events to notify the caller when
-        # M or I changes are greater than a given threshold
-        self.M_event = M_event
-        self.I_event = I_event
-        self.M_threshold = M_threshold  # default to 1 dB to avoid stress
-        self.I_threshold = I_threshold  # on triggering events
+        # Events to notify the user when M or I
+        # changes are greater than a given threshold
+        self.M_event = threading.Event()
+        self.I_event = threading.Event()
+        # Thresholds for levels changes notifications
+        # default to 1 dB to avoid stress on triggering events.
+        self.M_threshold = M_threshold
+        self.I_threshold = I_threshold
         # A flag to RESET measures on the fly:
-        self.mReset  = False
+        self.meas_reset  = False
         # Measured (M)omentary Loudness  dBFS
         self.M = -100.0
         # Measured (I)ntegrated Loudness dBFS
@@ -115,7 +117,7 @@ class LU_meter(object):
 
 
     def reset(self):
-        self.mReset = True
+        self.meas_reset = True
 
 
     def start(self):
@@ -222,14 +224,14 @@ class LU_meter(object):
                     # End of measurements, let's manage events:
 
                     # Reseting on the fly.
-                    if self.mReset:
+                    if self.meas_reset:
                         print('(lu_meter) restarting measurement')
                         self.M  = -100.0
                         self.I  = -100.0
                         G1mean  = -100.0
                         G1 = 0
                         G2 = 0
-                        self.mReset = False  # releasing the meas reset flag
+                        self.meas_reset = False  # releasing the flag
 
                     # Prints to console
                     if self.display:
