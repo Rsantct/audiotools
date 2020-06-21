@@ -30,11 +30,9 @@ import numpy as np
 from scipy.signal import lfilter, lfilter_zi
 import queue
 import threading
+import pydsd
 # Thanks to https://python-sounddevice.readthedocs.io
 import sounddevice as sd
-# https://github.com/AudioHumLab/audiotools
-sys.path.append( f'{os.path.expanduser("~")}/audiotools' )
-import pydsd
 
 
 def parse_cmdline():
