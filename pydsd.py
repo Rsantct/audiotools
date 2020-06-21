@@ -34,16 +34,25 @@
 import numpy as np
 from scipy import signal, interpolate
 
-def biquad(fs, f0, Q, type, dBgain=0.0):
+def biquad(fs, f0, Q, ftype, dBgain=0.0):
     """
-    %% Obtiene los coeficientes 'b,a' del filtro IIR asociado a un biquad.
-    %%
-    %% fs       = Frecuencia de muestreo.
-    %% f0       = Frecuencia central del filtro.
-    %% Q        = Definido en "peakingEQ" de "DSP EQ cookbook",
-    %%            el ancho de banda es entre puntos de ganancia mitad.
-    %% type     = 'lpf' | 'hpf' | 'notch' | 'peakingEQ' | 'lowshelf' | 'highshelf'
-    %% dBgain   = Solo usado para peakingEQ, lowshelf o highshelf
+    INPUTS:
+
+        fs:         sampling rate
+        f0:         filter central frequency
+        Q:          quality factor as per "peakingEQ" at "DSP EQ cookbook",
+                    stands for the BW from -6 dB points arounf f0.
+        ftype:      lpf, hpf, notch, peakingEQ, lowshelf, highshelf (string)
+        dBgain:     used for peakingEQ, lowshelf, highshelf kind of filters.
+
+    OUTPUT:
+
+        (b,a):      coeffs of the IIR filter associated to a biquad
+
+    CREDITS:
+        #############################################################
+        ###  http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt  ###
+        #############################################################
     """
 
     if (Q <= 0):
@@ -52,15 +61,12 @@ def biquad(fs, f0, Q, type, dBgain=0.0):
     if (f0 <= 0) or (fs <= 0):
         raise ValueError("f must be positive");
 
-    #######################################################
-    # http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt #
-    #######################################################
 
-    A     = np.sqrt(10**(dBgain/20.0)) # (!) dividir por 20.0 para que Python no divida enteros
-    w0    = 2.0 * np.pi * f0/fs
+    A     = np.sqrt(10 ** (dBgain / 20.0))
+    w0    = 2.0 * np.pi * f0 / fs
     alpha = np.sin(w0) / (2.0 * Q)
 
-    if type.lower() == "lpf":
+    if ftype.lower() == "lpf":
         b0 =  (1 - np.cos(w0)) / 2
         b1 =   1 - np.cos(w0)
         b2 =  (1 - np.cos(w0)) / 2
@@ -68,7 +74,7 @@ def biquad(fs, f0, Q, type, dBgain=0.0):
         a1 =  -2 * np.cos(w0)
         a2 =   1 - alpha
 
-    elif type.lower() == "hpf":
+    elif ftype.lower() == "hpf":
         b0 =  (1 + np.cos(w0)) / 2
         b1 = -(1 + np.cos(w0))
         b2 =  (1 + np.cos(w0)) / 2
@@ -76,7 +82,7 @@ def biquad(fs, f0, Q, type, dBgain=0.0):
         a1 =  -2 * np.cos(w0)
         a2 =   1 - alpha
 
-    elif type.lower() == "notch":
+    elif ftype.lower() == "notch":
         b0 =   1
         b1 =  -2 * np.cos(w0)
         b2 =   1
@@ -84,7 +90,7 @@ def biquad(fs, f0, Q, type, dBgain=0.0):
         a1 =  -2 * np.cos(w0)
         a2 =   1 - alpha
 
-    elif type.lower() == "peakingeq":
+    elif ftype.lower() == "peakingeq":
         b0 =   1 + alpha * A
         b1 =  -2 * np.cos(w0)
         b2 =   1 - alpha * A
@@ -92,7 +98,7 @@ def biquad(fs, f0, Q, type, dBgain=0.0):
         a1 =  -2 * np.cos(w0)
         a2 =   1 - alpha / A
 
-    elif type.lower() == "lowshelf":
+    elif ftype.lower() == "lowshelf":
         b0 =      A * ( (A+1) - (A-1)*np.cos(w0) + 2*np.sqrt(A)*alpha )
         b1 =  2 * A * ( (A-1) - (A+1)*np.cos(w0)                      )
         b2 =      A * ( (A+1) - (A-1)*np.cos(w0) - 2*np.sqrt(A)*alpha )
@@ -100,7 +106,7 @@ def biquad(fs, f0, Q, type, dBgain=0.0):
         a1 = -2 *     ( (A-1) + (A+1)*np.cos(w0)                      )
         a2 =            (A+1) + (A-1)*np.cos(w0) - 2*np.sqrt(A)*alpha
 
-    elif type.lower() == "highshelf":
+    elif ftype.lower() == "highshelf":
         b0 =      A * ( (A+1) + (A-1)*np.cos(w0) + 2*np.sqrt(A)*alpha )
         b1 = -2 * A * ( (A-1) + (A+1)*np.cos(w0)                      )
         b2 =      A * ( (A+1) + (A-1)*np.cos(w0) - 2*np.sqrt(A)*alpha )
