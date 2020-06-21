@@ -32,9 +32,94 @@ import queue
 import threading
 # Thanks to https://python-sounddevice.readthedocs.io
 import sounddevice as sd
-# https://github.com/AudioHumLab/audiotools
-sys.path.append( f'{os.path.expanduser("~")}/audiotools' )
-import pydsd
+
+
+def biquad(fs, f0, Q, ftype, dBgain=0.0):
+    """
+    INPUTS:
+
+        fs:         sampling rate
+        f0:         filter central frequency
+        Q:          quality factor as per "peakingEQ" at "DSP EQ cookbook",
+                    stands for the BW from -6 dB points arounf f0.
+        ftype:      lpf, hpf, notch, peakingEQ, lowshelf, highshelf (string)
+        dBgain:     used for peakingEQ, lowshelf, highshelf kind of filters.
+
+    OUTPUT:
+
+        (b,a):      coeffs of the IIR filter associated to a biquad
+
+    CREDITS:
+        #############################################################
+        ###  http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt  ###
+        #############################################################
+    """
+
+    if (Q <= 0):
+        raise ValueError("Q must be positive");
+
+    if (f0 <= 0) or (fs <= 0):
+        raise ValueError("f must be positive");
+
+
+    A     = np.sqrt(10 ** (dBgain / 20.0))
+    w0    = 2.0 * np.pi * f0 / fs
+    alpha = np.sin(w0) / (2.0 * Q)
+
+    if ftype.lower() == "lpf":
+        b0 =  (1 - np.cos(w0)) / 2
+        b1 =   1 - np.cos(w0)
+        b2 =  (1 - np.cos(w0)) / 2
+        a0 =   1 + alpha
+        a1 =  -2 * np.cos(w0)
+        a2 =   1 - alpha
+
+    elif ftype.lower() == "hpf":
+        b0 =  (1 + np.cos(w0)) / 2
+        b1 = -(1 + np.cos(w0))
+        b2 =  (1 + np.cos(w0)) / 2
+        a0 =   1 + alpha
+        a1 =  -2 * np.cos(w0)
+        a2 =   1 - alpha
+
+    elif ftype.lower() == "notch":
+        b0 =   1
+        b1 =  -2 * np.cos(w0)
+        b2 =   1
+        a0 =   1 + alpha
+        a1 =  -2 * np.cos(w0)
+        a2 =   1 - alpha
+
+    elif ftype.lower() == "peakingeq":
+        b0 =   1 + alpha * A
+        b1 =  -2 * np.cos(w0)
+        b2 =   1 - alpha * A
+        a0 =   1 + alpha / A
+        a1 =  -2 * np.cos(w0)
+        a2 =   1 - alpha / A
+
+    elif ftype.lower() == "lowshelf":
+        b0 =      A * ( (A+1) - (A-1)*np.cos(w0) + 2*np.sqrt(A)*alpha )
+        b1 =  2 * A * ( (A-1) - (A+1)*np.cos(w0)                      )
+        b2 =      A * ( (A+1) - (A-1)*np.cos(w0) - 2*np.sqrt(A)*alpha )
+        a0 =            (A+1) + (A-1)*np.cos(w0) + 2*np.sqrt(A)*alpha
+        a1 = -2 *     ( (A-1) + (A+1)*np.cos(w0)                      )
+        a2 =            (A+1) + (A-1)*np.cos(w0) - 2*np.sqrt(A)*alpha
+
+    elif ftype.lower() == "highshelf":
+        b0 =      A * ( (A+1) + (A-1)*np.cos(w0) + 2*np.sqrt(A)*alpha )
+        b1 = -2 * A * ( (A-1) + (A+1)*np.cos(w0)                      )
+        b2 =      A * ( (A+1) + (A-1)*np.cos(w0) - 2*np.sqrt(A)*alpha )
+        a0 =            (A+1) - (A-1)*np.cos(w0) + 2*np.sqrt(A)*alpha
+        a1 =  2 *     ( (A-1) - (A+1)*np.cos(w0)                      )
+        a2 =            (A+1) - (A-1)*np.cos(w0) - 2*np.sqrt(A)*alpha
+
+    else:
+        raise ValueError("Wrong biquad type")
+
+    a = np.array([a0, a1, a2])
+    b = np.array([b0, b1, b2])
+    return b, a
 
 
 def parse_cmdline():
@@ -143,7 +228,7 @@ class LU_meter(object):
             """ this calculates coeffs and initial conditions
                 for signal.lfilter
             """
-            b, a = pydsd.biquad( fs, f0, Q, ftype, dBgain )
+            b, a = biquad( fs, f0, Q, ftype, dBgain )
             zi   = lfilter_zi(b, a)
             return b, a, zi
 
