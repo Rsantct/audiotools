@@ -567,43 +567,49 @@ def savePCM32(raw, fout):
 
 def readFRD(fname):
     """
-    Devuelve un ndarray[freq, mag, phase] con el contenido de un archivo de texto
-    Freq Response Data. Algunos archivos .FRD como los de ARTA incluyen una
-    cabecera que no está comentada '#' lo que ocasiona un error con np.loadtxt().
+    Reads a .frd file (Frequency Response Data).
+    The file can have FS information inside commented out lines.
 
-    Aquí los comentaremos en un archivo temporal que será el que leamos con
-    np.loadtxt()
-
-    v2.0 lee también la FS si viene en el archivo
-
-    devuelve: ndarray[freq, mag, phase], fs
+    Returns: ndarray[freq, mag, phase], fs
     """
     fs = 0
-    f = open(fname, 'r')
-    lineas = f.read().split("\n")
-    f.close()
-    ftmp = open("tmpreadfrd", "w")
-    # tab2spc y descarta lineas vacías:
-    for linea in [x.replace("\t", " ").strip() for x in lineas if x]:
 
-        if 'rate' in linea.lower() or 'fs' in linea.lower():
-            items = linea.split()
-            for item in items:
-                if item.isdigit():
-                    fs = int(item)
+    with open(fname, 'r') as f:
+        lineas = f.read().split("\n")
 
-        if not linea[0].isdigit():
-            lineatmp = "# " + linea
-        else:
-            lineatmp = linea
-        ftmp.write(lineatmp + "\n")
-    ftmp.close()
+    # Some .frd files as yhe ARTA ones, includes a header with no commented out
+    # lines, this produces an error when using numpy.loadtxt().
+    #
+    # Here we prepare a temporary file to be safely loaded from numpy.loadtxt()
+    #
+    with open("tmpreadfrd", "w") as ftmp:
 
-    # Lectura en un array con las columnas del .FRD
-    columnas = np.loadtxt("tmpreadfrd")
+        for linea in lineas:
+
+            if not linea:
+                continue
+
+            if 'rate' in linea.lower() or 'fs' in linea.lower():
+                items = linea.split()
+                for item in items:
+                    if item.isdigit():
+                        fs = int(item)
+
+            if not linea[0].isdigit():
+                linea = "# " + linea
+
+            linea = linea.replace(";", " ") \
+                         .replace(",", " ") \
+                         .replace("\t", " ") \
+                         .strip()
+
+            ftmp.write(linea + "\n")
+
+    # Reading and removing the temporary file
+    columns = np.loadtxt("tmpreadfrd")
     os_remove("tmpreadfrd")
 
-    return columnas, fs
+    return columns, fs
 
 
 def saveFRD(fname, freq, mag, pha=np.array(0), fs=None, comments=''):

@@ -173,7 +173,7 @@ if __name__ == "__main__":
 
     # Por defecto
     fmin = 20;     fmax = 20000     # Hz
-    dBrange             = 50        # dB
+    dBrange             = 100        # dB
     ymax                = 10
     autobalance         = False
     normalize           = False
@@ -289,7 +289,8 @@ if __name__ == "__main__":
         avg_mags = np.average(BPavgs)
         centerY = ( avg_mags // 10 ) * 10
 
-    axMag.set_ylim( centerY - dBrange/2.0, centerY + dBrange/2.0 )
+    # centerY is actually placed 1/4 below upper limit
+    axMag.set_ylim( centerY - dBrange * 3.0/4.0, centerY + dBrange * 1.0/4.0 )
 
     axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
 
