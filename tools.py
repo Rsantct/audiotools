@@ -481,7 +481,7 @@ def wholemag2LP(wholemag, windowed=True, kaiserBeta=3):
     # Volvemos al dom de t, tomamos la parte real de IFFT
     imp = np.real( np.fft.ifft( wholemag ) )
     # y shifteamos la IFFT para conformar el IR con el impulso centrado:
-    imp = np.roll(imp, len(wholemag)/2)
+    imp = np.roll(imp, int(len(wholemag)/2))
 
     # Enventanado simétrico
     if windowed:
