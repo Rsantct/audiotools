@@ -131,7 +131,7 @@ def lee_commandline(opcs):
             fswav, imp = tools.readWAV16(fname)
             IRs.append( (fswav, imp, fname) )
 
-        elif fname.endswith('.pcm'):
+        elif fname.endswith('.pcm') or fname.endswith('.bin'):
             if fs:
                 imp = tools.readPCM32(fname)
                 IRs.append( (fs, imp, fname) )
@@ -224,17 +224,27 @@ def preparaGraficas():
 
 
 def check_lin_pha(imp, tol):
+
+    result = False
+
     # Ensure the impulse is centered
     center = np.argmax(imp)
     if center - imp.shape[0] // 2 > 1:
         return False
+
     # Check if symmetric with tolerance
     atol = 10 ** (tol/20.0)
     if imp.shape[0] % 2 == 0:
         begin = 1
     else:
         begin = 0
-    return np.allclose(imp[begin:center], imp[center + 1:][::-1], atol=atol)
+
+    try:
+        result = np.allclose(imp[begin:center], imp[center + 1:][::-1], atol=atol)
+    except:
+        print( '(!) error when checking for linear phase, sorry :-/ ' )
+
+    return result
 
 
 if __name__ == "__main__":
