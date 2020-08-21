@@ -481,7 +481,7 @@ def wholemag2LP(wholemag, windowed=True, kaiserBeta=3):
     # Volvemos al dom de t, tomamos la parte real de IFFT
     imp = np.real( np.fft.ifft( wholemag ) )
     # y shifteamos la IFFT para conformar el IR con el impulso centrado:
-    imp = np.roll(imp, len(wholemag)/2)
+    imp = np.roll(imp, int(len(wholemag)/2))
 
     # Enventanado simétrico
     if windowed:
@@ -530,9 +530,9 @@ def isPowerOf2(n):
 def Ktaps(x):
     """ cutre conversor para mostrar la longitud de un FIR """
     if x >= 1024:
-        return str(x / 1024) + " Ktaps"
+        return str(int(x / 1024)) + " Ktaps"
     else:
-        return str(x) + " taps"
+        return str(int(x)) + " taps"
 
 
 def KHz(f):
@@ -575,7 +575,7 @@ def readFRD(fname):
     fs = 0
 
     with open(fname, 'r') as f:
-        lineas = f.read().split("\n")
+        lines = f.read().split("\n")
 
     # Some .frd files as yhe ARTA ones, includes a header with no commented out
     # lines, this produces an error when using numpy.loadtxt().
@@ -584,26 +584,28 @@ def readFRD(fname):
     #
     with open("tmpreadfrd", "w") as ftmp:
 
-        for linea in lineas:
+        for line in lines:
 
-            if not linea:
+            line = line.strip()
+
+            if not line:
                 continue
 
-            if 'rate' in linea.lower() or 'fs' in linea.lower():
-                items = linea.split()
+            if 'rate' in line.lower() or 'fs' in line.lower():
+                items = line.split()
                 for item in items:
                     if item.isdigit():
                         fs = int(item)
 
-            if not linea[0].isdigit():
-                linea = "# " + linea
+            if not line[0].isdigit():
+                line = "# " + line
 
-            linea = linea.replace(";", " ") \
-                         .replace(",", " ") \
-                         .replace("\t", " ") \
-                         .strip()
+            line = line.replace(";", " ") \
+                       .replace(",", " ") \
+                       .replace("\t", " ") \
+                       .strip()
 
-            ftmp.write(linea + "\n")
+            ftmp.write(line + "\n")
 
     # Reading and removing the temporary file
     columns = np.loadtxt("tmpreadfrd")
