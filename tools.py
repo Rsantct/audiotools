@@ -530,9 +530,9 @@ def isPowerOf2(n):
 def Ktaps(x):
     """ cutre conversor para mostrar la longitud de un FIR """
     if x >= 1024:
-        return str(x / 1024) + " Ktaps"
+        return str(int(x / 1024)) + " Ktaps"
     else:
-        return str(x) + " taps"
+        return str(int(x)) + " taps"
 
 
 def KHz(f):
