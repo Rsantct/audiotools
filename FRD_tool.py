@@ -7,21 +7,29 @@
     Uso:
      FRD_tool.py   file1.frd  file2.txt .. [-opciones ..]
 
-    -dBXX           Rango XX dBs del eje de magnitudes
+    -dBrange=XX
+    -dB=XX          Rango XX dBs del eje de magnitudes
+
+    -dBtop=XX       Límite superior de la gráfica
+
     -norm           Ajusta el máx de la curva en 0 dB
+
     -autobal        Presenta las curvas niveladas con su banda de paso en 0 dB
                     De utilidad para estimar la combinación de curvas,
                     por ejemplo de un woofer campo cercano + campo libre
 
     -phase          Incluye gráfico de la phase si la hubiera.
+
     -nomask         Muestra la phase también en las regiones de magnitud
                     muy baja respecto a la banda de paso.
 
-    -f300-3000      Eje de frecuencias p.ej: 300 a 3000 Hz
+    -f=300-3000      Eje de frecuencias p.ej: 300 a 3000 Hz
 
-    -Noct           Suaviza la curva a 1/N oct, ejemplo de uso: -6oct
+    -s=N            Suaviza la curva a 1/N oct.
+
     -f0=xx          Frecuencia en la que deja de suavizar 1/N oct
                     hasta alcanzar 1/1 oct en Nyquist
+
     -saveNoct       Guarda la curva suavizada en un archivo 'fileX_Noct.frd'
 
 """
@@ -75,9 +83,10 @@ def prepara_graf():
         grid = gridspec.GridSpec(nrows=1, ncols=1)
 
     axMag = fig.add_subplot(grid[0:2,0])
-    axMag.set_ylim(ymax-dBrange, ymax)
+    axMag.set_ylim(dBtop-dBrange, dBtop)
     prepara_eje_frecuencias(axMag)
     axMag.set_ylabel("magnitude (dB)")
+    axMag.set_yticks(range(-210, 210, 6))
 
     if subplotPha:
         axPha = fig.add_subplot(grid[2,0])
@@ -117,7 +126,7 @@ def limpia(curva, curvaRef, th):
     return curvaClean
 
 def lee_command_line():
-    global frdnames, fmin, fmax, dBrange, subplotPha, saveNoct
+    global frdnames, fmin, fmax, dBrange, dBtop, subplotPha, saveNoct
     global autobalance, normalize, maskPhaseIfLow, Noct, f0
 
     frdnames = []
@@ -143,8 +152,14 @@ def lee_command_line():
             elif '-norm' in opc:
                 normalize = True
 
-            elif opc.lower()[:3] == '-db':
-                dBrange = round(float(opc[3:].strip()))
+            elif opc.lower()[:4] == '-db=':
+                dBrange = round(float(opc[4:].strip()))
+
+            elif opc.lower()[:9] == '-dbrange=':
+                dBrange = round(float(opc[9:].strip()))
+
+            elif opc.lower()[:7] == '-dbtop=':
+                dBtop = round(float(opc[7:].strip()))
 
             elif '-pha' in opc:
                 subplotPha = True
@@ -152,8 +167,8 @@ def lee_command_line():
             elif '-nomask' in opc:
                 maskPhaseIfLow = False
 
-            elif opc[0] == '-' and opc[-3:] == 'oct':
-                Noct = int(opc.replace('-', '').replace('oct', '').strip())
+            elif opc.lower()[:3] == '-s=':
+                Noct = int(opc[3:].strip())
 
             elif opc[:4] == '-f0=':
                 f0 = int(opc[4:])
@@ -163,6 +178,10 @@ def lee_command_line():
 
             elif opc[-4:].lower() in ['.txt', '.frd']:
                 frdnames.append(opc)
+
+            else:
+                print('(!) bad option:', opc)
+                sys.exit()
 
     # si no hay frdname
     if not frdnames:
@@ -174,7 +193,7 @@ if __name__ == "__main__":
     # Por defecto
     fmin = 20;     fmax = 20000     # Hz
     dBrange             = 100        # dB
-    ymax                = 10
+    dBtop               = 10
     autobalance         = False
     normalize           = False
     subplotPha          = False
@@ -229,7 +248,7 @@ if __name__ == "__main__":
         BPavg_mag = round(BPavg(mag), 2)
         BPavgs.append( BPavg_mag )
 
-        # Opcionalmente la bajamos por debajo de 0
+        # Opcionalmente la dejamos por debajo de 0 dB
         if normalize:
             mag -= np.max(mag)
 
@@ -282,15 +301,17 @@ if __name__ == "__main__":
             axPha.legend(loc='lower left', prop={'size':'small', 'family':'monospace'})
 
 
-    # Encuadre vertical
+    # Encuadre vertical. 'y34' se refiere a 3/4 del eje Y.
     if normalize or autobalance:
-        centerY = 0
+        dbTop   = dBrange * 3.0 / 4
     else:
+        # Auto compute the avg band pass magnitude
         avg_mags = np.average(BPavgs)
-        centerY = ( avg_mags // 10 ) * 10
+        avg_mags = ( avg_mags // 10 ) * 10 # step to 10 dB
+        dBTop    = avg_mags + 10
 
-    # centerY is actually placed 1/4 below upper limit
-    axMag.set_ylim( centerY - dBrange * 3.0/4.0, centerY + dBrange * 1.0/4.0 )
+
+    axMag.set_ylim( dBtop - dBrange, dBtop )
 
     axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
 
