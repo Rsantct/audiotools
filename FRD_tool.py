@@ -18,14 +18,14 @@
                     De utilidad para estimar la combinación de curvas,
                     por ejemplo de un woofer campo cercano + campo libre
 
-    -phase          Incluye gráfico de la phase si la hubiera.
+    -phase          Incluye gráfico de la phase si la hubiera
 
     -nomask         Muestra la phase también en las regiones de magnitud
-                    muy baja respecto a la banda de paso.
+                    muy baja respecto a la banda de paso
 
-    -f=300-3000      Eje de frecuencias p.ej: 300 a 3000 Hz
+    -f=MIN-MAX      Límites del eje de frecuencias
 
-    -s=N            Suaviza la curva a 1/N oct.
+    -s=N            Suaviza la curva a 1/N oct
 
     -f0=xx          Frecuencia en la que deja de suavizar 1/N oct
                     hasta alcanzar 1/1 oct en Nyquist
@@ -59,48 +59,55 @@ from matplotlib import ticker
 import tools
 from smoothSpectrum import smoothSpectrum as smooth
 
+
 def prepara_eje_frecuencias(ax):
-    freq_ticks=[20, 100, 1000, 10000, 20000]
-    ax.grid(True)
+
     ax.set_xscale("log")
-    fmin2 = 20; fmax2 = 20000
-    if fmin:
-        fmin2 = fmin
-    if fmax:
-        fmax2 = fmax
-    ax.set_xticks(freq_ticks)
-    ax.get_xaxis().set_major_formatter(ticker.ScalarFormatter())
-    ax.set_xlim([fmin2, fmax2])
+
+    # nice formatting "1 K" flavour
+    ax.get_xaxis().set_major_formatter(ticker.EngFormatter())
+    ax.get_xaxis().set_minor_formatter(ticker.EngFormatter())
+
+    # rotate_labels for both major and minor xticks
+    for label in ax.get_xticklabels(which='both'):
+        label.set_rotation(70)
+        label.set_horizontalalignment('center')
+
+    ax.set_xlim([fmin, fmax])
+
 
 def prepara_graf():
 
-    fig = plt.figure()
     plt.rcParams.update({'font.size': 8})
 
     if subplotPha:
+        fig = plt.figure(figsize=((9, 6.9)))    # inches custom aspect
         grid = gridspec.GridSpec(nrows=3, ncols=1)
     else:
+        fig = plt.figure(figsize=((9, 4.5)))    # inches aspect 16:9
         grid = gridspec.GridSpec(nrows=1, ncols=1)
 
+
     axMag = fig.add_subplot(grid[0:2,0])
-    axMag.set_ylim(dBtop-dBrange, dBtop)
+    axMag.grid(True)
     prepara_eje_frecuencias(axMag)
     axMag.set_ylabel("magnitude (dB)")
     axMag.set_yticks(range(-210, 210, 6))
 
     if subplotPha:
         axPha = fig.add_subplot(grid[2,0])
+        axPha.grid(True)
         prepara_eje_frecuencias(axPha)
         axPha.set_ylim([-180.0,180.0])
-        #axPha.set_yticks(range(-135, 180, 45))
         axPha.set_yticks(range(-180, 225, 45))
         axPha.grid(linestyle=":")
-        axPha.set_ylabel("phase")
+        axPha.set_ylabel("phase (deg)")
 
         return axMag, axPha
 
     else:
         return axMag, None
+
 
 def BPavg(curve):
     """ Estimación del promedio de una curva de magnitudes dB en la banda de paso
@@ -117,6 +124,7 @@ def BPavg(curve):
 
     return avg
 
+
 def limpia(curva, curvaRef, th):
     # Eliminamos (np.nan) los valores del array 'curva' cuando los valores del
     # array 'curvaRef' estén por debajo de el umbral 'th'.
@@ -124,6 +132,7 @@ def limpia(curva, curvaRef, th):
     mask = (curvaRef > th)
     np.copyto(curvaClean, curva, where=mask)
     return curvaClean
+
 
 def lee_command_line():
     global frdnames, fmin, fmax, dBrange, dBtop, subplotPha, saveNoct
@@ -188,12 +197,14 @@ def lee_command_line():
         print (__doc__)
         sys.exit()
 
+
 if __name__ == "__main__":
 
     # Por defecto
-    fmin = 20;     fmax = 20000     # Hz
-    dBrange             = 100        # dB
-    dBtop               = 10
+    fmin                = 20        # Hz
+    fmax                = 20000
+    dBrange             = 60        # dB
+    dBtop               = None
     autobalance         = False
     normalize           = False
     subplotPha          = False
@@ -295,21 +306,18 @@ if __name__ == "__main__":
                     pha = limpia(curva=pha, curvaRef=mag, th=magThr)
 
                 # Plot de la phase
-                axPha.set_ylabel("pha")
                 axPha.plot(freq, pha, "-", linewidth=1.0, color=color)
 
-            axPha.legend(loc='lower left', prop={'size':'small', 'family':'monospace'})
 
-
-    # Encuadre vertical. 'y34' se refiere a 3/4 del eje Y.
+    # Encuadre vertical.
     if normalize or autobalance:
-        dbTop   = dBrange * 3.0 / 4
+        dBtop   = 12.0
     else:
-        # Auto compute the avg band pass magnitude
-        avg_mags = np.average(BPavgs)
-        avg_mags = ( avg_mags // 10 ) * 10 # step to 10 dB
-        dBTop    = avg_mags + 10
-
+        if not dBtop:
+            # compute the avg band pass magnitude to set a dBtop value
+            avg_mags = np.average(BPavgs)
+            avg_mags = ( avg_mags // 10 ) * 10 # step to 10 dB
+            dBtop    = avg_mags + 10
 
     axMag.set_ylim( dBtop - dBrange, dBtop )
 
