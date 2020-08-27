@@ -55,7 +55,7 @@ from scipy import signal, interpolate
 from scipy.stats import mode
 from matplotlib import pyplot as plt
 from matplotlib import gridspec
-from matplotlib import ticker
+from matplotlib.ticker import EngFormatter
 import tools
 from smoothSpectrum import smoothSpectrum as smooth
 
@@ -65,8 +65,8 @@ def prepara_eje_frecuencias(ax):
     ax.set_xscale("log")
 
     # nice formatting "1 K" flavour
-    ax.get_xaxis().set_major_formatter(ticker.EngFormatter())
-    ax.get_xaxis().set_minor_formatter(ticker.EngFormatter())
+    ax.xaxis.set_major_formatter( EngFormatter() )
+    ax.xaxis.set_minor_formatter( EngFormatter() )
 
     # rotate_labels for both major and minor xticks
     for label in ax.get_xticklabels(which='both'):
@@ -90,7 +90,9 @@ def prepara_graf():
 
     axMag = fig.add_subplot(grid[0:2,0])
     axMag.grid(True)
+
     prepara_eje_frecuencias(axMag)
+
     axMag.set_ylabel("magnitude (dB)")
     axMag.set_yticks(range(-210, 210, 6))
 

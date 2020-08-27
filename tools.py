@@ -15,6 +15,70 @@ from q2bw import *
 import yaml
 
 
+def octaves(f1, f2):
+    """ octaves from f2 to f1
+    """
+    return np.log2(f2/f1)
+
+
+def freq_octaves(f, N):
+    """ freq at N octaves from f
+    """
+    return 2 ** N * f
+
+
+def decades(f1, f2):
+    """ decades from f1 to f2
+    """
+    return np.log10(f1/f2)
+
+
+def freq_decades(f, N):
+    """ freq at N decades from f
+    """
+    return 10 ** N * f
+
+
+def center_logspaced(f1, f2):
+    """ logspaced center frequency between f1 and f2
+    """
+    return freq_octaves( f1, octaves(f1, f2)/2.0)
+
+
+def logspaced_gauss( fc=1000, wideOct=10, freq=np.geomspace(20, 20000, 2**10) ):
+    """ A logspaced gaussian curve rendered over a given freq array
+        (the frequencies array can have an arbitrary freq point spacing)
+
+                        ____
+                     /        \
+                   /            \
+                /                  \
+        ------           fc           -------
+
+                <------ wideOct ---->
+
+        <-------------- freq --------------->
+
+
+        Useful to ponderate a spectral magnitudes curve, e.g. to limit a positive
+        eq curve at extremes, when obtained from inverting an in-room response curve.
+    """
+    # The logspaced gaussian curve
+    N       = 100   # 100 points is enough because the soft gaussian slope
+    sigma   = 7     # standard gaussian shape
+    f1      = freq_octaves(fc,  wideOct/2.0)
+    f2      = freq_octaves(fc, -wideOct/2.0)
+    # The frequencies where the gaussian exists:
+    GaussFreq   = np.geomspace( f1, f2, N )
+    # The gaussian itself:
+    GaussMag    = signal.windows.gaussian(N, N/sigma)
+    # Finally, we render our gaussian curve over the given full freq array
+    Ipol  = interp1d(GaussFreq, GaussMag)   # interpolator
+    Xpol  = extrap1d( Ipol )                # extrapolator
+    wholeGaussMag = Xpol(freq)
+    return wholeGaussMag
+
+
 def shelf1low(G, wc):
     # CREDITS:
     # A python-ported version of:
