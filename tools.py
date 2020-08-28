@@ -678,7 +678,7 @@ def readFRD(fname):
     return columns, fs
 
 
-def saveFRD(fname, freq, mag, pha=np.array(0), fs=None, comments=''):
+def saveFRD(fname, freq, mag, pha=np.array(0), fs=None, comments='', verbose=True):
     """
     'mag' al ser esta una función que guarda FRDs, se debe dar en dBs.
 
@@ -697,9 +697,9 @@ def saveFRD(fname, freq, mag, pha=np.array(0), fs=None, comments=''):
     header += "Frequency(Hz)   Magnitude(dB) Phase"
     # Si no hay phase, nos inventamos una columna de zeros
     if not pha.any():
-        print('(saveFRD) phase is zeroed')
+        if verbose: print('(saveFRD) phase is zeroed')
         pha = np.zeros(len(mag))
-    print( f'(saveFRD) saving file: {fname}' )
+    if verbose: print( f'(saveFRD) saving file: {fname}' )
     np.savetxt( fname, np.column_stack((freq, mag, pha)),
              delimiter="\t", fmt='%1.4e', header=header)
 
