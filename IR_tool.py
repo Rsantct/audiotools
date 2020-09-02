@@ -1,61 +1,63 @@
 #!/usr/bin/env python3
 
 """
-    visor de impulsos IR wav o raw ( binarios .pcm, o plain text)
+    Visor de impulsos IR wav o raw ( binarios o de texto plano)
 
-    Si se pasan impulsos raw (binarios o de texto) se precisa indicar la Fs
+    (i) Los archivos binarios deben estar codificados a 32 bit float.
+
+    Si se pasan impulsos raw (binarios o de texto) se precisa indicar la FS
 
     Ejemplo de uso:
 
-    IR_viewer.py  file1.wav  file2.pcm  [FS]  [ fmin-fmax -1 -eq -lptolX -pha]
+    IR_tool.py  file1.wav  file2.pcm  [FS]  [ fmin-fmax -1 -eq -lptolX -pha]
 
     Opciones:
 
-        FS          sampling frequency
+    FS              sampling frequency
 
-        fmin-fmax   Permite visualizar un rango en Hz, útil para ver graves.
+    -f=min-max      Rango de frecuencias visualizado (Hz)
 
-        -1          Muestra las gráficas de los impulsos en una fila única.
+    -dBrange=X      Rango de magnitudes visualizado (dB)
 
-        -pdf        Guarda la gráfica en archivo PDF, incluyendo el zoom
+    -dBtop=X        Límite superior de la visualización (dB)
+
+    -1              Muestra las gráficas de los impulsos en una fila única.
+
+    -pdf            Guarda la gráfica en archivo PDF, incluyendo el zoom
                     que se hiciese durante la visualización.
 
-        -eq         Para ver curvas de un FIR de EQ (abcisas de -15 a +5 dB)
-
-        -lptol=X    X umbral en dB para evaluar si el impulso es linear phase
+    -lptol=X        Tolerancia en dB para evaluar si el impulso es linear phase
                     (por defecto -60 dB)
 
-        -pha        Muestra la fase (experimental)
+    -pha            Muestra la fase (experimental)
 
 """
-# version = 'v0.2'
-#   Se añade un visor de la fase y otro pequeño visor de los impulsos
-# version = 'v0.2b'
-#   Opción del rango de frecuencias a visualizar
 # version = 'v0.2c'
 #   Opcion -pha oculta para pintar la phase (WORK IN PROGRESS)
+#
 # version = 'v0.2d'
 #   Dejamos de pintar phases o gd fuera de la banda de paso,
 #   con nuevo umbral a -50dB parece más conveniente para FIRs cortos con rizado alto.
 #   Se aumenta el rango de magnitudes hasta -60 dB
 #   Muestra el pkOffset en ms
 #   El GD recoge en la gráfica el delay del pico del filtro.
-#   Autoescala magnitudes.
 #   Se deja de mostrar los taps en 'Ktaps'
+#
 # version = 'v0.2f'
 #   Axes de impulsos en una fila opcinalmente
 #   Se muestra la versión del programa al pie de las gráficas.
-#   Se guarda la gráfica en un pdf
-# version = 'v0.2g'
-#   La impresión a PDF se deja opcional
-# version = 'v0.2h'
-#   Opción -eq para ver FIRs de ecualización.
-#version = 'v0.2i'
+#
+# version = 'v0.2i'
 #   Admite IRs en archivos de texto.
+#
+# version = 'v0.2ip3'
+#   Python3
+#
+#
 # TO DO:
 #   Revisar la información mostrada "GD avg" que pretende ser la moda de los valores
-#version = 'v0.2ip3'
-#   Python3
+#
+#
 version = 'v0.2j'
 #   Pinta la phase symmetrical log scale (experimental):
 #       - En filtros lin-pha se aproxima a una recta,
@@ -66,17 +68,18 @@ import sys
 import numpy as np, math
 from scipy import signal
 from matplotlib import pyplot as plt
-from matplotlib import ticker   # Para rotular a medida
-from matplotlib import gridspec # Para ajustar disposición de los subplots
+from matplotlib.ticker import EngFormatter
+from matplotlib import gridspec             # customize subplots array
 import tools
 
 
 def lee_commandline(opcs):
-    global fmin, fmax, plotPha, IRtype, lp_tolerance
+
+    global fmin, fmax, plotPha, dBtop, dBrange, lp_tolerance
     global plotIRsInOneRow, generaPDF
+
     plotIRsInOneRow = False
     generaPDF = False
-    IRtype = "normal"
 
     # impulsos que devolverá esta función
     IRs = []
@@ -93,13 +96,16 @@ def lee_commandline(opcs):
         elif opc.isdigit():
             fs = float(opc)
 
-        elif "-" in opc and opc[0].isdigit() and opc[-1].isdigit():
-            fmin, fmax = opc.split("-")
+        elif opc[:3] == "-f=":
+            fmin, fmax = opc.split("=")[-1].split("-")
             fmin = float(fmin)
             fmax = float(fmax)
 
-        elif opc == "-eq":
-            IRtype = 'eq'
+        elif opc[:7].lower() == "-dbtop=":
+            dBtop = float(opc[7:])
+
+        elif opc[:9].lower() == "-dbrange=":
+            dBrange = float(opc[9:])
 
         elif "-ph" in opc:
             plotPha = True
@@ -128,12 +134,14 @@ def lee_commandline(opcs):
     for fname in fnames:
 
         if fname.endswith('.wav'):
-            fswav, imp = tools.readWAV16(fname)
+            fswav, imp = tools.readWAV(fname)
             IRs.append( (fswav, imp, fname) )
 
-        elif fname.endswith('.pcm') or fname.endswith('.bin'):
+        elif fname.endswith('.pcm') or \
+             fname.endswith('.bin') or \
+             fname.endswith('.f32'):
             if fs:
-                imp = tools.readPCM32(fname)
+                imp = tools.readPCM(fname, dtype='float32')
                 IRs.append( (fs, imp, fname) )
             else:
                 print (__doc__)
@@ -151,20 +159,25 @@ def lee_commandline(opcs):
 
 
 def prepara_eje_frecuencias(ax):
-    """ según las opciones fmin, fmax, frec_ticks """
-    frec_ticks = 20, 100, 1000, 10000
+
     ax.set_xscale("log")
-    fmin2 = 10; fmax2 = 20000
-    if fmin:
-        fmin2 = fmin
-    if fmax:
-        fmax2 = fmax
-    ax.set_xticks(frec_ticks)
-    ax.get_xaxis().set_major_formatter(ticker.ScalarFormatter())
-    ax.set_xlim([fmin2, fmax2])
+
+    # nice formatting "1 K" flavour
+    ax.xaxis.set_major_formatter( EngFormatter() )
+    ax.xaxis.set_minor_formatter( EngFormatter() )
+
+    # rotate_labels for both major and minor xticks
+    for label in ax.get_xticklabels(which='both'):
+        label.set_rotation(70)
+        label.set_horizontalalignment('center')
+
+    ax.set_xlim([fmin, fmax])
 
 
 def preparaGraficas():
+
+    plt.rcParams.update({'font.size': 8})
+
     numIRs = len(IRs)
     global fig, grid, axMag, axDrv, axPha, axGD, axIR
 
@@ -198,10 +211,10 @@ def preparaGraficas():
 
     # --- SUBPLOT para pintar las FRs (alto 3 filas, ancho todas las columnas)
     axMag = fig.add_subplot(grid[0:3, :])
-    axMag.grid(linestyle=":")
+    axMag.grid(True, which='both', linestyle=":")
     prepara_eje_frecuencias(axMag)
-    # axMag.set_ylim([top_dBs - range_dBs, top_dBs]) # dejamos esto para cuando conozcamos la mag
-    axMag.set_ylabel("filter magnitude dB")
+    axMag.set_ylabel("magnitude (dB)")
+    axMag.set_yticks(range(-210, 210, 6))
 
     # --- SUBPLOT para pintar el GD (alto 2 filas, ancho todas las columnas)
     # comparte el eje X (twinx) con el de la phase
@@ -249,9 +262,9 @@ def check_lin_pha(imp, tol):
 
 if __name__ == "__main__":
 
-    top_dBs   = 5  # inicial lugo se reajustará
-    range_dBs = 65
-    fmin = 10
+    dBtop   = 5  # inicial lugo se reajustará
+    dBrange = 65
+    fmin = 20
     fmax = 20000
     # Umbral de la magnitud en dB para dejar de pintar phases o gd
     magThr = -50.0
@@ -321,11 +334,9 @@ if __name__ == "__main__":
         # Ploteo de la Magnitud con autoajuste del top
         tmp = np.max(magdB)
         tmp = math.ceil(tmp/5.0) * 5.0 + 5.0
-        if tmp > top_dBs:
-            top_dBs = tmp
-        axMag.set_ylim(bottom = top_dBs - range_dBs, top = top_dBs)
-        if IRtype == 'eq':
-            axMag.set_ylim(-15.0, 5.0)
+        if tmp > dBtop:
+            dBtop = tmp
+        axMag.set_ylim(dBtop - dBrange, dBtop)
         axMag.plot(freqs, magdB, label=info)
         color = axMag.lines[-1].get_color() # anotamos el color de la última línea
 
