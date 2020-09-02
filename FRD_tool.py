@@ -89,12 +89,13 @@ def prepara_graf():
 
 
     axMag = fig.add_subplot(grid[0:2,0])
-    axMag.grid(True)
+    axMag.grid(True, which='both', linestyle=":")
 
     prepara_eje_frecuencias(axMag)
 
     axMag.set_ylabel("magnitude (dB)")
-    axMag.set_yticks(range(-210, 210, 6))
+    axMag.set_yticks(range(-210, 210, 3), minor=True)
+    axMag.set_yticks(range(-210, 210, 6), minor=False)
 
     if subplotPha:
         axPha = fig.add_subplot(grid[2,0])
