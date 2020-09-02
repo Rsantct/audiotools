@@ -470,7 +470,7 @@ def MP2LP(imp, windowed=True, kaiserBeta=6):
     (*) El enventado afectará a la resolución en IRs con espectro
         en magnitud muy accidentado. Por contra suaviza los microartifactos
         de retardo de grupo del impulso resultante, que son visibles haciendo
-        zoom con 'IRs_viewer.py'. El GD debe ser constante.
+        zoom con 'IR_tool.py'. El GD debe ser constante.
      """
     # MUESTRA LA DOC DE ESTA FUNCIÓN:
     # print MP2LP.__doc__
@@ -505,7 +505,7 @@ def ba2LP(b, a, m, windowed=True, kaiserBeta=3):
     (*) El enventanado afecta a la resolución final y se nota sustancialmente
         si procesamos coeffs 'b,a' correspondientes a un biquad type='peakingEQ'
         estrecho. Por contra suaviza los microartifactos de retardo de grupo
-        del impulso resultante que son visibles haciendo zoom con 'IRs_viewer.py'.
+        del impulso resultante que son visibles haciendo zoom con 'IR_tool.py'.
         El GD debe ser constante.
     """
     # MUESTRA LA DOC DE ESTA FUNCIÓN:
@@ -610,16 +610,58 @@ def KHz(f):
     return f.ljust(8)
 
 
-def readWAV16(fname):
-    fs, imp = wavfile.read(fname)
-    return fs, imp.astype('float32') / 32768.0
+def readWAV(fname):
+    """
+    scipy.io.wavfile.read
+
+        Notes
+
+            This function cannot read wav files with 24-bit data.
+
+            Common data types: [1]
+
+            WAV format              Min         Max             NumPy dtype
+            ----------              ---         ---             -----------
+            32-bit floating-point   -1.0        +1.0            float32
+            32-bit PCM              -2147483648 +2147483648     int32
+            16-bit PCM              -32768      +32767          int16
+            8-bit PCM               0           255             uint8
+
+        Note that 8-bit PCM is unsigned.
+
+        mmap:   Whether to read data as memory-mapped.
+                Only to be used on real files
+
+    """
+
+    fs, imp = wavfile.read(fname, mmap=True)
+
+    # Impulse type can vary, also the span values, see above table
+
+    if imp.dtype == 'int32':
+        imp2 = imp / 2 ** 31      # -186 dB error on positive values can live with that
+
+    elif imp.dtype == 'int16':
+        imp2 = imp / 32768.0
+
+    else:
+        imp2 = imp
+
+    # We want to use always 'float32'
+    return fs, imp2.astype('float32')
 
 
-def readPCM32(fname):
+def readPCM(fname, dtype='float32'):
     """ lee un archivo pcm float32
     """
     #return np.fromfile(fname, dtype='float32')
-    return np.memmap(fname, dtype='float32', mode='r')
+    return np.memmap(fname, dtype=dtype, mode='r')
+
+
+def readPCM32(fname):
+    """ alias for legacy scripts
+    """
+    return readPCM(fname, dtype='float32')
 
 
 def savePCM32(raw, fout):
