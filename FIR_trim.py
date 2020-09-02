@@ -133,7 +133,7 @@ if __name__ == "__main__":
     if   f_in[-4:] == '.pcm':
         imp1 = tools.readPCM32(f_in)
     elif f_in[-4:] == '.wav':
-        fs, imp1 = tools.readWAV16(f_in)
+        fs, imp1 = tools.readWAV(f_in)
     else:
         print( f'(i) trimFIR.py \'{f_in}\' no se reconoce :-/' )
         sys.exit()
