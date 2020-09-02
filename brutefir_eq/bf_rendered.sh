@@ -2,7 +2,7 @@
 
 if [[ $1 ]]; then
     fs=$1
-    "$HOME"/audiotools/IRs_viewer.py "/tmp/brutefir-rendered-0" \
+    "$HOME"/audiotools/IR_tool.py "/tmp/brutefir-rendered-0" \
                                      $fs -pha -lptol=-60
 
 else
