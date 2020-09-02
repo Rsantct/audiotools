@@ -214,7 +214,8 @@ def preparaGraficas():
     axMag.grid(True, which='both', linestyle=":")
     prepara_eje_frecuencias(axMag)
     axMag.set_ylabel("magnitude (dB)")
-    axMag.set_yticks(range(-210, 210, 6))
+    axMag.set_yticks(range(-210, 210, 3), minor=True)
+    axMag.set_yticks(range(-210, 210, 6), minor=False)
 
     # --- SUBPLOT para pintar el GD (alto 2 filas, ancho todas las columnas)
     # comparte el eje X (twinx) con el de la phase
