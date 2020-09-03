@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 """
-    Visor de impulsos IR wav o raw ( binarios o de texto plano)
+    Visor de impulsos IR .wav, .pir, o datos en bruto ( binarios o de texto plano)
 
-    (i) Los archivos binarios deben estar codificados a 32 bit float.
+    (i) Los archivos binarios deben estar codificados 'float32'.
 
     Si se pasan impulsos raw (binarios o de texto) se precisa indicar la FS
 
@@ -58,11 +58,14 @@
 #   Revisar la información mostrada "GD avg" que pretende ser la moda de los valores
 #
 #
-version = 'v0.2j'
+# version = 'v0.2j'
 #   Pinta la phase symmetrical log scale (experimental):
 #       - En filtros lin-pha se aproxima a una recta,
 #       - En filtros no lin-pha veremos una curva clara
 #       - Se informa si el filtro es lin-pha (simétrico respecto del pico)
+#
+version = 'v0.2k'
+#   lee PIR de ARTA
 
 import sys
 import numpy as np, math
@@ -136,6 +139,10 @@ def lee_commandline(opcs):
         if fname.endswith('.wav'):
             fswav, imp = tools.readWAV(fname)
             IRs.append( (fswav, imp, fname) )
+
+        elif fname.endswith('.pir'):
+            fspir, imp = tools.readPIR(fname)
+            IRs.append( (fspir, imp, fname) )
 
         elif fname.endswith('.pcm') or \
              fname.endswith('.bin') or \
