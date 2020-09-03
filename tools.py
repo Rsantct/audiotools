@@ -610,6 +610,77 @@ def KHz(f):
     return f.ljust(8)
 
 
+def readPIR(fname):
+    """ read PIR files from ARTA
+
+        *** CREDITS: ***
+        This is a translation from the original Matlab code published at:
+        https://github.com/mbrennwa/mataa/mataa_tools/mataa_import_PIR.m
+        Copyright (C) 2019 Matthias S. Brennwald.
+    """
+
+    def b2int(b, byteorder='little', signed=False):
+        return int.from_bytes(b, byteorder=byteorder, signed=signed)
+
+    with open(fname, 'rb') as f:
+
+        # HEADER (80 bytes)
+                                     # https://es.mathworks.com/help/matlab/ref/fread.html
+                                     #
+                                     # Matlab type /bytes
+                                     #
+                                     #              Contents
+
+        filesignature    = f.read(4) # uchar    /1  file signature, should be PIR
+        version          = f.read(4) # uint32   /4  file format version
+        infosize         = f.read(4) # int32    /4  length of user defined text at end of file
+        reserved1        = f.read(4) # int32
+        reserved2        = f.read(4) # int32
+        fskHz            = f.read(4) # float32  /4  sample rate in kHz
+        samplerate       = f.read(4) # int32        sample rate in Hz
+        length           = f.read(4) # int32        length of signal (number of samples)
+        inputdevice      = f.read(4) # int32        0: voltage probe, 1: mic, 2: accelerometer
+        devicesens       = f.read(4) # float32      V/V or V/Pa (mic input)
+        measurement_type = f.read(4) # int32        0: signal recorded, external excitation / 1: IR, single channel correlation, 2: IR, dual channel IR
+        avgtype          = f.read(4) # int32        type of averaging (0: time, 1: freq)
+        numavg           = f.read(4) # int32        number of averages used in measurements
+        bfiltered        = f.read(4) # int32        forced antialiasing filtering in 2ch
+        gentype          = f.read(4) # int32        generator type
+        peakleft         = f.read(4) # float32      peak value (ref 1.0) in left input channel
+        peakright        = f.read(4) # float32      peak value (ref 1.0) in right input channel
+        gensubtype       = f.read(4) # int32        0: male, 1: female for Speech PN ...
+        reserved3        = f.read(4) # float32
+        reserved4        = f.read(4) # float32
+
+        # converting types
+        filesignature   = filesignature.decode()
+        fskHz           = np.fromstring(fskHz, dtype='<f4')[0]
+
+        samplerate      = b2int(samplerate)
+        length          = b2int(length)
+        infosize        = b2int(infosize)
+
+        # print( 'pointer is at position:', f.tell() )  # position = 80.
+
+        # IMPULSE DATA (float32_4bytes * length)
+        imp = np.fromstring( f.read(4 * length) , dtype='<f4')
+
+        # print( 'pointer is at position:', f.tell() )  # e.g. position = 80 + 64K*4
+
+        # USER DEFINED INFOTEXT:
+        usertext    = f.read(infosize)  # uchar /1byte
+        usertext    = usertext.decode()
+
+    #print('ARTA file read:')
+    #print('filesignature:', filesignature)
+    #print('fskHz:', fskHz, 'KHz')
+    #print('samplerate:', samplerate, 'Hz')
+    #print('length:', length, 'samples')
+    #print('usertext:', usertext)
+
+    return samplerate, imp
+
+
 def readWAV(fname):
     """
     scipy.io.wavfile.read
