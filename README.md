@@ -12,7 +12,7 @@ It is included an Octave to Python/Scipy translation of **[rripio/DSD](https://g
     rm -f testing.zip*
     rm -f update-audiotools.sh*
     wget https://raw.githubusercontent.com/Rsantct/audiotools/master/update-audiotools.sh
-    bash update-audiotools.sh
+    sh update-audiotools.sh master
     rm update-audiotools.sh
     rm -f master.zip*
     rm -f testing.zip*
@@ -24,7 +24,8 @@ If you want to import modules from here, just update yor `~/.profile` file:
 
 ### Update:
 
-    sh ~/audiotools/update-audiotools.sh  [ master | other_branch ]
+    sh ~/audiotools/update-audiotools.sh  master | another_branch
+
 
 ### References:
 

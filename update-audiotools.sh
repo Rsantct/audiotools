@@ -1,19 +1,39 @@
-#!/bin/bash
-# v0.2
-# admite actualizar otra branch distinta de 'master'
+#!/bin/sh
+# v0.3
+# fix bangshee to sh
+# default repo AudioHumLab
 
-branch=master
-if [ "$1" != "" ]; then
-    branch=$1
+if [ -z $1 ] ; then
+    echo "usage:"
+    echo "    update-audiotools.sh  branch_name [git_repo]"
+    echo
+    echo "    (i) optional git_repo defaults to 'AudioHumLab'"
+    echo
+    exit 0
+fi
+branch=$1
+
+if [ $2 ]; then
+    gitsite="https://github.com/""$2"
+else
+    gitsite="https://github.com/AudioHumLab"
+fi
+
+echo
+echo "WARNING: Will download from: [ ""$gitsite"" ]"
+read -r -p "         Is this OK? [y/N] " tmp
+if [ "$tmp" != "y" ] && [ "$tmp" != "Y" ]; then
+    echo 'Bye.'
+    exit 0
 fi
 
 cd ~/
 
-# Borramos si hubiera algun master.zip
+# Borramos si hubiera algun <branch>.zip
 rm -f ~/$branch.zip*
 
 # Bajamos el zip de GitHUb
-wget https://github.com/Rsantct/audiotools/archive/$branch.zip
+wget "$gitsite"/audiotools/archive/$branch.zip
 # Descomprimos ( se descomprime en audiotools-$branch )
 unzip -o $branch.zip
 
@@ -36,6 +56,10 @@ touch ~/audiotools/THIS_BRANCH_IS_$branch
 profileFile=$(ls -a .*profile*)
 #   Si no tiene incluido el path a audiotools, lo incluimos
 if ! grep -q "audiotools" "$profileFile"; then
-    echo "export PATH=${PATH}:${HOME}/audiotools" >> $profileFile
+    echo "export PATH=\"\$PATH\":${HOME}/audiotools" >> "$profileFile"
     export PATH=$PATH:$HOME/audiotools
 fi
+
+# Borramos el <branch>.zip
+cd ~/
+rm -f ~/$branch.zip
