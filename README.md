@@ -24,7 +24,8 @@ If you want to import modules from here, just update yor `~/.profile` file:
 
 ### Update:
 
-    sh ~/audiotools/update-audiotools.sh  [ master | other_branch ]
+    sh ~/audiotools/update-audiotools.sh  master | another_branch
+
 
 ### References:
 
