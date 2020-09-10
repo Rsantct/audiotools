@@ -12,7 +12,7 @@ It is included an Octave to Python/Scipy translation of **[rripio/DSD](https://g
     rm -f testing.zip*
     rm -f update-audiotools.sh*
     wget https://raw.githubusercontent.com/Rsantct/audiotools/master/update-audiotools.sh
-    bash update-audiotools.sh
+    bash update-audiotools.sh master
     rm update-audiotools.sh
     rm -f master.zip*
     rm -f testing.zip*
