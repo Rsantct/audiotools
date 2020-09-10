@@ -56,7 +56,7 @@ touch ~/audiotools/THIS_BRANCH_IS_$branch
 profileFile=$(ls -a .*profile*)
 #   Si no tiene incluido el path a audiotools, lo incluimos
 if ! grep -q "audiotools" "$profileFile"; then
-    echo "export PATH=\$PATH:${HOME}/audiotools" >> .profileFile
+    echo "export PATH=\"\$PATH\":${HOME}/audiotools" >> .profileFile
     export PATH=$PATH:$HOME/audiotools
 fi
 
