@@ -348,6 +348,24 @@ def fft_spectrum(freq, mag, fs=44100, wsize=2**12, make_whole=False):
     return freq_new, mag_new
 
 
+def interp_semispectrum(freq, mag, fs, Nbins):
+    """ Interpolates a given semi-spectrum curve into a new
+        linespaced frequencies vector with Nbins length
+
+        Note: for fft compliance see tools.fft_spectrum()
+    """
+    freqNew  = np.linspace(0, fs/2, Nbins)
+
+    funcI = interp1d(   freq,
+                        mag,
+                        kind         = "linear",
+                        bounds_error = False,
+                        fill_value   = "extrapolate"
+                    )
+
+    return freqNew, funcI(freqNew)
+
+
 def nearest_pow2(x):
     """ returns the nearest power of 2 greater or equal to x
     """
