@@ -835,13 +835,13 @@ def saveFRD(fname, freq, mag, pha=np.array(0), fs=None, comments='', verbose=Tru
              delimiter="\t", fmt='%1.4e', header=header)
 
 
-def make_beep(f=1000, fs=48000, dBFS=-9.0, dur=0.10, head=0.01, tail=0.03):
+def make_beep(f=1000, fs=48000, dBFS=-9.0, duration=0.10):
     """ a simple general purpose beep waveform maker
     """
-    head = np.zeros( int(head * fs) )
-    tail = np.zeros( int(tail * fs) )
-    x = np.arange( fs * dur )               # a bare silence array
-    y = np.sin( 2 * np.pi * f * x / fs )    # the waveform itself
-    y = np.concatenate( [head, y, tail] )   # adding silences
-    y *= 10 ** (dBFS/20.0)                  # attenuation as per dBFS
+    head = np.zeros( int(duration/10 * fs) )    # 1/10 of duration
+    tail = np.zeros( int(duration/5  * fs) )    # 2/10 of duration
+    x = np.arange( fs * duration )              # a bare silence array
+    y = np.sin( 2 * np.pi * f * x / fs )        # the waveform itself
+    y = np.concatenate( [head, y, tail] )       # adding head and tail silences
+    y *= 10 ** (dBFS/20.0)                      # attenuation as per dBFS
     return y
