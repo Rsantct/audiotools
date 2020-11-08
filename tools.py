@@ -3,16 +3,18 @@
     common use tools
 """
 import os.path
-from os import remove as os_remove # para borrar el archivo temporal de readFRD()
+from os import remove as os_remove # for the temporary readFRD() file
 import sys
 import numpy as np
 from scipy.io import wavfile
 from scipy import signal
 from scipy.interpolate import interp1d
 from scipy.fftpack import fftfreq, fft, ifft
+import yaml
+
+# audiotools imports:
 import pydsd
 from q2bw import *
-import yaml
 
 
 def octaves(f1, f2):
@@ -845,3 +847,4 @@ def make_beep(f=1000, fs=48000, dBFS=-9.0, duration=0.10):
     y = np.concatenate( [head, y, tail] )       # adding head and tail silences
     y *= 10 ** (dBFS/20.0)                      # attenuation as per dBFS
     return y
+
