@@ -765,48 +765,34 @@ def savePCM32(raw, fout):
 def readFRD(fname):
     """
     Reads a .frd file (Frequency Response Data).
-    The file can have FS information inside commented out lines.
+
+    The file can have a header with sampling freq information
 
     Returns: ndarray[freq, mag, phase], fs
     """
     fs = 0
 
+    # (i) Some .frd files as the ones from ARTA, includes a header with
+    # no commented out lines.
+
+    # We neeed to skip any header lines when calling numpy.loadtxt()
+    # We can extract fs info from a header.
+
     with open(fname, 'r') as f:
-        lines = f.read().split("\n")
+        lines = f.readlines()
 
-    # Some .frd files as yhe ARTA ones, includes a header with no commented out
-    # lines, this produces an error when using numpy.loadtxt().
-    #
-    # Here we prepare a temporary file to be safely loaded from numpy.loadtxt()
-    #
-    with open("tmpreadfrd", "w") as ftmp:
+    header = [ l for l in lines if not l.strip()[:2].replace('.', '').isdecimal()]
 
-        for line in lines:
+    # try to extract fs from header
+    for line in header:
+        if 'rate' in line.lower() or 'fs' in line.lower():
+            items = line.split()
+            for item in items:
+                if item.isdigit():
+                    fs = int(item)
 
-            line = line.strip()
-
-            if not line:
-                continue
-
-            if 'rate' in line.lower() or 'fs' in line.lower():
-                items = line.split()
-                for item in items:
-                    if item.isdigit():
-                        fs = int(item)
-
-            if not line[0].isdigit():
-                line = "# " + line
-
-            line = line.replace(";", " ") \
-                       .replace(",", " ") \
-                       .replace("\t", " ") \
-                       .strip()
-
-            ftmp.write(line + "\n")
-
-    # Reading and removing the temporary file
-    columns = np.loadtxt("tmpreadfrd")
-    os_remove("tmpreadfrd")
+    # Reading frd text file, by skipping the header lines
+    columns = np.loadtxt( fname, skiprows=len(header) )
 
     return columns, fs
 
