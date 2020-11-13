@@ -3,7 +3,6 @@
     common use tools
 """
 import os.path
-from os import remove as os_remove # for the temporary readFRD() file
 import sys
 import numpy as np
 from scipy.io import wavfile
