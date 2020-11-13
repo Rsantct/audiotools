@@ -3,16 +3,17 @@
     common use tools
 """
 import os.path
-from os import remove as os_remove # para borrar el archivo temporal de readFRD()
 import sys
 import numpy as np
 from scipy.io import wavfile
 from scipy import signal
 from scipy.interpolate import interp1d
 from scipy.fftpack import fftfreq, fft, ifft
+import yaml
+
+# audiotools imports:
 import pydsd
 from q2bw import *
-import yaml
 
 
 def octaves(f1, f2):
@@ -346,6 +347,24 @@ def fft_spectrum(freq, mag, fs=44100, wsize=2**12, make_whole=False):
         mag_new  = whole_spectrum(mag_new)
 
     return freq_new, mag_new
+
+
+def interp_semispectrum(freq, mag, fs, Nbins):
+    """ Interpolates a given semi-spectrum curve into a new
+        linespaced frequencies vector with Nbins length
+
+        Note: for fft compliance see tools.fft_spectrum()
+    """
+    freqNew  = np.linspace(0, fs/2, Nbins)
+
+    funcI = interp1d(   freq,
+                        mag,
+                        kind         = "linear",
+                        bounds_error = False,
+                        fill_value   = "extrapolate"
+                    )
+
+    return freqNew, funcI(freqNew)
 
 
 def nearest_pow2(x):
@@ -745,48 +764,34 @@ def savePCM32(raw, fout):
 def readFRD(fname):
     """
     Reads a .frd file (Frequency Response Data).
-    The file can have FS information inside commented out lines.
+
+    The file can have a header with sampling freq information
 
     Returns: ndarray[freq, mag, phase], fs
     """
     fs = 0
 
+    # (i) Some .frd files as the ones from ARTA, includes a header with
+    # no commented out lines.
+
+    # We neeed to skip any header lines when calling numpy.loadtxt()
+    # We can extract fs info from a header.
+
     with open(fname, 'r') as f:
-        lines = f.read().split("\n")
+        lines = f.readlines()
 
-    # Some .frd files as yhe ARTA ones, includes a header with no commented out
-    # lines, this produces an error when using numpy.loadtxt().
-    #
-    # Here we prepare a temporary file to be safely loaded from numpy.loadtxt()
-    #
-    with open("tmpreadfrd", "w") as ftmp:
+    header = [ l for l in lines if not l.strip()[:2].replace('.', '').isdecimal()]
 
-        for line in lines:
+    # try to extract fs from header
+    for line in header:
+        if 'rate' in line.lower() or 'fs' in line.lower():
+            items = line.split()
+            for item in items:
+                if item.isdigit():
+                    fs = int(item)
 
-            line = line.strip()
-
-            if not line:
-                continue
-
-            if 'rate' in line.lower() or 'fs' in line.lower():
-                items = line.split()
-                for item in items:
-                    if item.isdigit():
-                        fs = int(item)
-
-            if not line[0].isdigit():
-                line = "# " + line
-
-            line = line.replace(";", " ") \
-                       .replace(",", " ") \
-                       .replace("\t", " ") \
-                       .strip()
-
-            ftmp.write(line + "\n")
-
-    # Reading and removing the temporary file
-    columns = np.loadtxt("tmpreadfrd")
-    os_remove("tmpreadfrd")
+    # Reading frd text file, by skipping the header lines
+    columns = np.loadtxt( fname, skiprows=len(header) )
 
     return columns, fs
 
@@ -815,4 +820,16 @@ def saveFRD(fname, freq, mag, pha=np.array(0), fs=None, comments='', verbose=Tru
     if verbose: print( f'(saveFRD) saving file: {fname}' )
     np.savetxt( fname, np.column_stack((freq, mag, pha)),
              delimiter="\t", fmt='%1.4e', header=header)
+
+
+def make_beep(f=1000, fs=48000, dBFS=-9.0, duration=0.10):
+    """ a simple general purpose beep waveform maker
+    """
+    head = np.zeros( int(duration/10 * fs) )    # 1/10 of duration
+    tail = np.zeros( int(duration/5  * fs) )    # 2/10 of duration
+    x = np.arange( fs * duration )              # a bare silence array
+    y = np.sin( 2 * np.pi * f * x / fs )        # the waveform itself
+    y = np.concatenate( [head, y, tail] )       # adding head and tail silences
+    y *= 10 ** (dBFS/20.0)                      # attenuation as per dBFS
+    return y
 
