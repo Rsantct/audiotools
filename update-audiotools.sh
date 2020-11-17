@@ -65,3 +65,7 @@ fi
 cd ~/
 rm -f ~/$branch.zip         1>/dev/null 2>&1
 rm ~/update-audiotools.sh   1>/dev/null 2>&1
+
+echo
+echo installed under:  "$HOME"/audiotools
+echo
