@@ -7,7 +7,7 @@ if [ -z $1 ] ; then
     echo "usage:"
     echo "    update-audiotools.sh  branch_name [git_repo]"
     echo
-    echo "    (i) optional git_repo defaults to 'AudioHumLab'"
+    echo "    (i) Default git_repo:  AudioHumLab"
     echo
     exit 0
 fi
