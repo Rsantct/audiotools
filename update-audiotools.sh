@@ -33,7 +33,7 @@ cd ~/
 rm -f ~/$branch.zip*
 
 # Bajamos el zip de GitHUb
-wget "$gitsite"/audiotools/archive/$branch.zip
+curl -LO "$gitsite"/audiotools/archive/$branch.zip
 # Descomprimos ( se descomprime en audiotools-$branch )
 unzip -o $branch.zip
 
