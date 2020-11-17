@@ -5,10 +5,10 @@
 
 if [ -z $1 ] ; then
     echo "usage:"
-    echo "    update-audiotools.sh  branch_name [git_repo]"
+    echo "    update-audiotools.sh  master [git_repo]"
     echo
-    echo "    (i) Default git_repo:  AudioHumLab"
-    echo
+    echo "    (i) Default git_repo:                  'AudioHumLab'"
+    echo "        You can use other branch name than 'master' "
     exit 0
 fi
 branch=$1
