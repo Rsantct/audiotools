@@ -7,8 +7,9 @@ if [ -z $1 ] ; then
     echo "usage:"
     echo "    update-audiotools.sh   master   [git_repo]"
     echo
-    echo "    (i) Default git_repo:                  'AudioHumLab'"
-    echo "        You can use other branch name than 'master' "
+    echo "    (i) Default git_repo:                     'AudioHumLab'"
+    echo "        You can use another branch name than  'master' "
+    echo
     exit 0
 fi
 branch=$1
