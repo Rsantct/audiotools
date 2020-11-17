@@ -30,7 +30,7 @@ fi
 cd ~/
 
 # Remove previous 
-rm -f ~/$branch.zip*  1>/dev/null 2>&1
+rm -f ~/$branch.zip*    1>/dev/null 2>&1
 
 # Download project from GitHUb
 curl -LO "$gitsite"/audiotools/archive/$branch.zip
@@ -38,7 +38,7 @@ curl -LO "$gitsite"/audiotools/archive/$branch.zip
 unzip -o $branch.zip
 
 # Remove old
-rm -rf ~/audiotools 1>/dev/null 2>&1
+rm -rf ~/audiotools     1>/dev/null 2>&1
 
 # Rename folder
 mv ~/audiotools-$branch ~/audiotools
@@ -62,4 +62,5 @@ fi
 
 # Removing <branch>.zip
 cd ~/
-rm -f ~/$branch.zip
+rm -f ~/$branch.zip         1>/dev/null 2>&1
+rm ~/update-audiotools.sh   1>/dev/null 2>&1
