@@ -349,13 +349,13 @@ def fft_spectrum(freq, mag, fs=44100, wsize=2**12, make_whole=False):
     return freq_new, mag_new
 
 
-def interp_semispectrum(freq, mag, fs, Nbins):
-    """ Interpolates a given semi-spectrum curve into a new
-        linespaced frequencies vector with Nbins length
+def logspaced_semispectrum(freq, mag, Npoints):
+    """ Interpolates a given magnitude/freq semi-spectrum into
+        a new one with <Npoints> length logspaced freq points.
 
         Note: for fft compliance see tools.fft_spectrum()
     """
-    freqNew  = np.linspace(0, fs/2, Nbins)
+    freqNew  = np.geomspace(1, freq[-1], Npoints)
 
     funcI = interp1d(   freq,
                         mag,
