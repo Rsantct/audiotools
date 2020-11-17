@@ -8,23 +8,15 @@ It is included an Octave to Python/Scipy translation of **[rripio/DSD](https://g
 
 
     cd ~
-    rm -f master.zip*
-    rm -f testing.zip*
-    rm -f update-audiotools.sh*
-    wget https://raw.githubusercontent.com/Rsantct/audiotools/master/update-audiotools.sh
+    curl -LO https://raw.githubusercontent.com/Rsantct/audiotools/master/update-audiotools.sh
     sh update-audiotools.sh master
-    rm update-audiotools.sh
-    rm -f master.zip*
-    rm -f testing.zip*
 
-If you want to import modules from here, just update yor `~/.profile` file:
-
-    export PYTHONPATH=$PYTHONPATH:$HOME/audiotools
+The script will update your `~/.profile` in order to append `$HOME/audiotools` to your $PATH environment.
 
 
 ### Update:
 
-    sh ~/audiotools/update-audiotools.sh  master | another_branch
+    sh ~/audiotools/update-audiotools.sh
 
 
 ### References:
