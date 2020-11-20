@@ -5,9 +5,10 @@
 
 if [ -z $1 ] ; then
     echo "usage:"
-    echo "    update-audiotools.sh  branch_name [git_repo]"
+    echo "    update-audiotools.sh   master   [git_repo]"
     echo
-    echo "    (i) optional git_repo defaults to 'AudioHumLab'"
+    echo "    (i) Default git_repo:                     'AudioHumLab'"
+    echo "        You can use another branch name than  'master' "
     echo
     exit 0
 fi
@@ -20,8 +21,8 @@ else
 fi
 
 echo
-echo "WARNING: Will download from: [ ""$gitsite"" ]"
-read -r -p "         Is this OK? [y/N] " tmp
+echo "(i) Will download from: [ ""$gitsite"" ]"
+read -r -p "    Is this OK? [y/N] " tmp
 if [ "$tmp" != "y" ] && [ "$tmp" != "Y" ]; then
     echo 'Bye.'
     exit 0
@@ -29,37 +30,42 @@ fi
 
 cd ~/
 
-# Borramos si hubiera algun <branch>.zip
-rm -f ~/$branch.zip*
+# Remove previous 
+rm -f ~/$branch.zip*    1>/dev/null 2>&1
 
-# Bajamos el zip de GitHUb
-wget "$gitsite"/audiotools/archive/$branch.zip
+# Download project from GitHUb
+curl -LO "$gitsite"/audiotools/archive/$branch.zip
 # Descomprimos ( se descomprime en audiotools-$branch )
 unzip -o $branch.zip
 
-# Borramos lo antiguo
-rm -rf ~/audiotools
+# Remove old
+rm -rf ~/audiotools     1>/dev/null 2>&1
 
-# Y renombramos el directorio descomprimido
+# Rename folder
 mv ~/audiotools-$branch ~/audiotools
 
-# Hacemos ejecutables los archivos
+# Executable flags
 chmod +x ~/audiotools/*
 chmod +x ~/audiotools/brutefir_eq/*py
 chmod +x ~/audiotools/brutefir_eq/*sh
 
-# Dejamos una marca indicando la branch contenida
+# Leaving a dummy file with the installes branch name
 touch ~/audiotools/THIS_BRANCH_IS_$branch
 
-# Incluimos auditools en el PATH del profile del usuario
-#   Buscamos el archivo del profile
+# Adding ~/audiotools to user's environment
+#   Finding user's profile file
 profileFile=$(ls -a .*profile*)
-#   Si no tiene incluido el path a audiotools, lo incluimos
+#   If not included, uptating $PATH whith ~/audiotools
 if ! grep -q "audiotools" "$profileFile"; then
     echo "export PATH=\"\$PATH\":${HOME}/audiotools" >> "$profileFile"
     export PATH=$PATH:$HOME/audiotools
 fi
 
-# Borramos el <branch>.zip
+# Removing <branch>.zip
 cd ~/
-rm -f ~/$branch.zip
+rm -f ~/$branch.zip         1>/dev/null 2>&1
+rm ~/update-audiotools.sh   1>/dev/null 2>&1
+
+echo
+echo installed under:  "$HOME"/audiotools
+echo
