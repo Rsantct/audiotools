@@ -3,7 +3,6 @@
     common use tools
 """
 import os.path
-import sys
 import numpy as np
 from scipy.io import wavfile
 from scipy import signal
@@ -741,6 +740,20 @@ def readWAV(fname):
     return fs, imp2.astype('float32')
 
 
+def saveWAV(fname, rate, data, bits=16):
+    """ stereo data must have shape (Nsamples, 2)
+    """
+
+    if bits == 16:
+        t='int16'
+    elif bits == 32:
+        t='float32'
+    else:
+        raise ValueError('tools.saveWAV use 16 or 32 bits depth')
+
+    wavfile.write(fname, rate, data.astype(t))
+
+
 def readPCM(fname, dtype='float32'):
     """ lee un archivo pcm float32
     """
@@ -832,4 +845,74 @@ def make_beep(f=1000, fs=48000, dBFS=-9.0, duration=0.10):
     y = np.concatenate( [head, y, tail] )       # adding head and tail silences
     y *= 10 ** (dBFS/20.0)                      # attenuation as per dBFS
     return y
+
+
+def SoX_pcm2wav(pcmpath1=None, pcmpath2=None, fs=0, wavpath=None, bits=32):
+    """ A wrapper using SoX to convert pcm files (float32) to wav file.
+        If two pcm are given, then mix to stereo wav.
+    """
+
+    from subprocess import run
+
+    test = run( 'which sox'.split() )
+    if test !=0:
+        print('tools.SoX_pcm2wav() needs SoX')
+        return False
+
+    if (fs not in (44100, 48000)) or (not os.path.isfile(pcmpath1)) or \
+       (bits not in (16,32)):
+        return False
+
+    if pcmpath2 and not os.path.isfile(pcmpath2):
+        return False
+
+
+    # SoX needs .f32 extension
+    f32path1 = pcmpath1.replace('.pcm', '.f32')
+    run( f'ln -s  "{pcmpath1}" "{f32path1}" 1>/dev/null 2>&1', shell=True)
+    if pcmpath2:
+        f32path2 = pcmpath2.replace('.pcm', '.f32')
+        run( f'ln -s  "{pcmpath2}" "{f32path2}" 1>/dev/null 2>&1', shell=True)
+
+    # wav file name
+    if not wavpath:
+        if os.path.dirname(pcmpath1):
+            wavpath = f'{os.path.dirname(pcmpath1)}/pcm2wav.wav'
+        else:
+            wavpath = 'pcm2wav.wav'
+
+    # SoX mixing
+    # sox -m  -c1 -r44100 L.f32  -c1 -r44100 R.f32  -c 2 -b 16 L+R.wav
+    if pcmpath2:
+        cmd = f'sox -m -c1 -r{fs} {f32path1} -c1 -r{fs} {f32path2}  -c2'
+    else:
+        cmd = f'sox -c1 -r{fs} {f32path1} -c1'
+
+    cmd += f' -b{bits} {wavpath}'
+
+    run( cmd, shell=True )
+
+    print(f'(tools.SoX_pcm2wav) saved: {wavpath}')
+
+    # Removing symlinks
+    run( f'rm "{f32path1}" 1>/dev/null 2>&1', shell=True)
+    if pcmpath2:
+        run( f'rm "{f32path2}" 1>/dev/null 2>&1', shell=True)
+
+    return True
+
+
+def pcm2stereowav(pcmpathL=None, pcmpathR=None, fs=0, wavpath=None, bits=32):
+    """ mixes regular audiotools pcm float 32 files to wav stereo
+    """
+
+    if fs not in (44100, 48000, 96000):
+        raise ValueError('(tools.pcm2stereowav) invalid rate')
+
+    L = readPCM(pcmpathL)
+    R = readPCM(pcmpathR)
+
+    LR = np.array( (L, R) ).transpose()
+
+    saveWAV(fname=wavpath, rate=fs, data=LR, bits=bits)
 
