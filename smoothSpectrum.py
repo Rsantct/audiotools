@@ -1,5 +1,4 @@
-#!/usr/env/python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env/python3
 
 # This is a Python translation from the original written in Matlab:
 #
@@ -10,16 +9,16 @@
 # Copyright 2016 University of Surrey.
 
 #   Example (original code)
-# 
+#
 #       % Calculate the 1/3-octave-smoothed power spectral density of the
 #       % Handel example.
-# 
+#
 #       % load signal
 #       load handel.mat
-#       
+#
 #       % take fft
 #       Y = fft(y);
-#       
+#
 #       % keep only meaningful frequencies
 #       NFFT = length(y);
 #       if mod(NFFT,2)==0
@@ -29,19 +28,19 @@
 #       end
 #       Y = Y(1:Nout);
 #       f = ((0:Nout-1)'./NFFT).*Fs;
-#       
+#
 #       % put into dB
 #       Y = 20*log10(abs(Y)./NFFT);
-#       
+#
 #       % smooth
 #       Noct = 3;
 #       Z = iosr.dsp.smoothSpectrum(Y,f,Noct);
-#       
+#
 #       % plot
 #       figure
 #       semilogx(f,Y,f,Z)
 #       grid on
-# 
+#
 
 import numpy as np
 from tools import logTransition # used for variable smoothing feature
@@ -51,11 +50,11 @@ def smoothSpectrum(f, X, Noct, f0=0, Tspeed="medium"):
 #       por ser más habitual manejar primero el vector de frecuencias de muestreo.
 
     """
-    Applies 1/NOCT-octave smoothing to the frequency spectrum contained 
-    in vector 'X' sampled at frequencies in vector 'f'. 
-    
+    Applies 1/NOCT-octave smoothing to the frequency spectrum contained
+    in vector 'X' sampled at frequencies in vector 'f'.
+
     'X' can be a log-, magnitude-, or power-spectrum.
-    
+
     Setting Noct to 0 results in no smoothing.
 
     Algorithm:
@@ -68,13 +67,13 @@ def smoothSpectrum(f, X, Noct, f0=0, Tspeed="medium"):
     See also IOSR.DSP.LTAS, FFT.
 
     Copyright 2016 University of Surrey.
-    
+
     This translation to Python adds a VARIABLE SMOOTHING feature:
-    
+
         'f0'    indicates the frequency for transit from 1/N oct smoothing towards
                 1/1 smoothing at the spectrum high end.
                 If f0 = 0, then CONSTANT 1/N smoothing will be applied.
-        
+
         'Tspeed' (slow, medium, fast) indicates the speed of the transition at f0
     """
 
@@ -92,12 +91,12 @@ def smoothSpectrum(f, X, Noct, f0=0, Tspeed="medium"):
     assert(type(f) is np.ndarray),  "Frec must be an array"
     assert(type(Noct) is int),      "Noct must be an integer '1/Noct octaves'"
     assert(np.all(np.isreal(X))),   "Mag must be real values"
-    assert(np.all( f >= 0 )),       "Frec must contain positive values" 
+    assert(np.all( f >= 0 )),       "Frec must contain positive values"
     assert(Noct >= 0),              "Noct must be greater than or equal to 0"
     assert(len(X) == len(f)),       "Mag and Frec must be the same size"
     assert( f0 > 0 or f0 < max(f) ), "f0 must be in the range of Frec"
     assert( Tspeed in ["slow", "medium", "fast"]), "Tspeed mut be 'slow', 'medium' or 'fast'"
-    
+
     #%% Smoothing
     #% calculates a Gaussian function for each frequency,
     #% deriving a bandwidth for that frequency.
@@ -105,19 +104,19 @@ def smoothSpectrum(f, X, Noct, f0=0, Tspeed="medium"):
     x_oct = np.copy(X)  # initial spectrum (OjO numpy requiere hacer una copia)
 
     ##################################################################
-    # En esta adaptación, Noct pasa a ser un vector de la longitud del 
+    # En esta adaptación, Noct pasa a ser un vector de la longitud del
     # vector 'f' de las frecuencias.
-    # Si se pide un smooth variable (f0 <> 0), Noct empezará valiendo N, 
+    # Si se pide un smooth variable (f0 <> 0), Noct empezará valiendo N,
     # y cambiará hacia 1 a partir de la f0 (ver tools.logTransition)
     if f0:
         Noct = (Noct-1) * logTransition(f, f0, speed=Tspeed) + 1
     else:
         Noct = Noct * np.ones( len(f) )
-    # print Noct # DEBUG
+    # print(Noct) # DEBUG
     ##################################################################
-    
+
     # INICIO DEL SUAVIZADO:
-    
+
     if Noct[0] == 0:                                # Return if no smoothing
         return x_oct
 
@@ -144,7 +143,7 @@ def smoothSpectrum(f, X, Noct, f0=0, Tspeed="medium"):
 def gauss_f(f_x, F , Noct):
     """
     GAUSS_F calculate frequency-domain Gaussian with unity gain
- 
+
     Calculates a frequency-domain Gaussian function
     for frequencies f_x, with centre frequency f and bandwidth f/Noct.
     """
@@ -152,7 +151,7 @@ def gauss_f(f_x, F , Noct):
     # sigma = (F/Noct)/pi;                                      % standard deviation
     # g = exp(-(((f_x-F).^2)./(2.*(sigma^2))));                 % Gaussian
     # g = g./sum(g);                                            % normalise magnitude
-    
+
     # Numpy:
     sigma = (F/Noct) / np.pi                                    # standard deviation
     g = np.exp( -( ( (f_x-F) ** 2) / (2 * (sigma ** 2) ) ) )    # Gaussian
