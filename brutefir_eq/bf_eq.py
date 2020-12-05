@@ -17,16 +17,15 @@ from brutefir_eq import tones as tone
 from brutefir_eq import loudness_compensation as loud
 from brutefir_eq import room_curves as room
 
-# Default parameters
-
-# - Common
+# User's config parameters
 fs          = 44100
+refSPL      = 83  # default reference SPL for flat loudness contour curve
+
+# Factory default parameters (usually not changed)
+# - Common:
 Rseries     = 'R20'
 fmin        = 10
-refSPL      = 83  # default user's reference SPL for flat loudness contour curve
-
-
-# - Tones
+# - Tones:
 # (i) FIRtro original bass low shelf was at 160 Hz and 2nd order slope
 #     but we want to align this with the new House Curve centered at
 #     120 Hz and 1st order slope
@@ -38,15 +37,11 @@ tone.step          = 1             # tone curves step in dB
 tone.Rseries       = Rseries
 tone.fs            = fs
 tone.fmin          = fmin
-
-
-# - Loudness contour
+# - Loudness contour:
 loud.refSPL         = refSPL
 loud.Rseries        = Rseries
 loud.fmin           = fmin
 loud.fs             = fs
-
-
 # - Room curves
 #   (i) Lets use bass low shelf 1st order slope and centered at 120 Hz,
 #       in coherence with default settings in tone curves.
