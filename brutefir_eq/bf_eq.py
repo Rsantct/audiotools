@@ -17,9 +17,11 @@ from brutefir_eq import tones as tone
 from brutefir_eq import loudness_compensation as loud
 from brutefir_eq import room_curves as room
 
-# User's config parameters
+
+# USER's CONFIG PARAMETERS:
 fs          = 44100
 refSPL      = 83  # default reference SPL for flat loudness contour curve
+
 
 # Factory default parameters (usually not changed)
 # - Common:
@@ -96,10 +98,10 @@ def do_loudness_curves():
     # Extended version with iso RXX frequency bands (usually 20 ~ 20000 Hz)
     lcurves_mag = loud.extend_curves( iso226.FREQS, lcurves_iso226, freqs,
                                           Noct=2 )
-    print(f'(bf_eq) computing phase from {lcurves_mag.shape[0]}'
+    print(f'(bf_eq.py) computing phase from {lcurves_mag.shape[0]}'
           f' equal loudness magnitude curves, will take a while ...')
     lcurves_pha = loud.phase_from_mag(freqs, lcurves_mag)
-    print(f'(bf_eq) done')
+    print(f'(bf_eq.py) done')
 
 
 def do_tone_curves():
