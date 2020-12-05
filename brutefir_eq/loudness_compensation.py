@@ -2,7 +2,7 @@
 """
     Prepare loudness compensation curves for listening levels referred
     to a given reference phon (dBSPL), to be used on Brutefir eq coeff.
-    
+
     Curves follows the ISO 226:2003 normal equal-loudness-level contours
 
     Usage:
@@ -31,6 +31,7 @@ sys.path.append(f'{HOME}/audiotools')
 import iso226
 from iso_R import get_iso_R
 from tools import extrap1d, min_phase_from_real_mag
+from smoothSpectrum import smoothSpectrum as smooth
 
 def doplot():
 
@@ -43,8 +44,7 @@ def doplot():
     ax2.set_xlim(10, 30000)
     ax2.set_title(f'loudness compensation for listening levels referred to '
                   f'{refSPL} dBSPL\n'
-                  f'--- extrapolated values for {Rseries} from {freqs_isoR[0]} Hz '
-                  f' to {freqs_isoR[-1]} Hz')
+                  f'--- extended values for {Rseries} series')
     fig.subplots_adjust(hspace = 0.5)
 
     # ax1: plot equal loudness contour curves (10 dB stepped samples)
@@ -52,13 +52,13 @@ def doplot():
         ax1.semilogx(iso226.FREQS, iso226.EQ_LD_CURVES[i], label=i)
 
     # ax2: plot loudness compensation curves referred to refSPL (10dB stepped)
-    for i in np.arange(refSPL % 10, ld_compens_curves_RXX.shape[0], 10):
-        ax2.semilogx(freqs_isoR, ld_compens_curves_RXX[i],
+    for i in np.arange(refSPL % 10, lcurves_RXX.shape[0], 10):
+        ax2.semilogx(freqs_isoR, lcurves_RXX[i],
                                  '--',
                                  color='black')
-        ax2.semilogx(iso226.FREQS, ld_compens_curves_iso226[i],
+        ax2.semilogx(iso226.FREQS, lcurves_iso226[i],
                                    linewidth=1.2,
-                                   label=i-refSPL)
+                                   label=f'{i-refSPL} dBr')
 
     # reverse the order in ax1 legend
     handles, labels = ax1.get_legend_handles_labels()
@@ -75,15 +75,23 @@ def phase_from_mag(curves):
     return phases
 
 
-def save_curves():
+def save_FIRtro_curves(curves):
     """ FIRtro manages Matlab/Octave arrays kind of, so
         transpose() will save them with a column vector form factor.
     """
+
+    # Let's move curves to easily compensate around the flat one (refSPL curve)
+    # Now, the curve at index refSPL is the flat one,
+    # the curves at upper index are for EQ at listening levels above refSPL,
+    # and the curves at lower index are for EQ at listening below refSPL.
+    for level, _ in enumerate(curves):
+        curves[level] = curves[level] - level + refSPL
+
     # (i) Will flipud because FIRtro computes compensation curves in
     # reverse order from the one found inside the _mag.dat and _pha.dat files.
     # So the flat curve index changes from natural flatIdx => refSPL (e.g.: 83)
     # to flatIdx => (90-refSPL) (e.g.: 7)
-    curves = np.flipud(ld_compens_curves_RXX)
+    curves = np.flipud(curves)
 
     # Retrieving phase from mag will be done only when saving to disk
     print( 'retrieving phase from curves, will take a while ...' )
@@ -103,17 +111,19 @@ def save_curves():
     print(f'                 {pname}')
 
 
-def extrapolate_curves(freqs):
-    """ Interpolates iso226 loudness compensation curves by using
-        a new array of frequency bands 'freqs', and extrapolates them
-        beyond iso226 bands limits.
+def extend_curves(freqs, curves, new_freqs, Noct=0):
+    """ Extrapolates (freqs,curves) by using  a new frequency bands 'new_freqs'.
+        Noct will smooth the resulting curves in 1/Noct, Noct=0 will not.
     """
-    curves = np.zeros( (ld_compens_curves_iso226.shape[0], len(freqs)) )
-    for i, curve in enumerate(ld_compens_curves_iso226):
-        I = interp1d(iso226.FREQS, curve)
+    new_curves = np.zeros( (curves.shape[0], len(new_freqs)) )
+    for i, curve in enumerate(curves):
+        I = interp1d(freqs, curve)
         X = extrap1d( I )
-        curves[i] = X(freqs)
-    return curves
+        if Noct:
+            new_curves[i] = smooth(new_freqs, X(new_freqs), Noct)
+        else:
+            new_curves[i] = X(new_freqs)
+    return new_curves
 
 
 if __name__ == '__main__':
@@ -155,26 +165,20 @@ if __name__ == '__main__':
 
     freqs_isoR = get_iso_R(Rseries, fmin=fmin, fs=fs)
 
-    # Initial version for iso226 29 bands (20 ~ 12500 Hz)
-    ld_compens_curves_iso226 = iso226.EQ_LD_CURVES - iso226.EQ_LD_CURVES[refSPL]
+    # Initial curves set with 29 iso226 bands (20 ~ 12500 Hz).
+    # These are differential curves referred to the curve of phons
+    # equal to the defined reference SPL in our sound system.
+    lcurves_iso226 = iso226.EQ_LD_CURVES - iso226.EQ_LD_CURVES[refSPL]
 
-    # Let's move curves to easily compensate around the flat one (refSPL curve)
-    # Now, the curve at index refSPL is the flat one,
-    # the curves at upper index are for EQ at listening levels above refSPL,
-    # and the curves at lower index are for EQ at listening below refSPL.
-    for level, _ in enumerate(ld_compens_curves_iso226):
-        ld_compens_curves_iso226[level] = ld_compens_curves_iso226[level] \
-                                          - level + refSPL
-
-    # Extrapolated version for iso RXX frequency bands (usually 20 ~ 20000 Hz)
-    ld_compens_curves_RXX = extrapolate_curves(freqs_isoR)
+    # Extended version with iso RXX frequency bands (usually 20 ~ 20000 Hz)
+    lcurves_RXX = extend_curves(iso226.FREQS, lcurves_iso226, freqs_isoR, Noct=2)
 
     print(f'Using {Rseries} from {freqs_isoR[0]} Hz to {freqs_isoR[-1]} Hz')
     print(f'Ref: {refSPL} phon ~ dBSPL listening reference level')
     print(f'flat curve index: {refSPL}, but in disk will flip to index: {90-refSPL}')
 
     if save:
-        save_curves()
+        save_FIRtro_curves(lcurves_RXX)
 
     if plot:
         doplot()
