@@ -67,10 +67,10 @@ def doplot():
     plt.show()
 
 
-def phase_from_mag(curves):
+def phase_from_mag(freqs, curves):
     phases = np.zeros( curves.shape )
     for i, curve in enumerate(curves):
-        _,_,pha = min_phase_from_real_mag( freqs_isoR, curve)
+        _,_,pha = min_phase_from_real_mag( freqs, curve)
         phases[i] = pha
     return phases
 
@@ -105,7 +105,7 @@ def save_FIRtro_curves(curves):
     pname = f'{folder}/ref_{refSPL}_loudness_pha.dat'
     np.savetxt( fname, freqs_isoR.transpose() )
     np.savetxt( mname, curves.transpose() )
-    np.savetxt( pname, phase_from_mag(curves).transpose() )
+    np.savetxt( pname, phase_from_mag( freqs_isoR, curves).transpose() )
     print(f'freqs saved to:  {fname}')
     print(f'curves saved to: {mname}')
     print(f'                 {pname}')
