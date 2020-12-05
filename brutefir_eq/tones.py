@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
     Prepare tone EQ curves to be used on Brutefir eq coeff.
-    
+
     First or second order shelving filters are available.
-    
+
     Usage:
 
     tones.py    -RXX  -fs=X  -o=X -b=X -t=X  --save  --plot
@@ -37,15 +37,15 @@ from tools import shelf1low, shelf2low, shelf1high, shelf2high
 
 
 def make_curves():
-    global curves_bass_mag,   curves_bass_pha
-    global curves_treble_mag, curves_treble_pha
+    global bass_mag,   bass_pha
+    global treble_mag, treble_pha
 
     # Prepare curves collection arrays
     dB_steps = np.arange(-span, span+step ,step)
-    curves_bass_mag    = np.zeros( (len(dB_steps), len(freqs)) )
-    curves_bass_pha    = np.zeros( (len(dB_steps), len(freqs)) )
-    curves_treble_mag  = np.zeros( (len(dB_steps), len(freqs)) )
-    curves_treble_pha  = np.zeros( (len(dB_steps), len(freqs)) )
+    bass_mag    = np.zeros( (len(dB_steps), len(freqs)) )
+    bass_pha    = np.zeros( (len(dB_steps), len(freqs)) )
+    treble_mag  = np.zeros( (len(dB_steps), len(freqs)) )
+    treble_pha  = np.zeros( (len(dB_steps), len(freqs)) )
 
     for i, dB in enumerate(dB_steps):
 
@@ -57,8 +57,8 @@ def make_curves():
         w, h = freqz( b, a, freqs, fs=fs )
         mag_dB = 20 * np.log10(abs(h))
         pha_deg = np.angle(h, deg=True)
-        curves_bass_mag[i] = mag_dB
-        curves_bass_pha[i] = pha_deg
+        bass_mag[i] = mag_dB
+        bass_pha[i] = pha_deg
 
         # Compute treble
         wc = 2 * np.pi * fc_treble / fs
@@ -66,8 +66,8 @@ def make_curves():
         w, h = freqz( b, a, freqs, fs=fs )
         mag_dB = 20 * np.log10(abs(h))
         pha_deg = np.angle(h, deg=True)
-        curves_treble_mag[i] = mag_dB
-        curves_treble_pha[i] = pha_deg
+        treble_mag[i] = mag_dB
+        treble_pha[i] = pha_deg
 
 
 def prepare_plot():
@@ -81,17 +81,17 @@ def prepare_plot():
 
 
 def plot_all():
-    global curves_bass_mag,   curves_bass_pha
-    global curves_treble_mag, curves_treble_pha
+    global bass_mag,   bass_pha
+    global treble_mag, treble_pha
 
     fig, (axMag, axPha) = prepare_plot()
-    for mag in curves_bass_mag:
+    for mag in bass_mag:
         axMag.semilogx(freqs, mag)
-    for mag in curves_treble_mag:
+    for mag in treble_mag:
         axMag.semilogx(freqs, mag)
-    for pha in curves_bass_pha:
+    for pha in bass_pha:
         axPha.semilogx(freqs, pha)
-    for pha in curves_treble_pha:
+    for pha in treble_pha:
         axPha.semilogx(freqs, pha)
     plt.show()
 
@@ -132,10 +132,10 @@ def save_dat():
     # (i) Will flipud because FIRtro computes curves in
     # reverse order from the one found inside the _mag.dat and _pha.dat files.
     # So curve at index 0 has +gain and the last index one has -gain
-    bass_mag   = np.flipud(curves_bass_mag).transpose()
-    bass_pha   = np.flipud(curves_bass_pha).transpose()
-    treble_mag = np.flipud(curves_treble_mag).transpose()
-    treble_pha = np.flipud(curves_treble_pha).transpose()
+    bass_mag   = np.flipud(bass_mag).transpose()
+    bass_pha   = np.flipud(bass_pha).transpose()
+    treble_mag = np.flipud(treble_mag).transpose()
+    treble_pha = np.flipud(treble_pha).transpose()
 
     folder=f'{HOME}/tmp/audiotools/eq'
     if not os.path.isdir(folder):
@@ -220,5 +220,3 @@ if __name__ == '__main__':
     if plot:
         #plot_all()
         plot_single_settings( [6, 0], [0, 6], [-4, -2] )
-
-

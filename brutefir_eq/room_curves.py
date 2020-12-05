@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-    Generates house curves sets as target room equalization curves
-    to be used on the Brutefir eq coeff.
+    Generates psycho acoustic set of curves as target room equalization
+    to be used on the Brutefir's run time EQ module.
 
     Usage:
 
-    house_curves.py  -RXX -fs=X -loS=X -loG=X -loF=X -hiA=X -hiF=X --save --plot
+    room_curves.py  -RXX -fs=X -loS=X -loG=X -loF=X -hiA=X -hiF=X --save --plot
 
         -RXX    R10 | R20 | R40 | R80  iso R series (default: R20 ~ 1/3 oct)
 
