@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
-""" A portable module to computes eq curves to be loaded into the Brutefir's
+""" A portable module to compute eq curves to be loaded into the Brutefir's
     run time EQ module:
-        tones, loudness compensation and room psycho acoustic curves
+        - tone (bass & treble) curves
+        - loudness compensation curves
+        - room psycho acoustic curve
 """
 import sys
 import os
 
 HOME = os.path.expanduser("~")
-sys.path.append(f'{HOME}/audiotools')
 
+sys.path.append(f'{HOME}/audiotools')
 from iso_R import get_iso_R
 import iso226
 from brutefir_eq import tones as tone
