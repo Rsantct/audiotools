@@ -50,7 +50,7 @@ def doplot():
 
     # ax1: plot equal loudness contour curves (10 dB stepped samples)
     for i in np.arange(0, iso226.EQ_LD_CURVES.shape[0], 10):
-        ax1.semilogx(iso226.FREQS, iso226.EQ_LD_CURVES[i], label=i)
+        ax1.semilogx(iso226.FREQS, iso226.EQ_LD_CURVES[i], label=f'{i} phon')
 
     # ax2: plot loudness compensation curves referred to refSPL (10dB stepped)
     for i in np.arange(refSPL % 10, lcurves_RXX.shape[0], 10):
