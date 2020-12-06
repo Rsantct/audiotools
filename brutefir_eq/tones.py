@@ -54,7 +54,8 @@ def make_curves():
         # Compute bass
         wc = 2 * np.pi * fc_bass / fs
         b, a = {1: shelf1low, 2:shelf2low}[shelf_order](G, wc)
-        w, h = freqz( b, a, freqs, fs=fs )
+        # for compatibility with scipy < v2.x do not use worN= and fs=
+        _, h = freqz( b, a, freqs * 2*np.pi / fs )
         mag_dB = 20 * np.log10(abs(h))
         pha_deg = np.angle(h, deg=True)
         bass_mag[i] = mag_dB
@@ -63,7 +64,7 @@ def make_curves():
         # Compute treble
         wc = 2 * np.pi * fc_treble / fs
         b, a = {1: shelf1high, 2:shelf2high}[shelf_order](G, wc)
-        w, h = freqz( b, a, freqs, fs=fs )
+        _, h = freqz( b, a, freqs * 2*np.pi / fs )
         mag_dB = 20 * np.log10(abs(h))
         pha_deg = np.angle(h, deg=True)
         treble_mag[i] = mag_dB
@@ -108,12 +109,13 @@ def plot_single_settings(*pairs):
         # Compute bass
         wc = 2 * np.pi * fc_bass / fs
         b, a = {1: shelf1low, 2:shelf2low}[shelf_order](G_bass, wc)
-        w, h_lo = freqz( b, a, freqs, fs=fs )
+        # for compatibility with scipy < v2.x do not use worN= and fs=
+        _, h_lo = freqz( b, a, freqs * 2*np.pi / fs )
 
         # Compute treble
         wc = 2 * np.pi * fc_treble / fs
         b, a = {1: shelf1high, 2:shelf2high}[shelf_order](G_treble, wc)
-        w, h_hi = freqz( b, a, freqs, fs=fs )
+        _, h_hi = freqz( b, a, freqs * 2*np.pi / fs )
 
         mag_dB = 20 * np.log10(abs(h_lo * h_hi)) # product equals summ in dB
         pha_deg = np.angle(h_lo * h_hi, deg=True)
