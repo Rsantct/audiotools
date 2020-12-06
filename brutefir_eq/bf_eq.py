@@ -81,6 +81,7 @@ def plotall():
     # - Loudness
     for level in range(0, lcurves_mag.shape[0], 10):
         axLOUD.semilogx(freqs, lcurves_mag[level], label=f'{level - refSPL} dBr')
+    axLOUD.set_ylim(-60, 10)
     axLOUD.legend()
     axLOUD.set_title(f'Loudness compensation in dBr / {refSPL} dBSPL')
 
