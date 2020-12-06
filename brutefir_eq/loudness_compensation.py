@@ -33,6 +33,7 @@ from iso_R import get_iso_R
 from tools import extrap1d, min_phase_from_real_mag
 from smoothSpectrum import smoothSpectrum as smooth
 
+
 def doplot():
 
     # Prepare axes
@@ -75,37 +76,49 @@ def phase_from_mag(freqs, curves):
     return phases
 
 
-def save_FIRtro_curves(curves):
-    """ FIRtro manages Matlab/Octave arrays kind of, so
-        transpose() will save them with a column vector form factor.
+def save_curves(freqs, curves_mag, curves_pha, mode='pe.audio.sys'):
+    """
+        mode='FIRtro'
+            FIRtro manages Matlab/Octave arrays kind of, so using
+            transpose() will save them with a column vector form factor.
     """
 
-    # Let's move curves to easily compensate around the flat one (refSPL curve)
-    # Now, the curve at index refSPL is the flat one,
-    # the curves at upper index are for EQ at listening levels above refSPL,
-    # and the curves at lower index are for EQ at listening below refSPL.
-    for level, _ in enumerate(curves):
-        curves[level] = curves[level] - level + refSPL
+    folder=f'{HOME}/audiotools/brutefir_eq/curves'
 
-    # (i) Will flipud because FIRtro computes compensation curves in
-    # reverse order from the one found inside the _mag.dat and _pha.dat files.
-    # So the flat curve index changes from natural flatIdx => refSPL (e.g.: 83)
-    # to flatIdx => (90-refSPL) (e.g.: 7)
-    curves = np.flipud(curves)
-
-    # Retrieving phase from mag will be done only when saving to disk
-    print( 'retrieving phase from curves, will take a while ...' )
-
-    folder=f'{HOME}/tmp/audiotools/eq'
     if not os.path.isdir(folder):
         os.makedirs(folder)
 
     fname = f'{folder}/freq.dat'
     mname = f'{folder}/ref_{refSPL}_loudness_mag.dat'
     pname = f'{folder}/ref_{refSPL}_loudness_pha.dat'
-    np.savetxt( fname, freqs_isoR.transpose() )
-    np.savetxt( mname, curves.transpose() )
-    np.savetxt( pname, phase_from_mag( freqs_isoR, curves).transpose() )
+
+    if mode == 'FIRtro':
+
+        print(f'flat curve index: {refSPL}, but in disk will flip to index: {90-refSPL}')
+
+        # Let's move curves to easily compensate around the flat one (refSPL curve)
+        # Now, the curve at index refSPL is the flat one,
+        # the curves at upper index are for EQ at listening levels above refSPL,
+        # and the curves at lower index are for EQ at listening below refSPL.
+        for level, _ in enumerate(curves):
+            curves[level] = curves[level] - level + refSPL
+
+        # (i) Will flipud because FIRtro computes compensation curves in
+        # reverse order from the one found inside the _mag.dat and _pha.dat files.
+        # So the flat curve index changes from natural flatIdx => refSPL (e.g.: 83)
+        # to flatIdx => (90-refSPL) (e.g.: 7)
+        curves = np.flipud(curves)
+
+        np.savetxt( fname, freqs     .transpose() )
+        np.savetxt( mname, curves_mag.transpose() )
+        np.savetxt( pname, curves_pha.transpose() )
+
+    else:
+
+        np.savetxt( fname, freqs      )
+        np.savetxt( mname, curves_mag )
+        np.savetxt( pname, curves_pha )
+
     print(f'freqs saved to:  {fname}')
     print(f'curves saved to: {mname}')
     print(f'                 {pname}')
@@ -166,8 +179,8 @@ if __name__ == '__main__':
     freqs_isoR = get_iso_R(Rseries, fmin=fmin, fs=fs)
 
     # Initial curves set with 29 iso226 bands (20 ~ 12500 Hz).
-    # These are differential curves referred to the curve of phons
-    # equal to the defined reference SPL in our sound system.
+    # These are differential curves referred to the equal loudness curve whose
+    # phons corresponds to the defined reference SPL in our sound system.
     lcurves_iso226 = iso226.EQ_LD_CURVES - iso226.EQ_LD_CURVES[refSPL]
 
     # Extended version with iso RXX frequency bands (usually 20 ~ 20000 Hz)
@@ -175,10 +188,14 @@ if __name__ == '__main__':
 
     print(f'Using {Rseries} from {freqs_isoR[0]} Hz to {freqs_isoR[-1]} Hz')
     print(f'Ref: {refSPL} phon ~ dBSPL listening reference level')
-    print(f'flat curve index: {refSPL}, but in disk will flip to index: {90-refSPL}')
+
+    # Retrieving phase from mag will be done only when saving to disk
+    print( '(loudness_compensation) retrieving phase from magnitudes, will take a while ...' )
+    lcurves_RXX_pha = phase_from_mag( freqs_isoR, lcurves_RXX)
+    print( '(loudness_compensation) done.' )
 
     if save:
-        save_FIRtro_curves(lcurves_RXX)
+        save_curves(freqs_isoR, lcurves_RXX_mag, lcurves_RXX_pha, mode='FIRtro')
 
     if plot:
         doplot()
