@@ -43,7 +43,8 @@ from tools import shelf1low, shelf2low, min_phase_from_real_mag
 def make_low(fc, gain):
     wc = 2 * np.pi * fc / fs
     b, a = {1: shelf1low, 2: shelf2low}[shelf_order](10**(gain/20.0), wc)
-    w, h = freqz( b, a, f, fs=fs )
+    # for compatibility with scipy < v2.x do not use worN= and fs=
+    _, h = freqz( b, a, f * 2*np.pi / fs )
     return 20 * np.log10( np.abs(h) )
 
 
