@@ -40,7 +40,7 @@ def doplot():
     fig, (ax1, ax2) = plt.subplots(2,1)
     fig.set_size_inches(7,10)
     ax1.set_xlim(10, 30000)
-    ax1.set_title("iso226")
+    ax1.set_title("iso226 equal loudness curves")
     ax1.set_ylabel('phon')
     ax2.set_xlim(10, 30000)
     ax2.set_title(f'loudness compensation for listening levels referred to '
