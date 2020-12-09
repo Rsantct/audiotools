@@ -132,10 +132,10 @@ if __name__ == '__main__':
     fc_high = 500       # high roll-off corner frecuency
 
     # Will generate a set of curves by combining low shelf and house ranges
-    dB_range    = 6     # integer
-    dB_step     = 1     # integer
-    lo_gains    = np.arange(0, dB_range + dB_step, dB_step)
-    hi_gains    = np.arange(0, dB_range + dB_step, dB_step) * -1
+    lo_range = 6; lo_step = 1.0
+    hi_range = 3; hi_step = 0.5
+    lo_gains    = np.arange(0, lo_range + lo_step, lo_step)
+    hi_gains    = np.arange(0, hi_range + hi_step, hi_step)
 
     # Frequency points
     fmin    = 10
