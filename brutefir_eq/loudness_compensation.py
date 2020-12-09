@@ -8,22 +8,23 @@
 
     Usage:
 
-    equal_loudness.py   -RXX  -ref=X  -fs=X     --save  --plot
+    equal_loudness.py   -RXX  -ref=X,Y,...  -fs=X     --save  --plot
 
-        -RXX        R10 | R20 | R40 | R80  iso R series (default: R20 ~ 1/3 oct)
+        -RXX            R10 | R20 | R40 | R80  iso R series (default: R20 ~ 1/3 oct)
 
-        -ref=X      0 ... 90 phon ~ dBSPL listening reference level (default: 83)
+        -ref=X,Y,..     comma separated values for desired listening reference SPLs
+                        0 ... 90 phon ~ dBSPL (default: 83)
 
-        -fs=X       44100 | 48000 | 96000  sampling frequency Hz
-                    (default: 44100, upper limits RXX to 20000 Hz)
+        -fs=X           44100 | 48000 | 96000  sampling frequency Hz
+                        (default: 44100, upper limits RXX to 20000 Hz)
 
-        --save      save curves to disk
-
+        --save          save curves to disk
 
 """
 
 import sys
 import os
+import json
 import numpy as np
 from scipy.interpolate import interp1d
 from matplotlib import pyplot as plt
@@ -52,6 +53,7 @@ def doplot():
     # Prepare axes
     fig, (axISO, axMAG, axPHA) = plt.subplots(3, 1)
     fig.set_size_inches(7,12)
+    fig.suptitle(f'refSPL={refSPL}')
 
     # iso226 equal loudness contour curves
     axISO.set_xlim(10, 20000)
@@ -89,7 +91,6 @@ def doplot():
 
 
     fig.subplots_adjust(hspace = 0.5)
-    plt.show()
 
 
 def phase_from_mag(freqs, curves):
@@ -166,8 +167,8 @@ if __name__ == '__main__':
             print(__doc__)
             sys.exit()
 
-        elif opc[:5] == '-ref=':
-            refSPL = int(opc[5:])
+        elif '-ref=' in opc:
+            refSPL = opc.split('=')[-1]
 
         elif opc[:2] == '-R':
             Rseries = opc[1:]
@@ -183,10 +184,18 @@ if __name__ == '__main__':
         elif '-s' in opc:
             save = True
 
-    make_curves()
+    if type(refSPL) == str:
+        refSPLs = json.loads(f'[{refSPL}]')
+    else:
+        refSPLs = [refSPL]
 
-    if save:
-        save_curves()
+
+    for refSPL in refSPLs:
+        make_curves()
+        if save:
+            save_curves()
+        if plot:
+            doplot()
 
     if plot:
-        doplot()
+        plt.show()
