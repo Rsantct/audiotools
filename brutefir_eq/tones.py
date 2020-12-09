@@ -35,10 +35,60 @@ sys.path.append(f'{HOME}/audiotools')
 from iso_R import get_iso_R
 from tools import shelf1low, shelf2low, shelf1high, shelf2high
 
+cfolder=f'{HOME}/audiotools/brutefir_eq/curves'
+
+
+def plot_all():
+
+    fig, (axmag, axpha) = plt.subplots(2,1)
+
+    axmag.set_ylim(-span-3, +span+3)
+    axmag.set_title(f'bass@{fc_bass} Hz, treble@{fc_treble} Hz, slope {slopeInfo}')
+    axmag.set_ylabel('gain dB')
+
+    axpha.set_ylim(-50, +50)
+    axpha.set_ylabel('phase deg')
+
+    for i, _ in enumerate(bass_mag):
+        if not i%3 == 0:
+            continue
+        gain = i - (bass_mag.shape[0] - 1) / 2
+        axmag.semilogx( freqs, bass_mag[i]   , label=f'{gain} dB')
+        axmag.semilogx( freqs, treble_mag[i] )
+
+    for i, _ in enumerate(bass_pha):
+        if not i%3 == 0:
+            continue
+        axpha.semilogx( freqs, bass_pha[i]   )
+        axpha.semilogx( freqs, treble_pha[i] )
+
+    axmag.legend(loc='upper right', bbox_to_anchor=(1.25, 1.0),
+                 fontsize='x-small', title='(bass)')
+    plt.tight_layout()
+    plt.show()
+
+
+def save_curves():
+
+    if not os.path.isdir(cfolder):
+        os.makedirs(cfolder)
+
+    np.savetxt( f'{cfolder}/freq.dat',       freqs      )
+    np.savetxt( f'{cfolder}/bass_mag.dat',   bass_mag   )
+    np.savetxt( f'{cfolder}/bass_pha.dat',   bass_pha   )
+    np.savetxt( f'{cfolder}/treble_mag.dat', treble_mag )
+    np.savetxt( f'{cfolder}/treble_pha.dat', treble_pha )
+
+    print(f'freqs saved to:  {cfolder}')
+
 
 def make_curves():
-    global bass_mag,   bass_pha
-    global treble_mag, treble_pha
+
+    global  freqs,                  \
+            bass_mag,   bass_pha,   \
+            treble_mag, treble_pha
+
+    freqs = get_iso_R(Rseries, fmin=fmin, fs=fs)
 
     # Prepare curves collection arrays
     dB_steps = np.arange(-span, span+step ,step)
@@ -54,7 +104,8 @@ def make_curves():
         # Compute bass
         wc = 2 * np.pi * fc_bass / fs
         b, a = {1: shelf1low, 2:shelf2low}[shelf_order](G, wc)
-        w, h = freqz( b, a, freqs, fs=fs )
+        # for compatibility with scipy < v2.x do not use worN= and fs=
+        _, h = freqz( b, a, freqs * 2*np.pi / fs )
         mag_dB = 20 * np.log10(abs(h))
         pha_deg = np.angle(h, deg=True)
         bass_mag[i] = mag_dB
@@ -63,93 +114,11 @@ def make_curves():
         # Compute treble
         wc = 2 * np.pi * fc_treble / fs
         b, a = {1: shelf1high, 2:shelf2high}[shelf_order](G, wc)
-        w, h = freqz( b, a, freqs, fs=fs )
+        _, h = freqz( b, a, freqs * 2*np.pi / fs )
         mag_dB = 20 * np.log10(abs(h))
         pha_deg = np.angle(h, deg=True)
         treble_mag[i] = mag_dB
         treble_pha[i] = pha_deg
-
-
-def prepare_plot():
-    fig, (axMag, axPha) = plt.subplots(2,1)
-    axMag.set_ylim(-span, +span)
-    axMag.set_title(f'bass@{fc_bass} Hz, treble@{fc_treble} Hz, slope {slopeInfo}')
-    axMag.set_ylabel('gain dB')
-    axPha.set_ylim(-50, +50)
-    axPha.set_ylabel('phase deg')
-    return fig, (axMag, axPha)
-
-
-def plot_all():
-    global bass_mag,   bass_pha
-    global treble_mag, treble_pha
-
-    fig, (axMag, axPha) = prepare_plot()
-    for mag in bass_mag:
-        axMag.semilogx(freqs, mag)
-    for mag in treble_mag:
-        axMag.semilogx(freqs, mag)
-    for pha in bass_pha:
-        axPha.semilogx(freqs, pha)
-    for pha in treble_pha:
-        axPha.semilogx(freqs, pha)
-    plt.show()
-
-
-def plot_single_settings(*pairs):
-
-    fig, (axMag, axPha) = prepare_plot()
-
-    for dB_bass, dB_treble in pairs:
-
-        G_bass   = 10 ** (dB_bass   / 20.0)
-        G_treble = 10 ** (dB_treble / 20.0)
-
-        # Compute bass
-        wc = 2 * np.pi * fc_bass / fs
-        b, a = {1: shelf1low, 2:shelf2low}[shelf_order](G_bass, wc)
-        w, h_lo = freqz( b, a, freqs, fs=fs )
-
-        # Compute treble
-        wc = 2 * np.pi * fc_treble / fs
-        b, a = {1: shelf1high, 2:shelf2high}[shelf_order](G_treble, wc)
-        w, h_hi = freqz( b, a, freqs, fs=fs )
-
-        mag_dB = 20 * np.log10(abs(h_lo * h_hi)) # product equals summ in dB
-        pha_deg = np.angle(h_lo * h_hi, deg=True)
-        line = axMag.semilogx(w, mag_dB, label=f'b:{dB_bass} t:{dB_treble}')
-        color = line[0].get_color()
-        axPha.semilogx(w, pha_deg, color=color)
-
-    axMag.legend()
-    plt.show()
-
-
-def save_dat():
-    """ FIRtro manages Matlab/Octave arrays kind of, so
-        transpose() will save them with a column vector form factor.
-    """
-    # (i) Will flipud because FIRtro computes curves in
-    # reverse order from the one found inside the _mag.dat and _pha.dat files.
-    # So curve at index 0 has +gain and the last index one has -gain
-    bass_mag   = np.flipud(bass_mag).transpose()
-    bass_pha   = np.flipud(bass_pha).transpose()
-    treble_mag = np.flipud(treble_mag).transpose()
-    treble_pha = np.flipud(treble_pha).transpose()
-
-    folder=f'{HOME}/tmp/audiotools/eq'
-    if not os.path.isdir(folder):
-        os.makedirs(folder)
-
-    np.savetxt( f'{folder}/freq.dat',       freqs.transpose() )
-    np.savetxt( f'{folder}/bass_mag.dat',   bass_mag   )
-    np.savetxt( f'{folder}/bass_pha.dat',   bass_pha   )
-    np.savetxt( f'{folder}/treble_mag.dat', treble_mag )
-    np.savetxt( f'{folder}/treble_pha.dat', treble_pha )
-
-    print(f'freqs saved to:  {folder}/freq.dat')
-    print(f'curves saved to: {folder}/<bass|treble>_mag.dat')
-    print(f'                 {folder}/<bass|treble>_pha.dat')
 
 
 if __name__ == '__main__':
@@ -205,18 +174,15 @@ if __name__ == '__main__':
         elif '-s' in opc:
             save = True
 
-    freqs     = get_iso_R(Rseries, fmin=fmin, fs=fs)
     slopeInfo = {1:"6 dB/oct", 2:"12 dB/oct"}[shelf_order]
 
-    # Compute curves
-    make_curves()
-
-    print(f'Using {Rseries} from {freqs[0]} Hz to {freqs[-1]} Hz (fs: {fs})')
+    print(f'Using {Rseries}')
     print(f'bass @{fc_bass} Hz, treble @{fc_treble} Hz, slope {slopeInfo}')
 
+    make_curves()
+
     if save:
-        save_dat()
+        save_curves()
 
     if plot:
-        #plot_all()
-        plot_single_settings( [6, 0], [0, 6], [-4, -2] )
+        plot_all()
