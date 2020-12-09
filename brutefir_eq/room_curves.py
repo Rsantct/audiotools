@@ -62,7 +62,7 @@ def plotsamples():
     axMag.set_ylim(-15, 15)
     axPha.set_ylim(-45, 45)
 
-    samples = ('+4.0-1.0', '+3.0-2.0', '+0.0-3.0')
+    samples = ('+4.0-0.0', '+3.0-1.5', '+0.0-3.0')
     for curve in samples:
         mag = curves[curve]['mag']
         pha = curves[curve]['pha']
