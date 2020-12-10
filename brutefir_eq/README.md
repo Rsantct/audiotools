@@ -8,7 +8,7 @@ https://github.com/AudioHumLab/pe.audio.sys/tree/master/pe.audio.sys#the-shareeq
 
 ### NOTICE:
 
-Former FIRtro curves files `xxx.dat` were stored in Matlab way, so when reading them with numpy.loadtxt() it was needed to transpose and flipud in order to access to the curves data in a natural way.
+Former FIRtro curves array files `xxx.dat` were stored in Matlab way, so when reading them with numpy.loadtxt() it was needed to transpose and flipud in order to access to the curves data in a natural way.
 
 Currently the curves are stored in pythonic way, so numpy.loadtxt() will read directly usable data. 
 
