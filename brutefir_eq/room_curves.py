@@ -21,6 +21,15 @@
         --save  save curves to disk
 
         --plot
+
+
+    Note:
+
+        The generated curves will span +6 dB for lows shelf and -6 dB for
+        highs tilt, 0.5 dB stepped.
+
+        If other values are needed, please edit default values inside this script.
+
 """
 
 import sys
@@ -189,6 +198,10 @@ if __name__ == '__main__':
 
         elif '-p' in opc:
             plot = True
+
+        else:
+            print(__doc__)
+            sys.exit()
 
 
     shelf_slope_info = {1:'6 dB/oct', 2:'12 dB/oct'}[shelf_order]
