@@ -21,6 +21,16 @@
         --save  save curves to disk
 
         --plot
+
+
+    Note:
+
+        The generated curve files will span:
+         +6 dB for lows shelf (1.0 dB stepped)
+         -6 dB for highs tilt (0.5 dB stepped)
+
+        If other values are needed, please edit default values inside this script.
+
 """
 
 import sys
@@ -35,7 +45,26 @@ from iso_R import get_iso_R
 from smoothSpectrum import smoothSpectrum
 from tools import shelf1low, shelf2low, min_phase_from_real_mag
 
-cfolder=f'{HOME}/audiotools/brutefir_eq/curves/room'
+
+# Defaults
+
+# (i) Lets use bass low shelf 1st order slope and centered at 120 Hz,
+#     in coherence with default settings in tone curves.
+shelf_order = 1     # <1>st or <2>nd low shelf order (slope)
+fc_low  = 120       # low shelf center frequency
+fc_high = 500       # high roll-off corner frecuency
+
+# Will generate a set of curves by combining low shelf and hight tilt ranges
+lo_range = 6; lo_step = 1.0
+hi_range = 6; hi_step = 0.5
+
+# Frequency points
+fmin    = 10
+Rseries = 'R20'
+fs      = 44100
+
+# Save folder
+cfolder=f'{HOME}/audiotools/brutefir_eq/curves/room_target'
 
 
 def make_low(fc, gain):
@@ -100,7 +129,6 @@ def make_curves():
             hi_str = str(round(float(hi_gain), 1))
             hi_str = f'-{hi_str}'.replace('--', '-')
             curves[f'+{lo_str}{hi_str}'] = {'mag': hc_mag, 'pha': hc_pha}
-    return curves
 
 
 def save_curves():
@@ -118,29 +146,8 @@ def save_curves():
         np.savetxt( mname, mag )
         np.savetxt( pname, pha )
 
-    print(f'freqs saved to:  {cfolder}')
-
 
 if __name__ == '__main__':
-
-    # Defaults
-
-    # (i) Lets use bass low shelf 1st order slope and centered at 120 Hz,
-    #     in coherence with default settings in tone curves.
-    shelf_order = 1     # <1>st or <2>nd low shelf order (slope)
-    fc_low  = 120       # low shelf center frequency
-    fc_high = 500       # high roll-off corner frecuency
-
-    # Will generate a set of curves by combining low shelf and house ranges
-    lo_range = 6; lo_step = 1.0
-    hi_range = 3; hi_step = 0.5
-    lo_gains    = np.arange(0, lo_range + lo_step, lo_step)
-    hi_gains    = np.arange(0, hi_range + hi_step, hi_step) * -1
-
-    # Frequency points
-    fmin    = 10
-    Rseries = 'R20'
-    fs      = 44100
 
     plot = False
     savetodisk = False
@@ -179,8 +186,8 @@ if __name__ == '__main__':
 
         elif '-hiF=' in opc:
             value = int(opc[5:])
-            if value >= 250 and value <= 10000:
-                fc_low = float(value)
+            if value >= 100 and value <= 10000:
+                fc_high = float(value)
             else:
                 raise ValueError('Hi roll-off corner 250 ... 10000 Hz')
 
@@ -190,6 +197,10 @@ if __name__ == '__main__':
         elif '-p' in opc:
             plot = True
 
+        else:
+            print(__doc__)
+            sys.exit()
+
 
     shelf_slope_info = {1:'6 dB/oct', 2:'12 dB/oct'}[shelf_order]
 
@@ -197,11 +208,23 @@ if __name__ == '__main__':
     print(f'Low shelf center freq: {fc_low} Hz, slope: {shelf_slope_info}')
     print(f'High roll-off corner:  {fc_high} Hz')
 
+    # The values of low shelf variation:
+    lo_gains    = np.arange(0, lo_range + lo_step, lo_step)
 
+    # The values of high tilt variation:
+    hi_gains    = np.arange(0, hi_range + hi_step, hi_step) * -1
+
+    # Making curves for all combinations,
+    # can result in a large number of files:
     make_curves()
+    print(f'{len(curves)} curves were computed')
 
     if savetodisk:
         save_curves()
+        print(f'(i) Curves saved to:  {cfolder}')
+        print(f'    Choose just the ones you need ;-)')
+    else:
+        print('(i) Curves not saved, use --save if needed')
 
     if plot:
         plotsamples()
