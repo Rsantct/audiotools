@@ -263,7 +263,7 @@ def check_lin_pha(imp, tol):
     try:
         result = np.allclose(imp[begin:center], imp[center + 1:][::-1], atol=atol)
     except:
-        print( '(!) error when checking for linear phase, sorry :-/ ' )
+        print( '(!) error when checking for linear phase :-|' )
 
     return result
 
