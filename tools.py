@@ -367,7 +367,7 @@ def logspaced_semispectrum(freq, mag, Npoints):
 
 
 def nearest_pow2(x):
-    """ returns the nearest power of 2 greater or equal to x
+    """ returns the nearest power of 2 greater or equal than x
     """
     n=1
     while True:
