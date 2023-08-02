@@ -609,6 +609,10 @@ def isPowerOf2(n):
     return np.floor(np.log2(n)) == np.ceil(np.log2(n))
 
 
+def isPowerOf10(n):
+    return np.floor(np.log10(n)) == np.ceil(np.log10(n))
+
+
 def Ktaps(x):
     """ cutre conversor para mostrar la longitud de un FIR """
     if x >= 1024:
