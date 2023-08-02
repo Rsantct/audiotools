@@ -75,7 +75,7 @@
 #   lee PIR de ARTA
 #
 version = 'v0.2l'
-#   Oversampling para mostrar la respuesta de un impulso corto suavizada en bajas frecuencias
+#   Oversampling para pintar la respuesta de un impulso corto suavizada en bajas frecuencias
 
 import sys
 import numpy as np, math
@@ -86,7 +86,7 @@ from matplotlib import gridspec             # customize subplots array
 import tools
 
 # Mínima resolución en Hz (se avisa si no se cumple)
-MIN_RESOL_HZ = 10
+MIN_RESOL_HZ = 5
 
 
 def lee_commandline(opcs):
@@ -320,18 +320,18 @@ if __name__ == "__main__":
         lenimp = len(imp)
         peakOffsetms = np.round(abs(imp).argmax() / fs * 1000, 1) # en ms
 
-
-        # Oversample: muestra curvas dominio Frec suavizadas (zeropadeaamos hasta 16 Ktaps)
+        # Oversample: muestra curvas dominio Frec suavizadas.
+        # Zeropadeaamos hasta Ntaps, siendo Ntaps = Fs / MIN_RESOL_HZ
+        Ntaps = int( fs / MIN_RESOL_HZ )
         if oversample:
-            if lenimp < 2**14:
-                impZP = np.pad(imp, (0, 2**14 - len(imp)), 'linear_ramp')
+            if lenimp < Ntaps:
+                impZP = np.pad(imp, (0, Ntaps - len(imp)), 'linear_ramp')
         else:
             impZP = imp
 
         resol_Hz = fs / lenimp
         if resol_Hz > MIN_RESOL_HZ:
             print(f'(!) Low frecuency resolution: {round(resol_Hz)} Hz')
-
 
         # Semiespectro
         # whole=False --> hasta Nyquist
@@ -384,7 +384,7 @@ if __name__ == "__main__":
         color = axMag.lines[-1].get_color() # anotamos el color de la última línea
         MagMSG = ''
         if oversample:
-            MagMSG += 'OVERSAMPLED LOW FREQ. REGION\n'
+            MagMSG += 'LOW FREQ. CURVE REGION OVERSAMPLED\n'
         if resol_Hz > MIN_RESOL_HZ:
             MagMSG += f'Low frequency resolution: {round(resol_Hz)} Hz'
         if not nowarnings:
