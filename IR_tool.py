@@ -349,7 +349,10 @@ if __name__ == "__main__":
             N *= 16
             # limitamos N <= fs (resolución curva máxima 1 Hz)
             N = int(min(N, fs))
-            N = fft.next_fast_len(N)
+            try:
+                N = fft.next_fast_len(N)
+            except:
+                print(f'(i) fft.next_fast_len not availble on this scipy version')
             oversampled = True
 
         w, h = signal.freqz(imp, worN=N, whole=False)
