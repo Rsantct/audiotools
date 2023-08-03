@@ -31,7 +31,9 @@
 
     -pha            Muestra la fase (PENDIENTE DE REVISIÓN)
 
-    -oversample     Zeropadea un IR corto para mostrar la curva suavizada en bajas frecuencias
+    -oversample     Sobremuestrea para mostrar la curva suavizada en bajas frecuencias
+
+    -res=X          Resolución mínima en X Hz (informativo, por defecto 5 Hz)
 
     -nowarnings     Elude mensajes de aviso en la gráfica de respuesta en frecuencia
                     (baja resolución en Hz, oversampled)
@@ -76,24 +78,25 @@
 #
 version = 'v0.2l'
 #   Oversampling para pintar la respuesta de un impulso corto suavizada en bajas frecuencias
+#   Admite resolución mínima en Hz para avisarlo en la gráfica.
+
 
 import sys
 import numpy as np, math
-from scipy import signal
+from scipy import signal, fft
 from matplotlib import pyplot as plt
 from matplotlib.ticker import EngFormatter
 from matplotlib import gridspec             # customize subplots array
 import tools
 
-# Mínima resolución en Hz (se avisa si no se cumple)
-MIN_RESOL_HZ = 5
-
 
 def lee_commandline(opcs):
 
     global fmin, fmax, plotPha, dBtop, dBrange, lp_tolerance
-    global plotIRsInOneRow, generaPDF, oversample, nowarnings
+    global plotIRsInOneRow, generaPDF, minResHz, oversample, nowarnings
 
+    # Mínima resolución en Hz (se avisa si no se cumple)
+    minResHz = 5
     oversample = False
     nowarnings = False
     plotIRsInOneRow = False
@@ -111,6 +114,9 @@ def lee_commandline(opcs):
         if opc in ("-h", "-help", "--help"):
             print (__doc__)
             sys.exit()
+
+        elif '-res' in opc:
+            minResHz = int(opc.split("=")[-1])
 
         elif '-o' in opc:
             oversample = True
@@ -266,7 +272,7 @@ def preparaGraficas():
         axPha.yaxis.set_major_locator(plt.NullLocator())
 
 
-def check_lin_pha(imp, tol):
+def check_lin_pha(imp, tol, info=''):
 
     result = False
 
@@ -285,7 +291,7 @@ def check_lin_pha(imp, tol):
     try:
         result = np.allclose(imp[begin:center], imp[center + 1:][::-1], atol=atol)
     except:
-        print( '(i) linear phase not detected' )
+        print( f'(i) linear phase not detected ({info})' )
 
     return result
 
@@ -312,30 +318,41 @@ if __name__ == "__main__":
     GDavgs = [] # los promedios de GD de cada impulso, para mostrarlos por separado
 
     IRnum = 0
+    axMagMsgYcoord = 0.2
 
     for IR in IRs:
+
+        axMagMsg = ''
 
         fs, imp, info = IR
         fny = fs/2.0
         lenimp = len(imp)
         peakOffsetms = np.round(abs(imp).argmax() / fs * 1000, 1) # en ms
 
-        # Oversample: muestra curvas dominio Frec suavizadas.
-        # Zeropadeaamos hasta Ntaps, siendo Ntaps = Fs / MIN_RESOL_HZ
-        Ntaps = int( fs / MIN_RESOL_HZ )
-        if oversample:
-            if lenimp < Ntaps:
-                impZP = np.pad(imp, (0, Ntaps - len(imp)), 'linear_ramp')
-        else:
-            impZP = imp
-
         resol_Hz = fs / lenimp
-        if resol_Hz > MIN_RESOL_HZ:
-            print(f'(!) Low frecuency resolution: {round(resol_Hz)} Hz')
+
+        isLinPha = False
+        if check_lin_pha(imp, lp_tolerance, info):
+            isLinPha = True
+            resol_Hz /= 2
+
+        if resol_Hz > minResHz:
+            print(f'(!) Low frecuency resolution: {round(resol_Hz)} Hz ({info})')
 
         # Semiespectro
         # whole=False --> hasta Nyquist
-        w, h = signal.freqz(impZP, worN=int(len(impZP)/2), whole=False)
+
+        # Por defecto resolución natural
+        oversampled = False
+        N = int( lenimp / 2 )
+        if oversample and lenimp <= fs:
+            N *= 16
+            # limitamos N <= fs (resolución curva máxima 1 Hz)
+            N = int(min(N, fs))
+            N = fft.next_fast_len(N)
+            oversampled = True
+
+        w, h = signal.freqz(imp, worN=N, whole=False)
 
         # frecuencias trasladadas a Fs
         freqs = w / np.pi * fny
@@ -353,7 +370,7 @@ if __name__ == "__main__":
         phaseClean *= 180 / (2*np.pi)
 
         # Group Delay:
-        wgd, gd = signal.group_delay((impZP, 1), w=int(len(impZP)/2), whole=False)
+        wgd, gd = signal.group_delay((imp, 1), w=N, whole=False)
         # Eliminamos (np.nan) los valores fuera de
         # la banda de paso, por debajo de un umbral configurable.
         gdClean  = np.full((len(gd)), np.nan)
@@ -382,13 +399,15 @@ if __name__ == "__main__":
         axMag.set_ylim(dBtop - dBrange, dBtop)
         axMag.plot(freqs, magdB, label=info)
         color = axMag.lines[-1].get_color() # anotamos el color de la última línea
-        MagMSG = ''
-        if oversample:
-            MagMSG += 'LOW FREQ. CURVE REGION OVERSAMPLED\n'
-        if resol_Hz > MIN_RESOL_HZ:
-            MagMSG += f'Low frequency resolution: {round(resol_Hz)} Hz'
+
+        # Warnings en axMag
         if not nowarnings:
-            axMag.annotate(MagMSG, xy=(.1,.1), xycoords='axes fraction', color='red')
+            if resol_Hz > minResHz:
+                axMagMsg += f'Low resol. {round(resol_Hz)} Hz '
+            if oversampled:
+                axMagMsg += '(oversampled)'
+            axMag.annotate(axMagMsg, xy=(.075,axMagMsgYcoord), xycoords='axes fraction', color=color)
+            axMagMsgYcoord -= .05
 
         # Phase
         if plotPha:
@@ -404,7 +423,7 @@ if __name__ == "__main__":
 
         # (i) Opcionalmente podemos pintar los impulsos en una sola fila
         rotuloIR = str(lenimp) + " taps - pk offset " + str(peakOffsetms) + " ms"
-        if check_lin_pha(imp, lp_tolerance):
+        if isLinPha:
             rotuloIR += f'\nlinear phase (tolerance {lp_tolerance} dB)'
         else:
             rotuloIR += f'\nnot linear phase (tolerance {lp_tolerance} dB)'
