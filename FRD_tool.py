@@ -48,6 +48,7 @@
 #   - muestra los offset aplicados para la opción '-autobal'
 # v0.5
 #   - Python 2 --> 3
+version = 'v0.5'
 
 import sys
 import numpy as np
@@ -240,7 +241,10 @@ if __name__ == "__main__":
 
     for frdname in frdnames:
 
-        curvename = frdname.split("/")[-1].split(".")[:-1][0]
+        curvename = frdname
+        for ext in ('.txt', '.frd', '.mic'):
+            if curvename.endswith(ext):
+                curvename = curvename[:-4]
 
         # Leemos el contenido del archivo .frd. NOTA: np.loadtxt() no admite
         # los .frd de ARTA por que tienen cabecera sin comentar '#'
@@ -327,5 +331,10 @@ if __name__ == "__main__":
     axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
 
     axMag.set_title( '\n'.join(graph_title) )
+
+    # footer con la versión:
+    progname = sys.argv[0].split("/")[-1]
+    footer = "AudioHumLab " + progname + " " + version
+    plt.gcf().text(0.01, 0.01, footer, size='smaller')
 
     plt.show()
