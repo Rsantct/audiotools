@@ -9,7 +9,8 @@
 
     Ejemplo de uso:
 
-    IR_tool.py  file1.wav  file2.pcm  [FS]  [ fmin-fmax -1 -eq -lptolX -pha]
+        IR_tool.py  IR.waw
+        IR_tool.py  drc.L.pcm drc.R.pcm 44100
 
     Opciones:
 
@@ -23,9 +24,6 @@
 
     -1              Muestra las gráficas de los impulsos en una fila única.
 
-    -pdf            Guarda la gráfica en archivo PDF, incluyendo el zoom
-                    que se hiciese durante la visualización.
-
     -lptol=X        Tolerancia en dB para evaluar si el impulso es linear phase
                     (por defecto -60 dB)
 
@@ -37,6 +35,12 @@
 
     -nowarnings     Elude mensajes de aviso en la gráfica de respuesta en frecuencia
                     (baja resolución en Hz, oversampled)
+
+    -frd            Guarda la 'Freq Response Data' en un archivo .frd
+                    (Se añadirá sufijo _oversampled al archivo si es el caso)
+
+    -pdf            Guarda la gráfica en archivo PDF, incluyendo el zoom
+                    que se hiciese durante la visualización.
 
 """
 #                       HISTORIAL DE VERSIONES:
@@ -77,8 +81,9 @@
 #   lee PIR de ARTA
 #
 version = 'v0.2l'
-#   Oversampling para pintar la respuesta de un impulso corto suavizada en bajas frecuencias
-#   Admite resolución mínima en Hz para avisarlo en la gráfica.
+#   - Opción de oversampling para pintar la respuesta de un impulso corto suavizada en bajas frecuencias
+#   - Admite resolución mínima en Hz para avisarlo en la gráfica, por defecto 5 Hz.
+#   - Opción de exportar los datos de respuesta en frecuencia en archivo .frd
 
 
 import sys
@@ -92,8 +97,8 @@ import tools
 
 def lee_commandline(opcs):
 
-    global fmin, fmax, plotPha, dBtop, dBrange, lp_tolerance
-    global plotIRsInOneRow, generaPDF, minResHz, oversample, nowarnings
+    global fmin, fmax, plotPha, dBtop, dBrange, lp_tolerance, minResHz
+    global plotIRsInOneRow, oversample, nowarnings, generaPDF, saveFRD
 
     # Mínima resolución en Hz (se avisa si no se cumple)
     minResHz = 5
@@ -101,6 +106,7 @@ def lee_commandline(opcs):
     nowarnings = False
     plotIRsInOneRow = False
     generaPDF = False
+    saveFRD = False
 
     # impulsos que devolverá esta función
     IRs = []
@@ -114,6 +120,9 @@ def lee_commandline(opcs):
         if opc in ("-h", "-help", "--help"):
             print (__doc__)
             sys.exit()
+
+        elif '-frd' in opc:
+            saveFRD = True
 
         elif '-res' in opc:
             minResHz = int(opc.split("=")[-1])
@@ -349,10 +358,7 @@ if __name__ == "__main__":
             N *= 16
             # limitamos N <= fs (resolución curva máxima 1 Hz)
             N = int(min(N, fs))
-            try:
-                N = fft.next_fast_len(N)
-            except:
-                print(f'(i) fft.next_fast_len not availble on this scipy version')
+            N = fft.next_fast_len(N)
             oversampled = True
 
         w, h = signal.freqz(imp, worN=N, whole=False)
@@ -393,6 +399,13 @@ if __name__ == "__main__":
         GDavgs.append(gdmsAvg)
 
         # ---- PLOTEOS ----
+
+        # Opción de guardar la FRD
+        if saveFRD:
+            frdpath = f'{info}{"_oversampled" if oversampled else ""}.frd'
+            fmp = np.vstack((freqs, magdB, phaseClean))
+            fmp = np.transpose(fmp)
+            np.savetxt(frdpath, fmp)
 
         # Ploteo de la Magnitud con autoajuste del top
         tmp = np.max(magdB)
