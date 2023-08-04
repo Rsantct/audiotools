@@ -281,7 +281,7 @@ def preparaGraficas():
         axPha.yaxis.set_major_locator(plt.NullLocator())
 
 
-def check_lin_pha(imp, tol, info=''):
+def check_lin_pha(imp, tol, fname=''):
 
     result = False
 
@@ -300,7 +300,7 @@ def check_lin_pha(imp, tol, info=''):
     try:
         result = np.allclose(imp[begin:center], imp[center + 1:][::-1], atol=atol)
     except:
-        print( f'(i) linear phase not detected ({info})' )
+        print( f'(i) linear phase not detected ({fname})' )
 
     return result
 
@@ -333,7 +333,7 @@ if __name__ == "__main__":
 
         axMagMsg = ''
 
-        fs, imp, info = IR
+        fs, imp, fname = IR
         fny = fs/2.0
         lenimp = len(imp)
         peakOffsetms = np.round(abs(imp).argmax() / fs * 1000, 1) # en ms
@@ -341,12 +341,12 @@ if __name__ == "__main__":
         resol_Hz = fs / lenimp
 
         isLinPha = False
-        if check_lin_pha(imp, lp_tolerance, info):
+        if check_lin_pha(imp, lp_tolerance, fname):
             isLinPha = True
             resol_Hz /= 2
 
         if resol_Hz > minResHz:
-            print(f'(!) Low frecuency resolution: {round(resol_Hz)} Hz ({info})')
+            print(f'(!) Low frecuency resolution: {round(resol_Hz)} Hz ({fname})')
 
         # Semiespectro
         # whole=False --> hasta Nyquist
@@ -402,10 +402,11 @@ if __name__ == "__main__":
 
         # Opción de guardar la FRD
         if saveFRD:
-            frdpath = f'{info}{"_oversampled" if oversampled else ""}.frd'
+            frdpath = f'{fname}{"_oversampled" if oversampled else ""}.frd'
             fmp = np.vstack((freqs, magdB, phaseClean))
             fmp = np.transpose(fmp)
             np.savetxt(frdpath, fmp)
+            print(f'(i) Saving FRD to: {frdpath}')
 
         # Ploteo de la Magnitud con autoajuste del top
         tmp = np.max(magdB)
@@ -413,7 +414,7 @@ if __name__ == "__main__":
         if tmp > dBtop:
             dBtop = tmp
         axMag.set_ylim(dBtop - dBrange, dBtop)
-        axMag.plot(freqs, magdB, label=info)
+        axMag.plot(freqs, magdB, label=fname)
         color = axMag.lines[-1].get_color() # anotamos el color de la última línea
 
         # Warnings en axMag
