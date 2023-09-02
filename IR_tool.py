@@ -87,7 +87,8 @@ version = 'v0.2l'
 
 
 import sys
-import numpy as np, math
+import numpy as np
+import math
 from scipy import signal, fft
 from matplotlib import pyplot as plt
 from matplotlib.ticker import EngFormatter
