@@ -366,6 +366,16 @@ def logspaced_semispectrum(freq, mag, Npoints):
     return freqNew, funcI(freqNew)
 
 
+def make_linspaced_freq(fs=44100, N=12):
+    """ Makes an even spaced frequency array, limited by Nyquist at the given Fs,
+        with 2**N freq bins
+    """
+    # 1024 ... 32768
+    if N < 10 or N > 15:
+        raise Exception(f'2**{N} out of range (10...15 => 1024...32768 freq bins)')
+    return np.linspace(0, int(fs/2), 2**N)
+
+
 def nearest_pow2(x):
     """ returns the nearest power of 2 greater or equal than x
     """
