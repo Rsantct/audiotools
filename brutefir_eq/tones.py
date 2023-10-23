@@ -10,6 +10,8 @@
 
         -RXX:   R10 | R20 | R40 | R80  iso R series (default: R20 ~ 1/3 oct)
 
+        -NXX:   overrides iso R series, then using 2**XX linspaced freq values
+
         -fs=X   44100 | 48000 | 96000  sampling frequency Hz
                 (default: 44100, upper limits RXX to 20000 Hz)
 
@@ -33,7 +35,8 @@ from matplotlib import pyplot as plt
 HOME = os.path.expanduser("~")
 sys.path.append(f'{HOME}/audiotools')
 from iso_R import get_iso_R
-from tools import shelf1low, shelf2low, shelf1high, shelf2high
+from tools import shelf1low, shelf2low, shelf1high, shelf2high, \
+                  make_linspaced_freq
 
 cfolder=f'{HOME}/audiotools/brutefir_eq/curves'
 
@@ -88,7 +91,15 @@ def make_curves():
             bass_mag,   bass_pha,   \
             treble_mag, treble_pha
 
-    freqs = get_iso_R(Rseries, fmin=fmin, fs=fs)
+    if Rseries[0]== 'R':
+        freqs = get_iso_R(Rseries, fmin=fmin, fs=fs)
+
+    elif Rseries[0]== 'N':
+        N = int(Rseries[1:])
+        freqs = make_linspaced_freq(fs, N)
+
+    else:
+        raise Exception('Error in -Nxx / -Rxx parameter')
 
     # Prepare curves collection arrays
     dB_steps = np.arange(-span, span+step ,step)
@@ -151,7 +162,7 @@ if __name__ == '__main__':
             print(__doc__)
             sys.exit()
 
-        elif opc[:2] == '-R':
+        elif opc[:2] == '-R' or opc[:2] == '-N':
             Rseries = opc[1:]
 
         elif opc[:4] == '-fs=':
