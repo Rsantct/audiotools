@@ -99,7 +99,8 @@ def make_curves():
         freqs = make_linspaced_freq(fs, N)
 
     else:
-        raise Exception('Error in -Nxx / -Rxx parameter')
+        print('Error in -Nxx / -Rxx parameter')
+        sys.exit()
 
     # Prepare curves collection arrays
     dB_steps = np.arange(-span, span+step ,step)
@@ -187,7 +188,14 @@ if __name__ == '__main__':
 
     slopeInfo = {1:"6 dB/oct", 2:"12 dB/oct"}[shelf_order]
 
-    print(f'Using {Rseries}')
+    if Rseries[0] == 'R':
+        print(f'Using {Rseries} iso frequencies')
+    elif Rseries[0] == 'N':
+        print(f'Using 2**{Rseries[1:]} ({2**int(Rseries[1:])}) frequency bins')
+    else:
+        print('ERROR with freq series')
+        sys.exit()
+
     print(f'bass @{fc_bass} Hz, treble @{fc_treble} Hz, slope {slopeInfo}')
 
     make_curves()
