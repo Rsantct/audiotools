@@ -38,8 +38,6 @@ from iso_R import get_iso_R
 from tools import shelf1low, shelf2low, shelf1high, shelf2high, \
                   make_linspaced_freq
 
-cfolder=f'{HOME}/audiotools/brutefir_eq/curves'
-
 
 def plot_all():
 
@@ -73,16 +71,16 @@ def plot_all():
 
 def save_curves():
 
-    if not os.path.isdir(cfolder):
-        os.makedirs(cfolder)
+    if not os.path.isdir(CFOLDER):
+        os.makedirs(CFOLDER)
 
-    np.savetxt( f'{cfolder}/freq.dat',       freqs      )
-    np.savetxt( f'{cfolder}/bass_mag.dat',   bass_mag   )
-    np.savetxt( f'{cfolder}/bass_pha.dat',   bass_pha   )
-    np.savetxt( f'{cfolder}/treble_mag.dat', treble_mag )
-    np.savetxt( f'{cfolder}/treble_pha.dat', treble_pha )
+    np.savetxt( f'{CFOLDER}/freq.dat',       freqs      )
+    np.savetxt( f'{CFOLDER}/bass_mag.dat',   bass_mag   )
+    np.savetxt( f'{CFOLDER}/bass_pha.dat',   bass_pha   )
+    np.savetxt( f'{CFOLDER}/treble_mag.dat', treble_mag )
+    np.savetxt( f'{CFOLDER}/treble_pha.dat', treble_pha )
 
-    print(f'freqs saved to:  {cfolder}')
+    print(f'freqs saved to:  {CFOLDER}')
 
 
 def make_curves():
@@ -197,6 +195,9 @@ if __name__ == '__main__':
         sys.exit()
 
     print(f'bass @{fc_bass} Hz, treble @{fc_treble} Hz, slope {slopeInfo}')
+
+    # Save folder
+    CFOLDER = f'curves_{Rseries}'
 
     make_curves()
 
