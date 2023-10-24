@@ -66,9 +66,6 @@ fmin    = 10
 Rseries = 'R20'
 fs      = 44100
 
-# Save folder
-cfolder=f'{HOME}/audiotools/brutefir_eq/curves/room_target'
-
 
 def make_low(fc, gain):
     wc = 2 * np.pi * fc / fs
@@ -147,16 +144,16 @@ def make_curves():
 
 def save_curves():
 
-    if not os.path.isdir(cfolder):
-        os.makedirs(cfolder)
+    if not os.path.isdir(CFOLDER):
+        os.makedirs(CFOLDER)
 
-    np.savetxt( f'{cfolder}/freq.dat', freqs)
+    np.savetxt( f'{CFOLDER}/freq.dat', freqs)
 
     for curve in curves:
         mag = curves[curve]['mag']
         pha = curves[curve]['pha']
-        mname = f'{cfolder}/{curve}_target_mag.dat'
-        pname = f'{cfolder}/{curve}_target_pha.dat'
+        mname = f'{CFOLDER}/{curve}_target_mag.dat'
+        pname = f'{CFOLDER}/{curve}_target_pha.dat'
         np.savetxt( mname, mag )
         np.savetxt( pname, pha )
 
@@ -230,6 +227,9 @@ if __name__ == '__main__':
     print(f'Low shelf center freq: {fc_low} Hz, slope: {shelf_slope_info}')
     print(f'High roll-off corner:  {fc_high} Hz')
 
+    # Save folder
+    CFOLDER = f'curves_{Rseries}/room_target'
+
     # The values of low shelf variation:
     lo_gains    = np.arange(0, lo_range + lo_step, lo_step)
 
@@ -243,7 +243,7 @@ if __name__ == '__main__':
 
     if savetodisk:
         save_curves()
-        print(f'(i) Curves saved to:  {cfolder}')
+        print(f'(i) Curves saved to:  {CFOLDER}')
         print(f'    Choose just the ones you need ;-)')
     else:
         print('(i) Curves not saved, use --save if needed')
