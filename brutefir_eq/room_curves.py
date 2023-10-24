@@ -9,6 +9,8 @@
 
         -RXX    R10 | R20 | R40 | R80  iso R series (default: R20 ~ 1/3 oct)
 
+        -NXX:   overrides iso R series, then using 2**XX linspaced freq values
+
         -fs=X   44100 | 48000 | 96000  sampling frequency Hz
                 (default: 44100, upper limits RXX to 20000 Hz)
 
@@ -43,7 +45,8 @@ HOME = os.path.expanduser("~")
 sys.path.append(f'{HOME}/audiotools')
 from iso_R import get_iso_R
 from smoothSpectrum import smoothSpectrum
-from tools import shelf1low, shelf2low, min_phase_from_real_mag
+from tools import shelf1low, shelf2low, min_phase_from_real_mag, \
+                  make_linspaced_freq
 
 
 # Defaults
@@ -116,7 +119,18 @@ def make_curves():
 
     global freqs, curves
 
-    freqs = get_iso_R(Rseries, fmin=fmin, fs=fs)
+
+    if Rseries[0]== 'R':
+        freqs = get_iso_R(Rseries, fmin=fmin, fs=fs)
+
+    elif Rseries[0]== 'N':
+        N = int(Rseries[1:])
+        freqs = make_linspaced_freq(fs, N)
+
+    else:
+        print('Error in -Nxx / -Rxx parameter')
+        sys.exit()
+
 
     curves = {}
     for lo_gain in lo_gains:
@@ -156,13 +170,14 @@ if __name__ == '__main__':
     if not sys.argv[1:]:
         print(__doc__)
         sys.exit()
+
     for opc in sys.argv[1:]:
 
         if opc == '-h' or opc == '--help':
             print(__doc__)
             sys.exit()
 
-        elif opc[:2] == '-R':
+        elif opc[:2] == '-R' or opc[:2] == '-N':
             Rseries = opc[1:]
 
         elif opc[:4] == '-fs=':
@@ -204,7 +219,14 @@ if __name__ == '__main__':
 
     shelf_slope_info = {1:'6 dB/oct', 2:'12 dB/oct'}[shelf_order]
 
-    print(f'Using {Rseries} iso frequencies')
+    if Rseries[0] == 'R':
+        print(f'Using {Rseries} iso frequencies')
+    elif Rseries[0] == 'N':
+        print(f'Using 2**{Rseries[1:]} ({2**int(Rseries[1:])}) frequency bins')
+    else:
+        print('ERROR with freq series')
+        sys.exit()
+
     print(f'Low shelf center freq: {fc_low} Hz, slope: {shelf_slope_info}')
     print(f'High roll-off corner:  {fc_high} Hz')
 
