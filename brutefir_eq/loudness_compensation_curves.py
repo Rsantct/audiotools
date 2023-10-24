@@ -44,9 +44,6 @@ save    = False
 fmin    = 10
 fs      = 44100
 
-# curves folder
-cfolder=f'{HOME}/audiotools/brutefir_eq/curves'
-
 
 def doplot():
 
@@ -103,14 +100,14 @@ def phase_from_mag(freqs, curves):
 
 def save_curves():
 
-    if not os.path.isdir(cfolder):
-        os.makedirs(cfolder)
+    if not os.path.isdir(CFOLDER):
+        os.makedirs(CFOLDER)
 
-    np.savetxt(f'{cfolder}/freq.dat',                      freqs)
-    np.savetxt(f'{cfolder}/ref_{refSPL}_loudness_mag.dat', loudcomp_mag)
-    np.savetxt(f'{cfolder}/ref_{refSPL}_loudness_pha.dat', loudcomp_pha)
+    np.savetxt(f'{CFOLDER}/freq.dat',                      freqs)
+    np.savetxt(f'{CFOLDER}/ref_{refSPL}_loudness_mag.dat', loudcomp_mag)
+    np.savetxt(f'{CFOLDER}/ref_{refSPL}_loudness_pha.dat', loudcomp_pha)
 
-    print(f'loudness curves for refSPL={refSPL} saved to: {cfolder}')
+    print(f'loudness curves for refSPL={refSPL} saved to: {CFOLDER}')
 
 
 def extend_curves(freqs, curves, new_freqs, Noct=0):
@@ -207,6 +204,9 @@ if __name__ == '__main__':
     else:
         print('ERROR with freq series')
         sys.exit()
+
+    # Save folder
+    CFOLDER = f'curves_{Rseries}'
 
     for refSPL in refSPLs:
         make_curves()
