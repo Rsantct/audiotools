@@ -8,7 +8,7 @@
 
     Usage:
 
-    loudness_compensation.py   -RXX  -ref=X,Y,...  -fs=X     --save  --plot
+    loudness_compensation_curves.py   -RXX  -ref=X,Y,...  -fs=X     --save  --plot
 
         -RXX            R10 | R20 | R40 | R80  iso R series (default: R20 ~ 1/3 oct)
 
