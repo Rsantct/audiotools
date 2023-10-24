@@ -33,7 +33,7 @@ HOME = os.path.expanduser("~")
 sys.path.append(f'{HOME}/audiotools')
 import iso226
 from iso_R import get_iso_R
-from tools import extrap1d, min_phase_from_real_mag
+from tools import extrap1d, min_phase_from_real_mag, make_linspaced_freq
 from smoothSpectrum import smoothSpectrum as smooth
 
 # Default parameters
@@ -132,7 +132,17 @@ def make_curves():
 
     global freqs, loudcomp_mag, loudcomp_pha
 
-    freqs = get_iso_R(Rseries, fmin=fmin, fs=fs)
+
+    if Rseries[0]== 'R':
+        freqs = get_iso_R(Rseries, fmin=fmin, fs=fs)
+
+    elif Rseries[0]== 'N':
+        N = int(Rseries[1:])
+        freqs = make_linspaced_freq(fs, N)
+
+    else:
+        print('Error in -Nxx / -Rxx parameter')
+        sys.exit()
 
     # (i) iso226.EQ_LD_CURVES have a limited 29 bands (20 ~ 12500 Hz).
     #     Extended version with iso RXX frequency bands (usually 20 ~ 20000 Hz)
@@ -170,7 +180,7 @@ if __name__ == '__main__':
         elif '-ref=' in opc:
             refSPL = opc.split('=')[-1]
 
-        elif opc[:2] == '-R':
+        elif opc[:2] == '-R' or opc[:2] == '-N':
             Rseries = opc[1:]
 
         elif opc[:4] == '-fs=':
@@ -189,6 +199,14 @@ if __name__ == '__main__':
     else:
         refSPLs = [refSPL]
 
+
+    if Rseries[0] == 'R':
+        print(f'Using {Rseries} iso frequencies')
+    elif Rseries[0] == 'N':
+        print(f'Using 2**{Rseries[1:]} ({2**int(Rseries[1:])}) frequency bins')
+    else:
+        print('ERROR with freq series')
+        sys.exit()
 
     for refSPL in refSPLs:
         make_curves()
