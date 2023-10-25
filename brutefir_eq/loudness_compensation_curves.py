@@ -216,4 +216,6 @@ if __name__ == '__main__':
             doplot()
 
     if plot:
+        if save:
+            plt.savefig(f'{CFOLDER}/loudness_compensation_curves.png')
         plt.show()
