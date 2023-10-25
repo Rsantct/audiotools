@@ -104,6 +104,9 @@ def plotsamples():
     axMag.set_ylabel('dB')
     axPha.set_ylabel('phase deg')
 
+    if savetodisk:
+        plt.savefig(f'{CFOLDER}/room_curves_samples.png')
+
     plt.show()
 
 
