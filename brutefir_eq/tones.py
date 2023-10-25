@@ -65,7 +65,12 @@ def plot_all():
 
     axmag.legend(loc='upper right', bbox_to_anchor=(1.25, 1.0),
                  fontsize='x-small', title='(bass)')
+
     plt.tight_layout()
+
+    if save:
+        plt.savefig(f'{CFOLDER}/tones.png')
+
     plt.show()
 
 
