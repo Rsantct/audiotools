@@ -33,7 +33,7 @@ HOME = os.path.expanduser("~")
 sys.path.append(f'{HOME}/audiotools')
 import iso226
 from iso_R import get_iso_R
-from tools import extrap1d, min_phase_from_real_mag, make_linspaced_freq
+from tools import extrap1d, min_phase_from_real_mag
 from smoothSpectrum import smoothSpectrum as smooth
 
 # Default parameters
@@ -135,7 +135,8 @@ def make_curves():
 
     elif Rseries[0]== 'N':
         N = int(Rseries[1:])
-        freqs = make_linspaced_freq(fs, 2**N+1)
+        # odd bins of freq from 0 Hz to Nyquist
+        freqs = np.linspace(0, int(fs/2), 2**N+1)
 
     else:
         print('Error in -Nxx / -Rxx parameter')
