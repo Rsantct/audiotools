@@ -348,7 +348,7 @@ def fft_spectrum(freq, mag, fs=44100, wsize=2**12, make_whole=False):
     return freq_new, mag_new
 
 
-def semispectrum2impulse(semisp, taps=1e4, dB=True):
+def semispectrum2impulse(semisp, dB=True):
     """
         Converting freq domain ---( IFFT )---> tieme domain
 
@@ -375,6 +375,7 @@ def semispectrum2impulse(semisp, taps=1e4, dB=True):
     wholesp = pydsd.minphsp( pydsd.wholespmp(semisp) ) # min-phase is addded
 
     # freq. domain  --> time domain and windowing
+    taps = 2 * (len(semisp) - 1)                        # FIR taps
     imp = np.real( np.fft.ifft( wholesp ) )
     imp = pydsd.semiblackmanharris(taps) * imp[:taps]
 
