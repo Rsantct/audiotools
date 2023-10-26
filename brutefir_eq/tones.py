@@ -202,7 +202,7 @@ if __name__ == '__main__':
     print(f'bass @{fc_bass} Hz, treble @{fc_treble} Hz, slope {slopeInfo}')
 
     # Save folder
-    CFOLDER = f'curves_{Rseries}'
+    CFOLDER = f'curves_{fs}_{Rseries}'
 
     make_curves()
 
