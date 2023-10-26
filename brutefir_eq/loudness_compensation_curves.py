@@ -207,7 +207,7 @@ if __name__ == '__main__':
         sys.exit()
 
     # Save folder
-    CFOLDER = f'curves_{Rseries}'
+    CFOLDER = f'curves_{fs}_{Rseries}'
 
     for refSPL in refSPLs:
         make_curves()
