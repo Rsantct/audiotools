@@ -231,7 +231,7 @@ if __name__ == '__main__':
     print(f'High roll-off corner:  {fc_high} Hz')
 
     # Save folder
-    CFOLDER = f'curves_{Rseries}/room_target'
+    CFOLDER = f'curves_{fs}_{Rseries}/room_target'
 
     # The values of low shelf variation:
     lo_gains    = np.arange(0, lo_range + lo_step, lo_step)
