@@ -135,7 +135,7 @@ def make_curves():
 
     elif Rseries[0]== 'N':
         N = int(Rseries[1:])
-        freqs = make_linspaced_freq(fs, N)
+        freqs = make_linspaced_freq(fs, 2**N+1)
 
     else:
         print('Error in -Nxx / -Rxx parameter')
