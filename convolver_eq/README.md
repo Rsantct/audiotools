@@ -1,9 +1,9 @@
 
 ## EQ curves
 
-    - tones.py
-    - loudness_compensation_curves.py
-    - room_curves.py
+    tones.py
+    loudness_compensation_curves.py
+    room_curves.py
 
 Scripts to generate the needed files for adjusting bass, treble, loudness contour compensation and target room curves (psychoacoustic room dimension equalization) that can be loaded into the Brutefir's EQ stage of [pe.audio.sys](https://github.com/AudioHumLab/pe.audio.sys), a derivated project from [FIRtro](https://github.com/AudioHumLab)
 
