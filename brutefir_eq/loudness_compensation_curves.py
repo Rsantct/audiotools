@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 """
     Prepare loudness compensation curves for listening levels referred
-    to a given reference phon (dBSPL), to be used on Brutefir eq coeff.
+    to a given reference phon (dBSPL)
 
-    The curves follows the ISO 226:2003 normal equal-loudness-level contours
+    The curves follows the ISO 226:2003 normal equal-loudness-level contours,
+
+    These curves are given in three files: magnitude, phase, and frequencies.
+
+    These values can be used directly as it to be loaded on the Brutefir
+    run time EQ module.
 
 
     Usage:
@@ -11,6 +16,8 @@
     loudness_compensation_curves.py   -RXX  -ref=X,Y,...  -fs=X     --save  --plot
 
         -RXX            R10 | R20 | R40 | R80  iso R series (default: R20 ~ 1/3 oct)
+
+        -NXX:           overrides iso R series, then using 2**XX linspaced freq values
 
         -ref=X,Y,..     comma separated values for desired listening reference SPLs
                         0 ... 90 phon ~ dBSPL (default: 83)
