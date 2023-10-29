@@ -30,7 +30,7 @@ fi
 
 cd ~/
 
-# Remove previous 
+# Remove previous
 rm -f ~/$branch.zip*    1>/dev/null 2>&1
 
 # Download project from GitHUb
@@ -46,8 +46,8 @@ mv ~/audiotools-$branch ~/audiotools
 
 # Executable flags
 chmod +x ~/audiotools/*
-chmod +x ~/audiotools/brutefir_eq/*py
-chmod +x ~/audiotools/brutefir_eq/*sh
+chmod +x ~/audiotools/convolver_eq/*py
+chmod +x ~/audiotools/convolver_eq/*sh
 
 # Leaving a dummy file with the installes branch name
 touch ~/audiotools/THIS_BRANCH_IS_$branch

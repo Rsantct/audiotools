@@ -1,16 +1,23 @@
 #!/usr/bin/env python3
 """
     Prepare loudness compensation curves for listening levels referred
-    to a given reference phon (dBSPL), to be used on Brutefir eq coeff.
+    to a given reference phon (dBSPL)
 
-    The curves follows the ISO 226:2003 normal equal-loudness-level contours
+    The curves follows the ISO 226:2003 normal equal-loudness-level contours,
+
+    These curves are given in three files: magnitude, phase, and frequencies.
+
+    These values can be used directly as it to be loaded on the Brutefir
+    run time EQ module.
 
 
     Usage:
 
-    loudness_compensation.py   -RXX  -ref=X,Y,...  -fs=X     --save  --plot
+    loudness_compensation_curves.py   -RXX  -ref=X,Y,...  -fs=X     --save  --plot
 
         -RXX            R10 | R20 | R40 | R80  iso R series (default: R20 ~ 1/3 oct)
+
+        -NXX:           overrides iso R series, then using 2**XX linspaced freq values
 
         -ref=X,Y,..     comma separated values for desired listening reference SPLs
                         0 ... 90 phon ~ dBSPL (default: 83)
@@ -43,9 +50,6 @@ plot    = False
 save    = False
 fmin    = 10
 fs      = 44100
-
-# curves folder
-cfolder=f'{HOME}/audiotools/brutefir_eq/curves'
 
 
 def doplot():
@@ -103,14 +107,14 @@ def phase_from_mag(freqs, curves):
 
 def save_curves():
 
-    if not os.path.isdir(cfolder):
-        os.makedirs(cfolder)
+    if not os.path.isdir(CFOLDER):
+        os.makedirs(CFOLDER)
 
-    np.savetxt(f'{cfolder}/freq.dat',                      freqs)
-    np.savetxt(f'{cfolder}/ref_{refSPL}_loudness_mag.dat', loudcomp_mag)
-    np.savetxt(f'{cfolder}/ref_{refSPL}_loudness_pha.dat', loudcomp_pha)
+    np.savetxt(f'{CFOLDER}/freq.dat',                      freqs)
+    np.savetxt(f'{CFOLDER}/ref_{refSPL}_loudness_mag.dat', loudcomp_mag)
+    np.savetxt(f'{CFOLDER}/ref_{refSPL}_loudness_pha.dat', loudcomp_pha)
 
-    print(f'loudness curves for refSPL={refSPL} saved to: {cfolder}')
+    print(f'loudness curves for refSPL={refSPL} saved to: {CFOLDER}')
 
 
 def extend_curves(freqs, curves, new_freqs, Noct=0):
@@ -132,7 +136,18 @@ def make_curves():
 
     global freqs, loudcomp_mag, loudcomp_pha
 
-    freqs = get_iso_R(Rseries, fmin=fmin, fs=fs)
+
+    if Rseries[0]== 'R':
+        freqs = get_iso_R(Rseries, fmin=fmin, fs=fs)
+
+    elif Rseries[0]== 'N':
+        N = int(Rseries[1:])
+        # odd bins of freq from 0 Hz to Nyquist
+        freqs = np.linspace(0, int(fs/2), 2**N+1)
+
+    else:
+        print('Error in -Nxx / -Rxx parameter')
+        sys.exit()
 
     # (i) iso226.EQ_LD_CURVES have a limited 29 bands (20 ~ 12500 Hz).
     #     Extended version with iso RXX frequency bands (usually 20 ~ 20000 Hz)
@@ -170,7 +185,7 @@ if __name__ == '__main__':
         elif '-ref=' in opc:
             refSPL = opc.split('=')[-1]
 
-        elif opc[:2] == '-R':
+        elif opc[:2] == '-R' or opc[:2] == '-N':
             Rseries = opc[1:]
 
         elif opc[:4] == '-fs=':
@@ -190,6 +205,17 @@ if __name__ == '__main__':
         refSPLs = [refSPL]
 
 
+    if Rseries[0] == 'R':
+        print(f'Using {Rseries} iso frequencies')
+    elif Rseries[0] == 'N':
+        print(f'Using 2**{Rseries[1:]} ({2**int(Rseries[1:])}) frequency bins')
+    else:
+        print('ERROR with freq series')
+        sys.exit()
+
+    # Save folder
+    CFOLDER = f'curves_{fs}_{Rseries}'
+
     for refSPL in refSPLs:
         make_curves()
         if save:
@@ -198,4 +224,6 @@ if __name__ == '__main__':
             doplot()
 
     if plot:
+        if save:
+            plt.savefig(f'{CFOLDER}/loudness_compensation_curves.png')
         plt.show()

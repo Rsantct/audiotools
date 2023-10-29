@@ -348,6 +348,40 @@ def fft_spectrum(freq, mag, fs=44100, wsize=2**12, make_whole=False):
     return freq_new, mag_new
 
 
+def semispectrum2impulse(semisp, dB=True):
+    """
+        Converting freq domain ---( IFFT )---> tieme domain
+
+        semisp :    an even spaced positive semispectrum of magnitude values
+        dB     :    magnitudes are given in dB
+        taps   :    IR length
+
+        return :    a MINIMUMM PHASE IR from the given semispectrum frequency response
+    """
+
+    # Check for ODD length
+    if len(semisp) % 2 == 0:
+        raise ValueError(f'(!) ERROR, it must be an ODD semispectrum: {len(semisp)}')
+        sys.exit()
+
+    # dBs --> linear
+    if dB:
+        semisp = 10.0**(semisp/20.0)
+
+    # (i) The IR is computed by doing the IFFT of the 'semisp' curve.
+    #     'semisp' is an abstraction reduced to the magnitudes of positive
+    #     frequencies, but IFFT needs a CAUSAL spectrum (with minimum phase)
+    #     also a WHOLE one (having positive and negative frequencies).
+    wholesp = pydsd.minphsp( pydsd.wholespmp(semisp) ) # min-phase is addded
+
+    # freq. domain  --> time domain and windowing
+    taps = 2 * (len(semisp) - 1)                        # FIR taps
+    imp = np.real( np.fft.ifft( wholesp ) )
+    imp = pydsd.semiblackmanharris(taps) * imp[:taps]
+
+    return imp
+
+
 def logspaced_semispectrum(freq, mag, Npoints):
     """ Interpolates a given magnitude/freq semi-spectrum into
         a new one with <Npoints> length logspaced freq points.

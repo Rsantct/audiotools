@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-    Prepare tone EQ curves to be used on Brutefir eq coeff.
+    Prepare tone EQ curves to be used on the Brutefir run time EQ module.
 
     First or second order shelving filters are available.
 
@@ -9,6 +9,8 @@
     tones.py    -RXX  -fs=X  -o=X -b=X -t=X  --save  --plot
 
         -RXX:   R10 | R20 | R40 | R80  iso R series (default: R20 ~ 1/3 oct)
+
+        -NXX:   overrides iso R series, then using 2**XX linspaced freq values
 
         -fs=X   44100 | 48000 | 96000  sampling frequency Hz
                 (default: 44100, upper limits RXX to 20000 Hz)
@@ -34,8 +36,6 @@ HOME = os.path.expanduser("~")
 sys.path.append(f'{HOME}/audiotools')
 from iso_R import get_iso_R
 from tools import shelf1low, shelf2low, shelf1high, shelf2high
-
-cfolder=f'{HOME}/audiotools/brutefir_eq/curves'
 
 
 def plot_all():
@@ -64,22 +64,27 @@ def plot_all():
 
     axmag.legend(loc='upper right', bbox_to_anchor=(1.25, 1.0),
                  fontsize='x-small', title='(bass)')
+
     plt.tight_layout()
+
+    if save:
+        plt.savefig(f'{CFOLDER}/tones.png')
+
     plt.show()
 
 
 def save_curves():
 
-    if not os.path.isdir(cfolder):
-        os.makedirs(cfolder)
+    if not os.path.isdir(CFOLDER):
+        os.makedirs(CFOLDER)
 
-    np.savetxt( f'{cfolder}/freq.dat',       freqs      )
-    np.savetxt( f'{cfolder}/bass_mag.dat',   bass_mag   )
-    np.savetxt( f'{cfolder}/bass_pha.dat',   bass_pha   )
-    np.savetxt( f'{cfolder}/treble_mag.dat', treble_mag )
-    np.savetxt( f'{cfolder}/treble_pha.dat', treble_pha )
+    np.savetxt( f'{CFOLDER}/freq.dat',       freqs      )
+    np.savetxt( f'{CFOLDER}/bass_mag.dat',   bass_mag   )
+    np.savetxt( f'{CFOLDER}/bass_pha.dat',   bass_pha   )
+    np.savetxt( f'{CFOLDER}/treble_mag.dat', treble_mag )
+    np.savetxt( f'{CFOLDER}/treble_pha.dat', treble_pha )
 
-    print(f'freqs saved to:  {cfolder}')
+    print(f'freqs saved to:  {CFOLDER}')
 
 
 def make_curves():
@@ -88,7 +93,17 @@ def make_curves():
             bass_mag,   bass_pha,   \
             treble_mag, treble_pha
 
-    freqs = get_iso_R(Rseries, fmin=fmin, fs=fs)
+    if Rseries[0]== 'R':
+        freqs = get_iso_R(Rseries, fmin=fmin, fs=fs)
+
+    elif Rseries[0]== 'N':
+        N = int(Rseries[1:])
+        # odd bins of freq from 0 Hz to Nyquist
+        freqs = np.linspace(0, int(fs/2), 2**N+1)
+
+    else:
+        print('Error in -Nxx / -Rxx parameter')
+        sys.exit()
 
     # Prepare curves collection arrays
     dB_steps = np.arange(-span, span+step ,step)
@@ -151,7 +166,7 @@ if __name__ == '__main__':
             print(__doc__)
             sys.exit()
 
-        elif opc[:2] == '-R':
+        elif opc[:2] == '-R' or opc[:2] == '-N':
             Rseries = opc[1:]
 
         elif opc[:4] == '-fs=':
@@ -176,8 +191,18 @@ if __name__ == '__main__':
 
     slopeInfo = {1:"6 dB/oct", 2:"12 dB/oct"}[shelf_order]
 
-    print(f'Using {Rseries}')
+    if Rseries[0] == 'R':
+        print(f'Using {Rseries} iso frequencies')
+    elif Rseries[0] == 'N':
+        print(f'Using 2**{Rseries[1:]} ({2**int(Rseries[1:])}) frequency bins')
+    else:
+        print('ERROR with freq series')
+        sys.exit()
+
     print(f'bass @{fc_bass} Hz, treble @{fc_treble} Hz, slope {slopeInfo}')
+
+    # Save folder
+    CFOLDER = f'curves_{fs}_{Rseries}'
 
     make_curves()
 

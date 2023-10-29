@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """
     Generates psycho acoustic set of curves as target room equalization
-    to be used on the Brutefir's run time EQ module.
+    to be used on the Brutefir run time EQ module.
 
     Usage:
 
     room_curves.py   -RXX  -fs=X  -loS=X  -loF=X  -hiF=X   --save  --plot
 
         -RXX    R10 | R20 | R40 | R80  iso R series (default: R20 ~ 1/3 oct)
+
+        -NXX:   overrides iso R series, then using 2**XX linspaced freq values
 
         -fs=X   44100 | 48000 | 96000  sampling frequency Hz
                 (default: 44100, upper limits RXX to 20000 Hz)
@@ -63,9 +65,6 @@ fmin    = 10
 Rseries = 'R20'
 fs      = 44100
 
-# Save folder
-cfolder=f'{HOME}/audiotools/brutefir_eq/curves/room_target'
-
 
 def make_low(fc, gain):
     wc = 2 * np.pi * fc / fs
@@ -104,6 +103,9 @@ def plotsamples():
     axMag.set_ylabel('dB')
     axPha.set_ylabel('phase deg')
 
+    if savetodisk:
+        plt.savefig(f'{CFOLDER}/room_curves_samples.png')
+
     plt.show()
 
 
@@ -116,7 +118,19 @@ def make_curves():
 
     global freqs, curves
 
-    freqs = get_iso_R(Rseries, fmin=fmin, fs=fs)
+
+    if Rseries[0]== 'R':
+        freqs = get_iso_R(Rseries, fmin=fmin, fs=fs)
+
+    elif Rseries[0]== 'N':
+        N = int(Rseries[1:])
+        # odd bins of freq from 0 Hz to Nyquist
+        freqs = np.linspace(0, int(fs/2), 2**N+1)
+
+    else:
+        print('Error in -Nxx / -Rxx parameter')
+        sys.exit()
+
 
     curves = {}
     for lo_gain in lo_gains:
@@ -133,16 +147,16 @@ def make_curves():
 
 def save_curves():
 
-    if not os.path.isdir(cfolder):
-        os.makedirs(cfolder)
+    if not os.path.isdir(CFOLDER):
+        os.makedirs(CFOLDER)
 
-    np.savetxt( f'{cfolder}/freq.dat', freqs)
+    np.savetxt( f'{CFOLDER}/freq.dat', freqs)
 
     for curve in curves:
         mag = curves[curve]['mag']
         pha = curves[curve]['pha']
-        mname = f'{cfolder}/{curve}_target_mag.dat'
-        pname = f'{cfolder}/{curve}_target_pha.dat'
+        mname = f'{CFOLDER}/{curve}_target_mag.dat'
+        pname = f'{CFOLDER}/{curve}_target_pha.dat'
         np.savetxt( mname, mag )
         np.savetxt( pname, pha )
 
@@ -156,13 +170,14 @@ if __name__ == '__main__':
     if not sys.argv[1:]:
         print(__doc__)
         sys.exit()
+
     for opc in sys.argv[1:]:
 
         if opc == '-h' or opc == '--help':
             print(__doc__)
             sys.exit()
 
-        elif opc[:2] == '-R':
+        elif opc[:2] == '-R' or opc[:2] == '-N':
             Rseries = opc[1:]
 
         elif opc[:4] == '-fs=':
@@ -204,9 +219,19 @@ if __name__ == '__main__':
 
     shelf_slope_info = {1:'6 dB/oct', 2:'12 dB/oct'}[shelf_order]
 
-    print(f'Using {Rseries} iso frequencies')
+    if Rseries[0] == 'R':
+        print(f'Using {Rseries} iso frequencies')
+    elif Rseries[0] == 'N':
+        print(f'Using 2**{Rseries[1:]} ({2**int(Rseries[1:])}) frequency bins')
+    else:
+        print('ERROR with freq series')
+        sys.exit()
+
     print(f'Low shelf center freq: {fc_low} Hz, slope: {shelf_slope_info}')
     print(f'High roll-off corner:  {fc_high} Hz')
+
+    # Save folder
+    CFOLDER = f'curves_{fs}_{Rseries}/room_target'
 
     # The values of low shelf variation:
     lo_gains    = np.arange(0, lo_range + lo_step, lo_step)
@@ -221,7 +246,7 @@ if __name__ == '__main__':
 
     if savetodisk:
         save_curves()
-        print(f'(i) Curves saved to:  {cfolder}')
+        print(f'(i) Curves saved to:  {CFOLDER}')
         print(f'    Choose just the ones you need ;-)')
     else:
         print('(i) Curves not saved, use --save if needed')
