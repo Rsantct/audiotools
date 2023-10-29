@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
     Generates psycho acoustic set of curves as target room equalization
-    to be used on the Brutefir's run time EQ module.
+    to be used on the Brutefir run time EQ module.
 
     Usage:
 
