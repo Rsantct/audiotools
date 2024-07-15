@@ -12,7 +12,7 @@
 
         -NXX:   overrides iso R series, then using 2**XX linspaced freq values
 
-        -fs=X   44100 | 48000 | 96000  sampling frequency Hz
+        -fs=X   44100 | 48000 | 88200 | 96000  sampling frequency Hz
                 (default: 44100, upper limits RXX to 20000 Hz)
 
         -o=X    1 | 2  low shelf order (default: 1, 1st order 6 dB/oct)
@@ -171,8 +171,11 @@ if __name__ == '__main__':
 
         elif opc[:4] == '-fs=':
             value = int(opc[4:])
-            if value in (44100, 48000, 96000):
+            if value in (44100, 48000, 88200, 96000):
                 fs = value
+            else:
+                print(__doc__)
+                sys.exit()
 
         elif opc[:3] == '-o=':
             shelf_order = int(opc[3:])
