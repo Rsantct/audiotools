@@ -369,19 +369,24 @@ def semispectrum2impulse(semisp, dB=True):
 
     # dBs --> linear
     if dB:
-        semisp = 10.0**(semisp/20.0)
+        semisp = 10.0 ** (semisp / 20.0)
 
     # (i) The IR is computed by doing the IFFT of the 'semisp' curve.
     #     'semisp' is an abstraction reduced to the magnitudes of positive
     #     frequencies, but IFFT needs a CAUSAL spectrum (with minimum phase)
     #     also a WHOLE one (having positive and negative frequencies).
-    wholesp = pydsd.minphsp( pydsd.wholespmp(semisp) ) # min-phase is addded
 
-    # freq. domain  --> time domain and windowing
+    # This adds negative and positive freq-bins (real values)
+    wholesp = pydsd.wholespmp(semisp)
+
+    # This adds the minimum phase (complex values)
+    wholesp_mp = pydsd.minphsp( wholesp )
+
+    # freq. domain  --> time domain
+    imp = np.real( scipy.fft.ifft( wholesp_mp ) )
+
+    # Apply a window
     taps = 2 * (len(semisp) - 1)                        # FIR taps
-
-    imp = np.real( scipy.fft.ifft( wholesp ) )
-
     imp = pydsd.semiblackmanharris(taps) * imp[:taps]
 
     return imp
