@@ -32,7 +32,7 @@
 # -----------------------------------------------------------
 
 import numpy as np
-from scipy import signal, interpolate
+from scipy import signal, interpolate, fft
 
 def biquad(fs, f0, Q, ftype, dBgain=0.0):
     """
@@ -301,7 +301,7 @@ def crossButterworthLP(fs=44100, m=32768, n=2, flp=0 , fhp=0):
     # %% imp = real( ifft( wholesplp(mag') ) );
     # %% imp = circshift(imp, m/2);
 
-    imp = np.real( np.fft.ifft( mag ) )
+    imp = np.real( fft.ifft( mag ) )
     # shifteamos la IFFT para conformar el IR con el impulso centrado
     imp = np.roll(imp, m/2)
 
@@ -402,6 +402,7 @@ def wholespmp(ssp):
 
     ssp: semiespectro de frecuencias positivas entre 0 y m/2,
          longitud impar, incluye DC (0Hz) y Nyquist (m/2)
+
     wsp: espectro completo longitud m, par.
     """
 
@@ -415,8 +416,8 @@ def wholespmp(ssp):
         raise ValueError("wholespmp: Spectrum length must be odd")
 
     # Códido DSD en Octave:
-	# nsp = flipud( conj( ssp(2:m-1) ) );
-	# wsp = [ssp; nsp];
+    # nsp = flipud( conj( ssp(2:m-1) ) );
+    # wsp = [ssp; nsp];
 
     nsp = np.flipud( np.conj( ssp[1:m-1] ) )  # freqs negativas
     wsp = np.concatenate([ssp, nsp])          # y ensamblamos
@@ -446,10 +447,10 @@ def wholesplp(ssp):
         raise ValueError("wholesplp: Spectrum length must be odd")
 
     # Códido DSD en Octave:
- 	# nsp = flipud( ssp(2:m-1) );
-	# wsp = [ssp; nsp];
+    # nsp = flipud( ssp(2:m-1) );
+    # wsp = [ssp; nsp];
 
-    nsp = np.flipud( ssp[1:m-1] )         # freqs negativas
+    nsp = np.flipud( ssp[1:m-1] )       # freqs negativas
     wsp = np.concatenate([ssp, nsp])    # y ensamblamos
     return wsp
 
@@ -468,10 +469,10 @@ def lininterp(freq, mag, m, fs):
     # --- Código original Octave DSD ---
     # NOTAs: 'maglin' es el nuevo vector de magnitudes.
     #        La función de DSD solo devuelve las magnitudes, aquí tb las frecuencias.
-	# fnew = (0:m/2)' * fs / m; % column vector
-	# maglin = interp1(frec, mag, fnew, "spline");  # Se usa una spline
-	# maglin( fnew < freq(1)   ) = mag(1);          # Se rellena en los extremos
-	# maglin( fnew > freq(end) ) = mag(end);        # replicando los extremos originales
+    # fnew = (0:m/2)' * fs / m; % column vector
+    # maglin = interp1(frec, mag, fnew, "spline");  # Se usa una spline
+    # maglin( fnew < freq(1)   ) = mag(1);          # Se rellena en los extremos
+    # maglin( fnew > freq(end) ) = mag(end);        # replicando los extremos originales
 
     if not freq.ndim == 1:
         raise ValueError("'freq' must be a column vector")
