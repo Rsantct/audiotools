@@ -1,5 +1,4 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 """
     v0.1beta
 
@@ -17,7 +16,6 @@
 
 import sys
 import numpy as np
-import pydsd as dsd
 import tools
 
 if __name__ == "__main__":
@@ -30,24 +28,24 @@ if __name__ == "__main__":
     m = 2 ** 15
 
     # Archivos de entrada y de salida
-    fin  = sys.argv[1]
-    fout = fin.replace(".wav", ".pcm")
+    f_in  = sys.argv[1]
+    f_out = f_in.replace(".wav", ".pcm")
 
     # Leemos el impulso de entrada imp1
-    fs, imp1 = tools.readWAV(fin)
+    fs, imp1 = tools.readWAV(f_in)
 
     # Espectro completo
-    h = np.fft.fft(imp1)
+    h = tools.scipy.fft.fft(imp1)
     # Réplica del espectro completo en fase mínima
-    hmp = dsd.minphsp(h)
+    hmp = tools.pydsd.minphsp(h)
 
     # Convertimos el espectro completo mp en un IR, se toma la parte real.
-    imp2 = np.fft.ifft( hmp )
+    imp2 = tools.scipy.fft.ifft( hmp )
     imp2 = np.real(imp2)
 
     # Lo cortamos a la longitud deseada y aplicamos una ventana:
-    imp2 = dsd.semiblackmanharris(m) * imp2[:m]
+    imp2 = tools.pydsd.semiblackmanharris(m) * imp2[:m]
 
     # Y lo guardamos en formato pcm float 32
-    tools.savePCM32(raw=imp2, fout=fout)
-    print "Guardado en:", fout
+    tools.savePCM32(raw=imp2, fout=f_out)
+    print("Guardado en:", f_out)
