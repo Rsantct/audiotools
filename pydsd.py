@@ -389,7 +389,7 @@ def minphsp(sp):
     if not sp.ndim == 1:
         raise ValueError("sp must be a vector")
 
-    return np.exp( np.conj( signal.hilbert( np.log(np.abs(sp)) ) ) )
+    return  np.exp( np.conj( signal.hilbert( np.log(np.abs(sp)) ) ) )
 
 
 def wholespmp(ssp):
@@ -420,7 +420,9 @@ def wholespmp(ssp):
     # wsp = [ssp; nsp];
 
     nsp = np.flipud( np.conj( ssp[1:m-1] ) )  # freqs negativas
+
     wsp = np.concatenate([ssp, nsp])          # y ensamblamos
+
     return wsp
 
 
