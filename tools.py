@@ -3,14 +3,17 @@
     common use tools
 """
 import os.path
-import numpy as np
-from scipy.io import wavfile
-from scipy import signal
-from scipy.interpolate import interp1d
-from scipy.fftpack import fftfreq, fft, ifft
 import yaml
+import numpy as np
 
-# audiotools imports:
+# Any ifft tool (numpy, scipy) gives the same result,
+# but scipy is faster and does more.
+# (also notice that scipy.fftpack is legacy code)
+import scipy.fft
+from   scipy.io             import wavfile
+from   scipy                import signal
+from   scipy.interpolate    import interp1d
+
 import pydsd
 from q2bw import *
 
@@ -336,7 +339,7 @@ def fft_spectrum(freq, mag, fs=44100, wsize=2**12, make_whole=False):
     I = interp1d(freq, mag)
     Xtra = extrap1d( I )
 
-    ftmp = fftfreq(wsize)
+    ftmp = scipy.fft.fftfreq(wsize)
     ftmp = np.concatenate( ([ftmp[0]], -ftmp[wsize//2:][::-1]) )
     freq_new = fs * ftmp
     mag_new  = Xtra(freq_new)
@@ -376,7 +379,9 @@ def semispectrum2impulse(semisp, dB=True):
 
     # freq. domain  --> time domain and windowing
     taps = 2 * (len(semisp) - 1)                        # FIR taps
-    imp = np.real( np.fft.ifft( wholesp ) )
+
+    imp = np.real( scipy.fft.ifft( wholesp ) )
+
     imp = pydsd.semiblackmanharris(taps) * imp[:taps]
 
     return imp
@@ -595,7 +600,7 @@ def wholemag2LP(wholemag, windowed=True, kaiserBeta=3):
     """
 
     # Volvemos al dom de t, tomamos la parte real de IFFT
-    imp = np.real( np.fft.ifft( wholemag ) )
+    imp = np.real( scipy.fft.ifft( wholemag ) )
     # y shifteamos la IFFT para conformar el IR con el impulso centrado:
     imp = np.roll(imp, int(len(wholemag)/2))
 
