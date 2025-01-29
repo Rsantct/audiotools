@@ -12,10 +12,10 @@ import numpy as np
 import scipy.fft
 from   scipy.io             import wavfile
 from   scipy                import signal
-from   scipy.interpolate    import interp1d
+from   scipy.interpolate    import interp1d, make_interp_spline
 
 import pydsd
-from q2bw import *
+from   q2bw import *
 
 
 def octaves(f1, f2):
@@ -419,6 +419,81 @@ def nearest_pow2(x):
             break
         n +=1
     return 2 ** n
+
+
+def interpolate_array(arr, new_length, kind=3):
+    """
+    (i) This uses the LEGACY 'interp1d' function, please use the spline alternative
+
+    Interpolates a 1D numpy array to a new length.
+
+    Args:
+        arr: The original 1D numpy array.
+
+        new_length: The desired length of the interpolated array.
+
+        kind:   kind of interpolation as a string
+                or as an integer specifying the order of the spline interpolator to use:
+
+
+                    Linear interpolation:
+                        ‘linear’
+
+                    spline interpolation (order):
+                        ‘zero’              0
+                        ‘slinear’           1
+                        ‘quadratic’         2
+                        ‘cubic’             3
+
+    Returns:
+        A new numpy array with the interpolated values, or None if input is invalid.
+        Raises ValueError if new_length is not greater than the original length.
+    """
+
+    print("This uses the LEGACY 'interp1d' function, please use the spline alternative")
+
+    if not isinstance(arr, np.ndarray) or arr.ndim != 1:
+        raise TypeError("Input must be a 1D numpy array.")
+
+    if not isinstance(new_length, int) or new_length <= len(arr) :
+        raise ValueError("new_length must be an integer greater than original length")
+
+    x = np.arange(len(arr))
+    f = interp1d(x, arr, kind=kind)
+    x_new = np.linspace(0, len(arr) - 1, new_length)
+    interpolated_arr = f(x_new)
+    return interpolated_arr
+
+
+def interpolate_array_spline(arr, new_length, k=3):
+    """Interpolates a 1D numpy array to a new length using make_interp_spline.
+
+    Args:
+        arr: The original 1D numpy array.
+        new_length: The desired length of the interpolated array.
+        k: Degree of the spline. Must be 1 <= k <= 5. Default is 3 (cubic).
+
+    Returns:
+        A new numpy array with the interpolated values, or None if input is invalid.
+    Raises:
+        ValueError: If new_length is not greater than the original length or if k is not in the correct range.
+        TypeError: If the input array is not a NumPy array or not 1D.
+    """
+
+    if not isinstance(arr, np.ndarray) or arr.ndim != 1:
+        raise TypeError("Input must be a 1D numpy array.")
+
+    if not isinstance(new_length, int) or new_length <= len(arr):
+        raise ValueError("new_length must be an integer greater than original length")
+
+    if not isinstance(k, int) or not (1 <= k <= 5):
+        raise ValueError("k must be an integer between 1 and 5 (inclusive).")
+
+    x = np.arange(len(arr))
+    spl = make_interp_spline(x, arr, k=k)
+    x_new = np.linspace(0, len(arr) - 1, new_length)
+    interpolated_arr = spl(x_new)
+    return interpolated_arr
 
 
 def extrap1d(interpolator):
