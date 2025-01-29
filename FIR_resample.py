@@ -168,9 +168,10 @@ if __name__ == "__main__":
 
     # Saving to file
 
-    new_fname = f'{fname[:-4]}_{new_fs}.{fname[-3:]}'
+    new_fname = f'{fname[:-4]}_{new_fs}'
     print('Saving to:', new_fname)
-    savePCM32(new_fir, new_fname)
+    savePCM32(new_fir, f'{new_fname}.f32')
+    saveWAV(f'{new_fname}.wav', new_fs, new_fir, bits=16)
 
 
     # Plot the frequency responses
