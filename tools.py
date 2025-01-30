@@ -830,14 +830,12 @@ def readWAV(fname):
 
             This function cannot read wav files with 24-bit data.
 
-            Common data types: [1]
-
-            WAV format              Min         Max             NumPy dtype
-            ----------              ---         ---             -----------
-            32-bit floating-point   -1.0        +1.0            float32
-            32-bit PCM              -2147483648 +2147483648     int32
-            16-bit PCM              -32768      +32767          int16
-            8-bit PCM               0           255             uint8
+            WAV format      Min         Max             NumPy dtype
+            ----------      ---         ---             -----------
+            32-bit float    -1.0        +1.0            float32
+            32-bit PCM      -2147483648 +2147483648     int32
+            16-bit PCM      -32768      +32767          int16
+            8-bit PCM       0           255             uint8
 
         Note that 8-bit PCM is unsigned.
 
@@ -863,18 +861,45 @@ def readWAV(fname):
     return fs, imp2.astype('float32')
 
 
-def saveWAV(fname, rate, data, bits=16):
-    """ stereo data must have shape (Nsamples, 2)
+def saveWAV(fname, rate, data, wav_dtype='int32'):
+    """
+        (i) stereo data must have shape (Nsamples, 2)
+
+        (i) WAV format      Min         Max             NumPy dtype
+            ----------      ---         ---             -----------
+            32-bit float    -1.0        +1.0            float32
+            32-bit PCM      -2147483648 +2147483647     int32
+            16-bit PCM      -32768      +32767          int16
     """
 
-    if bits == 16:
-        t='int16'
-    elif bits == 32:
-        t='float32'
-    else:
-        raise ValueError('tools.saveWAV use 16 or 32 bits depth')
+    if wav_dtype == 'int16':
 
-    wavfile.write(fname, rate, data.astype(t))
+        # Normally, data values will be float <= 1.0
+        if max(data) <= 1.0:
+            wavfile.write(fname, rate, (data * 32767).astype(wav_dtype))
+
+        else:
+            wavfile.write(fname, rate, data.astype(wav_dtype))
+
+    elif wav_dtype == 'int32':
+
+        # Normally, data values will be float <= 1.0
+        if max(data) <= 1.0:
+            wavfile.write(fname, rate, (data * 2147483647).astype(wav_dtype))
+
+        else:
+            wavfile.write(fname, rate, data.astype(wav_dtype))
+
+    elif wav_dtype == 'float32':
+        if max(data) <= 1.0:
+            wavfile.write(fname, rate, data.astype(wav_dtype))
+        else:
+            # Force normalization beacuse wav float32 max values are +/- 1.0
+            wavfile.write(fname, rate, (data / max(data)).astype(wav_dtype))
+
+    else:
+        raise ValueError("tools.saveWAV: 'wav_dtype' must be 'int16' 'int32' 'float32'")
+
 
 
 def readPCM(fname, dtype='float32'):
@@ -1025,11 +1050,11 @@ def SoX_pcm2wav(pcmpath1=None, pcmpath2=None, fs=0, wavpath=None, bits=32):
     return True
 
 
-def pcm2stereowav(pcmpathL=None, pcmpathR=None, fs=0, wavpath=None, bits=32):
+def pcm2stereowav(pcmpathL=None, pcmpathR=None, fs=0, wavpath=None, wav_dtype='int32'):
     """ mixes regular audiotools pcm float 32 files to wav stereo
     """
 
-    if fs not in (44100, 48000, 96000):
+    if not fs in (44100, 48000, 88200, 96000):
         raise ValueError('(tools.pcm2stereowav) invalid rate')
 
     L = readPCM(pcmpathL)
@@ -1037,5 +1062,5 @@ def pcm2stereowav(pcmpathL=None, pcmpathR=None, fs=0, wavpath=None, bits=32):
 
     LR = np.array( (L, R) ).transpose()
 
-    saveWAV(fname=wavpath, rate=fs, data=LR, bits=bits)
+    saveWAV(fname=wavpath, rate=fs, data=LR, wav_dtype=wav_dtype)
 
