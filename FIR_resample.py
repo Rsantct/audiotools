@@ -171,7 +171,7 @@ if __name__ == "__main__":
     new_fname = f'{fname[:-4]}_{new_fs}'
     print('Saving to:', new_fname)
     savePCM32(new_fir, f'{new_fname}.f32')
-    saveWAV(f'{new_fname}.wav', new_fs, new_fir, bits=16)
+    saveWAV(f'{new_fname}.wav', new_fs, new_fir, wav_dtype='int32')
 
 
     # Plot the frequency responses
