@@ -4,12 +4,12 @@
 
     Usage:
 
-        Float 32 raw mode:  FIR_resample.py  filename  fs  new_fs   [-noplot]
+        Float 32 raw mode:  FIR_resample.py  filename  fs  new_fs   [--plot]
 
-        Wavefile mode:      FIR_resample.py  filename  new_fs       [-noplot]
+        Wavefile mode:      FIR_resample.py  filename  new_fs       [--plot]
 
 
-        -noplot     skip plotting frequency responses (faster)
+        --plot              display frequency responses (can be slow)
 
 """
 
@@ -142,8 +142,8 @@ def read_cmd_line():
             print(__doc__)
             sys.exit()
 
-        if '-no' in arg:
-            do_plot = False
+        if '-plot' in arg:
+            do_plot = True
 
     try:
 
@@ -169,7 +169,7 @@ def read_cmd_line():
 
 if __name__ == "__main__":
 
-    do_plot = True
+    do_plot = False
 
     fname, fir, fs , new_fs = read_cmd_line()
 
