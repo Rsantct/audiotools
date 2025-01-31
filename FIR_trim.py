@@ -130,10 +130,12 @@ if __name__ == "__main__":
     lee_opciones()
 
     # Leemos el impulso de entrada imp1
-    if   f_in[-4:] == '.pcm':
+    if   f_in[-4:] in ('.pcm', '.f32'):
         imp1 = tools.readPCM32(f_in)
+
     elif f_in[-4:] == '.wav':
         fs, imp1 = tools.readWAV(f_in)
+
     else:
         print( f'(i) trimFIR.py \'{f_in}\' no se reconoce :-/' )
         sys.exit()
