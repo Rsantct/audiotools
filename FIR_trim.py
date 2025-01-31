@@ -10,7 +10,7 @@
 
       FIR_trim.py  file.pcm[.wav] -tM [-pP] [-asym[R]] [-o] [-lp|-mp]
 
-      -tM       M taps de salida potencia de 2 (sin espacios)
+      -tM       M taps de salida (sin espacios)
 
       -lp       Equivale a enventanado simétrico en el peak (autolocalizado),
                 o sea, a no poner más opciones que los taps de salida.
@@ -55,7 +55,7 @@ import tools
 
 def lee_opciones():
 
-    global f_in, f_out, m, phasetype
+    global f_in, m, phasetype
     global pkPos, sym, wratio, overwriteFile
 
     f_in = ''
@@ -74,10 +74,6 @@ def lee_opciones():
 
         if opc.startswith('-t'):
             m = int(opc.replace('-t', ''))
-            if not tools.isPowerOf2(m):
-                print (__doc__)
-                print( f'    {m} is not power of 2\n' )
-                sys.exit()
 
         elif opc.startswith('-p'):
             pkPos = int(opc.replace('-p', ''))
@@ -117,12 +113,6 @@ def lee_opciones():
         pkPos = 0
 
 
-    # El nombre de archivo de salida depende de si se pide sobreescribir
-    if not overwriteFile:
-        f_out = str(m) + "taps_" + f_in.replace('.wav', '.pcm')
-    else:
-        f_out = f_in.replace('.wav', '.pcm')
-
 
 if __name__ == "__main__":
 
@@ -130,15 +120,23 @@ if __name__ == "__main__":
     lee_opciones()
 
     # Leemos el impulso de entrada imp1
-    if   f_in[-4:] in ('.pcm', '.f32'):
-        imp1 = tools.readPCM32(f_in)
+    try:
 
-    elif f_in[-4:] == '.wav':
-        fs, imp1 = tools.readWAV(f_in)
+        if   f_in[-4:] in ('.pcm', '.f32'):
+            imp1 = tools.readPCM32(f_in)
+            fs = 0
 
-    else:
-        print( f'(i) trimFIR.py \'{f_in}\' no se reconoce :-/' )
+        elif f_in[-4:] == '.wav':
+            fs, imp1 = tools.readWAV(f_in)
+
+        else:
+            print( f"'{f_in}' debe ser .pcm, .f32 o .wav" )
+            sys.exit()
+
+    except Exception as e:
+        print( f"Error leyendo '{f_in}'" )
         sys.exit()
+
 
     # Buscamos el pico si no se ha indicado una posición predefinida:
     if pkPos == -1:
@@ -165,6 +163,24 @@ if __name__ == "__main__":
     # Informativo
     pkPos2 = abs(imp2).argmax()
 
-    # Y lo guardamos en formato pcm float 32
-    tools.savePCM32(imp2, f_out)
-    print( f'FIR recortado en: {f_out} (peak: {str(pkPos)}, peak_{str(m)}: {str(pkPos2)})' )
+
+    # Y lo guardamos
+    fname_woext = f_in[:-4]
+
+    if not overwriteFile:
+        f_out_pcm = f'{fname_woext}_{m}_taps.f32'
+        f_out_wav = f'{fname_woext}_{m}_taps.wav'
+
+    else:
+        f_out_pcm = f'{fname_woext}.f32'
+        f_out_wav = f'{fname_woext}.wav'
+
+
+    print(f'FIR recortado (peak original en tap: {pkPos}, peak {m} taps en tap: {pkPos2})')
+    tools.savePCM32(imp2, f_out_pcm)
+    print(f_out_pcm)
+    if fs:
+        tools.saveWAV(f_out_wav, fs, imp2, 'int32')
+        print(f_out_wav)
+
+
