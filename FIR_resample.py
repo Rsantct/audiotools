@@ -4,9 +4,12 @@
 
     Usage:
 
-        Float 32 raw mode:  FIR_resample.py  filename  fs  new_fs
+        Float 32 raw mode:  FIR_resample.py  filename  fs  new_fs   [-noplot]
 
-        Wavefile mode:      FIR_resample.py  filename  new_fs
+        Wavefile mode:      FIR_resample.py  filename  new_fs       [-noplot]
+
+
+        -noplot     skip plotting frequency responses (faster)
 
 """
 
@@ -131,10 +134,16 @@ def read_cmd_line():
 
     """
 
-    for a in sys.argv:
-        if '-h' in a:
+    global do_plot
+
+    for arg in sys.argv[1:]:
+
+        if '-h' in arg:
             print(__doc__)
             sys.exit()
+
+        if '-no' in arg:
+            do_plot = False
 
     try:
 
@@ -160,6 +169,8 @@ def read_cmd_line():
 
 if __name__ == "__main__":
 
+    do_plot = True
+
     fname, fir, fs , new_fs = read_cmd_line()
 
     # Compute the new FIR
@@ -173,6 +184,8 @@ if __name__ == "__main__":
     savePCM32(new_fir, f'{new_fname}.f32')
     saveWAV(f'{new_fname}.wav', new_fs, new_fir, wav_dtype='int32')
 
+    if not do_plot:
+        sys.exit()
 
     # Plot the frequency responses
 
