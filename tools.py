@@ -211,6 +211,23 @@ def shelf2high(G, wc):
     return num, den
 
 
+def semihann(m):
+    """
+    Obtiene la mitad derecha de una ventana Hann de longitud m.
+    """
+    # generamos la ventana con tamaño 2*m
+    w = signal.hann(2*m)
+    # devolvemos la mitad derecha
+    return w[m:]
+
+
+def hann(m):
+    """
+    Obtiene una ventana Hann de longitud m.
+    """
+    return signal.hann(m)
+
+
 def min_phase_from_real_mag(f, sp_real, dB=True, deg=True):
     """
     Input:
@@ -899,7 +916,6 @@ def saveWAV(fname, rate, data, wav_dtype='int32'):
 
     else:
         raise ValueError("tools.saveWAV: 'wav_dtype' must be 'int16' 'int32' 'float32'")
-
 
 
 def readPCM(fname, dtype='float32'):
