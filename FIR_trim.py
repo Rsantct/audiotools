@@ -50,8 +50,12 @@
 
 import sys
 import numpy as np
-import pydsd as dsd
 import tools
+
+#VENTANA = tools.dsd.blackmanharris
+#SEMIVENTANA = tools.dsd.semiblackmanharris
+VENTANA = tools.hann
+SEMIVENTANA = tools.semihann
 
 def lee_opciones():
 
@@ -149,16 +153,16 @@ if __name__ == "__main__":
         nleft  = int(wratio * m)
         if nleft <= pkPos:
             nright = m - nleft
-            imp2L = imp1[pkPos-nleft:pkPos]  * dsd.semiblackmanharris(nleft)[::-1]
-            imp2R = imp1[pkPos:pkPos+nright] * dsd.semiblackmanharris(nright)
+            imp2L = imp1[pkPos-nleft:pkPos]  * SEMIVENTANA(nleft)[::-1]
+            imp2R = imp1[pkPos:pkPos+nright] * SEMIVENTANA(nright)
             imp2 = np.concatenate([imp2L, imp2R])
         else:
-            imp2 = imp1[0:m] * dsd.semiblackmanharris(m)
+            imp2 = imp1[0:m] * SEMIVENTANA(m)
 
     # Enventanado simétrico
     else:
         # Aplicamos la ventana centrada en el pico
-        imp2 = imp1[int(pkPos-m/2) : int(pkPos+m/2)] * dsd.blackmanharris(m)
+        imp2 = imp1[int(pkPos-m/2) : int(pkPos+m/2)] * VENTANA(m)
 
     # Informativo
     pkPos2 = abs(imp2).argmax()
