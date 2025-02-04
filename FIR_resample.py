@@ -179,7 +179,7 @@ if __name__ == "__main__":
 
     # Saving to file
 
-    new_fname = f'{fname[:-4]}_{new_fs}'
+    new_fname = f'{fname[:-4]}_{new_fs}_Hz'
     print('Saving to:', new_fname)
     savePCM32(new_fir, f'{new_fname}.f32')
     saveWAV(f'{new_fname}.wav', new_fs, new_fir, wav_dtype='int32')
