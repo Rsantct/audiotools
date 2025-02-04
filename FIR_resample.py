@@ -61,7 +61,8 @@ def resample_fir(fir, fs, fs_new):
     rate_ratio = fs_new / fs
 
     if rate_ratio == 1.0:
-      return fir
+        pass
+        #return fir
 
     if rate_ratio < 0.01 or rate_ratio > 100:
         print("Warning: Extreme resampling ratio, results may be inaccurate or inefficient. Consider multi-stage resampling.")
@@ -134,7 +135,7 @@ def read_cmd_line():
 
     """
 
-    global do_plot
+    global plot
 
     for arg in sys.argv[1:]:
 
@@ -143,7 +144,7 @@ def read_cmd_line():
             sys.exit()
 
         if '-plot' in arg:
-            do_plot = True
+            plot = True
 
     try:
 
@@ -169,7 +170,7 @@ def read_cmd_line():
 
 if __name__ == "__main__":
 
-    do_plot = False
+    plot = False
 
     fname, fir, fs , new_fs = read_cmd_line()
 
@@ -184,8 +185,9 @@ if __name__ == "__main__":
     savePCM32(new_fir, f'{new_fname}.f32')
     saveWAV(f'{new_fname}.wav', new_fs, new_fir, wav_dtype='int32')
 
-    if not do_plot:
+    if not plot:
         sys.exit()
+
 
     # Plot the frequency responses
 
