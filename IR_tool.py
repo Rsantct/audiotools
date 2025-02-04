@@ -33,6 +33,8 @@
 
     -res=X          Resolución mínima en X Hz (informativo, por defecto 5 Hz)
 
+    -marker         Visor del impulso con puntos discretos
+
     -nowarnings     Elude mensajes de aviso en la gráfica de respuesta en frecuencia
                     (baja resolución en Hz, oversampled)
 
@@ -98,7 +100,7 @@ import tools
 
 def lee_commandline(opcs):
 
-    global fmin, fmax, plotPha, dBtop, dBrange, lp_tolerance, minResHz
+    global fmin, fmax, plotPha, dBtop, dBrange, lp_tolerance, minResHz, marker
     global plotIRsInOneRow, oversample, nowarnings, generaPDF, saveFRD
 
     # Mínima resolución en Hz (se avisa si no se cumple)
@@ -108,6 +110,7 @@ def lee_commandline(opcs):
     plotIRsInOneRow = False
     generaPDF = False
     saveFRD = False
+    marker = None
 
     # impulsos que devolverá esta función
     IRs = []
@@ -157,6 +160,9 @@ def lee_commandline(opcs):
                 lp_tolerance = value
             else:
                 raise ValueError('-lptol <= 0 dB')
+
+        elif '-mar' in opc:
+            marker='.'
 
         elif opc == "-1":
             plotIRsInOneRow = True
@@ -470,7 +476,7 @@ if __name__ == "__main__":
         axIR.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
 
         # Plot
-        axIR.plot(imp, "-", linewidth=1.0, color=color)
+        axIR.plot(imp, "-", linewidth=1.0, color=color, marker=marker)
 
     # Mostramos los valores de GD avg de cada impulso:
     GDtitle = 'GD avg:    ' + '    '.join([str(x) for x in GDavgs]) + ' (ms)'
