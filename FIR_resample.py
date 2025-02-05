@@ -72,7 +72,7 @@ def resample_fir(fir, fs, fs_new):
     M = int(np.ceil(N * rate_ratio))
 
     # Frequency response of the original filter
-    w, h = signal.freqz(fir, worN=len(fir))
+    w, h = signal.freqz(fir, worN=2**15) #len(fir))
 
     # Interpolate the frequency response to the new frequency range:
 
@@ -98,7 +98,7 @@ def resample_fir(fir, fs, fs_new):
     new_fir = np.fft.irfft(h_new)
 
     # Ensure the correct length (important due to irfft). Take the first M coefficients
-    new_fir = new_fir[:M]
+    new_fir = new_fir[:M] * pydsd.semiblackmanharris(M)
 
     return new_fir
 
@@ -168,36 +168,21 @@ def read_cmd_line():
         sys.exit()
 
 
-if __name__ == "__main__":
-
-    plot = False
-
-    fname, fir, fs , new_fs = read_cmd_line()
-
-    # Compute the new FIR
-
-    new_fir = resample_fir(fir, fs, new_fs)
-
-    # Saving to file
-
-    new_fname = f'{fname[:-4]}_{new_fs}_Hz'
-    print('Saving to:', new_fname)
-    savePCM32(new_fir, f'{new_fname}.f32')
-    saveWAV(f'{new_fname}.wav', new_fs, new_fir, wav_dtype='int32')
-
-    if not plot:
-        sys.exit()
-
-
-    # Plot the frequency responses
+def do_plot(ir_packs):
+    """ each ir_pack must be a tuple of: (fir, fs, plot_label)
+    """
 
     plt.figure(figsize=(8, 5))
 
-    for _fir, _fs in ((fir,     fs),
-                      (new_fir, new_fs)):
+    for ir_pack in ir_packs:
+
+        _fir, _fs, _label = ir_pack
+
+        print( f'computing magnitude to plot {_label} ...')
 
         freqs, mag_dB = impulse_2_fr(_fir, _fs)
-        plt.plot(freqs, mag_dB, label=str(_fs))
+
+        plt.plot(freqs, mag_dB, label=_label)
 
     plt.xscale('log')
     plt.xlim([20, 20000])
@@ -209,3 +194,28 @@ if __name__ == "__main__":
     plt.grid(True)
     plt.legend()
     plt.show()
+
+
+if __name__ == "__main__":
+
+    plot = False
+
+    fname, fir, fs , new_fs = read_cmd_line()
+
+    # Compute the new FIR
+    new_fir = resample_fir(fir, fs, new_fs)
+
+    # Saving to file
+    new_fname = f'{fname[:-4]}_{new_fs}_Hz'
+    print('Saving to:', new_fname)
+    savePCM32(new_fir, f'{new_fname}.f32')
+    saveWAV(f'{new_fname}.wav', new_fs, new_fir, wav_dtype='int32')
+
+    # Plot the frequency responses
+    if plot:
+        ir_packs = (
+            (fir,       fs,     f'{    fs} Hz'),
+            (new_fir,   new_fs, f'{new_fs} Hz')
+
+        )
+        do_plot( ir_packs )
