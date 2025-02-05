@@ -26,6 +26,8 @@
                 Si se omite R se aplicará un ratio del 0.1 %
                 Si se omite -asym[R] se aplicará enventanado simétrico.
 
+      -force    Desecha la parte izquierda
+
       -o        Sobreescribe el archivo original.
                 Si se omite se le añade un prefijo 'Mtaps_'
 
@@ -60,7 +62,7 @@ SEMIVENTANA = tools.semihann
 def lee_opciones():
 
     global f_in, m, phasetype
-    global pkPos, sym, wratio, overwriteFile
+    global pkPos, sym, wratio, overwriteFile, force
 
     f_in = ''
     m = 0
@@ -69,6 +71,7 @@ def lee_opciones():
     overwriteFile = False
     sym = True
     wratio = 0.001
+    force = False
 
     if len(sys.argv) == 1:
         print (__doc__)
@@ -85,6 +88,9 @@ def lee_opciones():
         elif opc == '-h' or opc == '--help':
             print (__doc__)
             sys.exit()
+
+        elif opc == '-force':
+            force = True
 
         elif opc == '-o':
             overwriteFile = True
@@ -155,7 +161,10 @@ if __name__ == "__main__":
             nright = m - nleft
             imp2L = imp1[pkPos-nleft:pkPos]  * SEMIVENTANA(nleft)[::-1]
             imp2R = imp1[pkPos:pkPos+nright] * SEMIVENTANA(nright)
-            imp2 = np.concatenate([imp2L, imp2R])
+            if not force:
+                imp2 = np.concatenate([imp2L, imp2R])
+            else:
+                imp2 = imp2R
         else:
             imp2 = imp1[0:m] * SEMIVENTANA(m)
 
