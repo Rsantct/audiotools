@@ -103,27 +103,6 @@ def resample_fir(fir, fs, fs_new):
     return new_fir
 
 
-def impulse_2_fr(imp, fs, oversampling=1, dB=True):
-    """
-        Calculate the frequency response of an impulse response
-
-        Oversampling (e.g. 4)  will smooth out the low frequency curve
-    """
-
-    N = len(imp) * oversampling
-
-    w, h = signal.freqz(imp, worN=N)
-
-    freqs = w * fs / (2 * np.pi)
-
-    mag = np.abs(h)
-
-    if dB:
-        mag = 20 * np.log10( mag )
-
-    return freqs, mag
-
-
 def read_cmd_line():
     """
         Wavefile mode:      FIR_resample.py  filename  new_fs
@@ -180,7 +159,7 @@ def do_plot(ir_packs):
 
         print( f'computing magnitude to plot {_label} ...')
 
-        freqs, mag_dB = impulse_2_fr(_fir, _fs)
+        freqs, mag_dB, _ = fir_response(_fir, _fs)
 
         plt.plot(freqs, mag_dB, label=_label)
 
