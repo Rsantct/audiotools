@@ -228,6 +228,54 @@ def hann(m):
     return signal.hann(m)
 
 
+def fir_response(imp, fs, oversampling=1, dB=True, deg=True, clean_phase_dBthr=None):
+    """
+        Calculate the frequency response of an FIR
+
+        oversampling:       Will smooth out the low frequency curve, e.g.: 4
+
+        dB:                 Magnitude in dB
+
+        deg:                Phase in degrees
+
+        clean_phase_dBthr:  Threshold of magnitude (dB) to discard phase values
+                            (outside the passband). Default is not to discard.
+
+        Returns a tuple:
+
+            ( frequencies_vector,  magnitude,  phase )
+    """
+
+    N = len(imp) * oversampling
+
+    w, h = signal.freqz(imp, worN=N)
+
+    freqs = w * fs / (2 * np.pi)
+
+    mag = np.abs(h)
+
+    magdB = 20 * np.log10( mag )
+
+    if dB:
+        mag = magdB
+
+
+    # Unwrapped Phase:
+    pha = np.unwrap( np.angle(h) )
+
+    # in degrees (optional)
+    if deg:
+        pha *= 180 / (2 * np.pi)
+
+    # discard unrelevant phase values (optional)
+    if clean_phase_dBthr != None:
+        phaseClean  = np.full((len(pha)), np.nan)
+        mask = (magdB > MAG_THRESHOLD)
+        np.copyto(phaseClean, pha, where=mask)
+
+    return freqs, mag, pha
+
+
 def min_phase_from_real_mag(f, sp_real, dB=True, deg=True):
     """
     Input:
