@@ -228,11 +228,11 @@ def hann(m):
     return signal.hann(m)
 
 
-def fir_response(imp, fs, oversampling=1, dB=True, deg=True, clean_phase_dBthr=None):
+def fir_response(imp, fs, oversample=1, dB=True, deg=True, clean_phase_dBthr=None):
     """
-        Calculate the frequency response of an FIR
+        Calculate the frequency response (magnitude and phase) of an FIR
 
-        oversampling:       Will smooth out the low frequency curve, e.g.: 4
+        oversample:         Will smooth out the low frequency curve, e.g.: 4
 
         dB:                 Magnitude in dB
 
@@ -243,10 +243,21 @@ def fir_response(imp, fs, oversampling=1, dB=True, deg=True, clean_phase_dBthr=N
 
         Returns a tuple:
 
-            ( frequencies_vector,  magnitude,  phase )
+            ( frequencies,  magnitude,  phase )
     """
 
-    N = len(imp) * oversampling
+    # Default resolution
+    N = int( len(imp) / 2 )
+
+    if oversample > 1 and len(imp) <= fs:
+        N *= oversample
+        # Limit N <= fs (1 Hz max resolution)
+        N = int(min(N, fs))
+
+    try:
+        N = scipy.fft.next_fast_len(N)
+    except:
+        print(f"(i) Failed to run 'scipy.fft.next_fast_len'")
 
     w, h = signal.freqz(imp, worN=N)
 
