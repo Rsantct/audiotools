@@ -104,13 +104,13 @@ def lee_commandline(opcs):
     global plotIRsInOneRow, oversample, nowarnings, generaPDF, saveFRD
 
     # Mínima resolución en Hz (se avisa si no se cumple)
-    minResHz = 5
-    oversample = False
-    nowarnings = False
+    minResHz        = 5
+    oversample      = False
+    nowarnings      = False
     plotIRsInOneRow = False
-    generaPDF = False
-    saveFRD = False
-    marker = None
+    generaPDF       = False
+    saveFRD         = False
+    marker          = None
 
     # impulsos que devolverá esta función
     IRs = []
@@ -356,40 +356,13 @@ if __name__ == "__main__":
             print(f'(!) Low frecuency resolution: {round(resol_Hz)} Hz ({fname})')
 
         # Semiespectro
-        # whole=False --> hasta Nyquist
-
-        # Por defecto resolución natural
-        oversampled = False
-        N = int( lenimp / 2 )
-        if oversample and lenimp <= fs:
-            N *= 16
-            # limitamos N <= fs (resolución curva máxima 1 Hz)
-            N = int(min(N, fs))
-            try:
-                N = fft.next_fast_len(N)
-            except:
-                print(f'(i) fft.next_fast_len not availble on this scipy version')
-            oversampled = True
-
-        w, h = signal.freqz(imp, worN=N, whole=False)
-
-        # frecuencias trasladadas a Fs
-        freqs = w / np.pi * fny
-
-        # Magnitud:
-        magdB = 20 * np.log10(abs(h))
-
-        # Un wrapped Phase:
-        phase = np.unwrap( np.angle(h) )
-        # Eliminamos (np.nan) los valores de phase fuera de
-        # la banda de paso, por debajo de un umbral configurable.
-        phaseClean  = np.full((len(phase)), np.nan)
-        mask = (magdB > magThr)
-        np.copyto(phaseClean, phase, where=mask)
-        phaseClean *= 180 / (2*np.pi)
+        if oversample:
+            freqs, magdB, phaseClean = tools.fir_response(imp, fs, oversample=8)
+        else:
+            freqs, magdB, phaseClean = tools.fir_response(imp, fs)
 
         # Group Delay:
-        wgd, gd = signal.group_delay((imp, 1), w=N, whole=False)
+        wgd, gd = signal.group_delay((imp, 1), w=len(freqs), whole=False)
         # Eliminamos (np.nan) los valores fuera de
         # la banda de paso, por debajo de un umbral configurable.
         gdClean  = np.full((len(gd)), np.nan)
@@ -412,7 +385,7 @@ if __name__ == "__main__":
 
         # Opción de guardar la FRD
         if saveFRD:
-            frdpath = f'{fname}{"_oversampled" if oversampled else ""}.frd'
+            frdpath = f'{fname}{"_oversampled" if oversample else ""}.frd'
             fmp = np.vstack((freqs, magdB, phaseClean))
             fmp = np.transpose(fmp)
             np.savetxt(frdpath, fmp)
@@ -431,7 +404,7 @@ if __name__ == "__main__":
         if not nowarnings:
             if resol_Hz > minResHz:
                 axMagMsg += f'Low resol. {round(resol_Hz)} Hz '
-            if oversampled:
+            if oversample:
                 axMagMsg += '(oversampled)'
             axMag.annotate(axMagMsg, xy=(.075,axMagMsgYcoord), xycoords='axes fraction', color=color)
             axMagMsgYcoord -= .05
