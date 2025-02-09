@@ -82,10 +82,13 @@
 # version = 'v0.2k'
 #   lee PIR de ARTA
 #
-version = 'v0.2l'
+#version = 'v0.2l'
 #   - Opción de oversampling para pintar la respuesta de un impulso corto suavizada en bajas frecuencias
 #   - Admite resolución mínima en Hz para avisarlo en la gráfica, por defecto 5 Hz.
 #   - Opción de exportar los datos de respuesta en frecuencia en archivo .frd
+
+version = 'v0.2m'
+#   - reordenación del código para poder exportar la función do_plots()
 
 
 import sys
@@ -97,27 +100,41 @@ from matplotlib.ticker import EngFormatter
 from matplotlib import gridspec             # customize subplots array
 import tools
 
+# Ajustes iniciales
+dBtop        = 5
+dBrange      = 65
+fmin         = 20
+fmax         = 20000
 
-def lee_commandline(opcs):
+# Umbral de la magnitud en dB para dejar de pintar phases o gd
+magThr       = -50.0
 
-    global fmin, fmax, plotPha, dBtop, dBrange, lp_tolerance, minResHz, marker
-    global plotIRsInOneRow, oversample, nowarnings, generaPDF, saveFRD
+# Umbral en dB para evaluar si el impulso es linear phase
+lp_tolerance = -60 # dB
 
-    # Mínima resolución en Hz (se avisa si no se cumple)
-    minResHz        = 5
-    oversample      = False
-    nowarnings      = False
-    plotIRsInOneRow = False
-    generaPDF       = False
-    saveFRD         = False
-    marker          = None
+# Mínima resolución en Hz (se avisa si no se cumple)
+minResHz        = 10
+
+plotPha = False
+oversample      = False
+nowarnings      = False
+plotIRsInOneRow = False
+generaPDF       = False
+saveFRD         = False
+marker          = None
+
+
+def _lee_commandline(opcs):
+
+    global fmin, fmax, plotPha, dBtop, dBrange, lp_tolerance, minResHz
+    global plotIRsInOneRow, oversample, nowarnings, generaPDF, saveFRD, marker
+
 
     # impulsos que devolverá esta función
     IRs = []
     # archivos que leeremos
     fnames = []
     fs = 0
-    plotPha = False
 
     for opc in opcs:
 
@@ -182,18 +199,18 @@ def lee_commandline(opcs):
 
         if fname.endswith('.wav'):
             fswav, imp = tools.readWAV(fname)
-            IRs.append( (fswav, imp, fname) )
+            IRs.append( (imp, fswav, fname) )
 
         elif fname.endswith('.pir'):
             fspir, imp = tools.readPIR(fname)
-            IRs.append( (fspir, imp, fname) )
+            IRs.append( (imp, fspir, fname) )
 
         elif fname.endswith('.pcm') or \
              fname.endswith('.bin') or \
              fname.endswith('.f32'):
             if fs:
                 imp = tools.readPCM(fname, dtype='float32')
-                IRs.append( (fs, imp, fname) )
+                IRs.append( (imp, fs, fname) )
             else:
                 print (__doc__)
                 sys.exit()
@@ -201,7 +218,7 @@ def lee_commandline(opcs):
         else:   # it is supposed to be a text file
             if fs:
                 imp = np.loadtxt(fname)
-                IRs.append( (fs, imp, fname) )
+                IRs.append( (imp, fs, fname) )
             else:
                 print (__doc__)
                 sys.exit()
@@ -209,27 +226,26 @@ def lee_commandline(opcs):
     return IRs
 
 
-def prepara_eje_frecuencias(ax):
+def _preparaGraficas(numIRs=1):
 
-    ax.set_xscale("log")
+    def prepara_eje_frecuencias(ax):
 
-    # nice formatting "1 K" flavour
-    ax.xaxis.set_major_formatter( EngFormatter() )
-    ax.xaxis.set_minor_formatter( EngFormatter() )
+        ax.set_xscale("log")
 
-    # rotate_labels for both major and minor xticks
-    for label in ax.get_xticklabels(which='both'):
-        label.set_rotation(70)
-        label.set_horizontalalignment('center')
+        # nice formatting "1 K" flavour
+        ax.xaxis.set_major_formatter( EngFormatter() )
+        ax.xaxis.set_minor_formatter( EngFormatter() )
 
-    ax.set_xlim([fmin, fmax])
+        # rotate_labels for both major and minor xticks
+        for label in ax.get_xticklabels(which='both'):
+            label.set_rotation(70)
+            label.set_horizontalalignment('center')
 
+        ax.set_xlim([fmin, fmax])
 
-def preparaGraficas():
 
     plt.rcParams.update({'font.size': 8})
 
-    numIRs = len(IRs)
     global fig, grid, axMag, axDrv, axPha, axGD, axIR
 
     #-------------------------------------------------------------------------------
@@ -288,48 +304,38 @@ def preparaGraficas():
         axPha.yaxis.set_major_locator(plt.NullLocator())
 
 
-def check_lin_pha(imp, tol, fname=''):
+def do_plots(IRs, check_lp=False):
+    """
+        IRs as a tuple of tuples:  (impulse, fs, filename)
+    """
 
-    result = False
+    def check_lin_pha(imp, tol, fname=''):
 
-    # Ensure the impulse is centered
-    center = np.argmax(imp)
-    if center - imp.shape[0] // 2 > 1:
-        return False
+        result = False
 
-    # Check if symmetric with tolerance
-    atol = 10 ** (tol/20.0)
-    if imp.shape[0] % 2 == 0:
-        begin = 1
-    else:
-        begin = 0
+        # Ensure the impulse is centered
+        center = np.argmax(imp)
+        if center - imp.shape[0] // 2 > 1:
+            return False
 
-    try:
-        result = np.allclose(imp[begin:center], imp[center + 1:][::-1], atol=atol)
-    except:
-        print( f'(i) linear phase not detected ({fname})' )
+        # Check if symmetric with tolerance
+        atol = 10 ** (tol/20.0)
+        if imp.shape[0] % 2 == 0:
+            begin = 1
+        else:
+            begin = 0
 
-    return result
+        try:
+            result = np.allclose(imp[begin:center], imp[center + 1:][::-1], atol=atol)
+        except:
+            print( f'(i) linear phase not detected ({fname})' )
+
+        return result
 
 
-if __name__ == "__main__":
+    global dBtop
 
-    dBtop   = 5         # Inicial luego se reajustará
-    dBrange = 65
-    fmin = 20
-    fmax = 20000
-    # Umbral de la magnitud en dB para dejar de pintar phases o gd
-    magThr = -50.0
-    # Umbral en dB para evaluar si el impulso es linear phase
-    lp_tolerance = -60 # dB
-
-    if len(sys.argv) == 1:
-        print (__doc__)
-        sys.exit()
-
-    IRs = lee_commandline(sys.argv[1:])
-
-    preparaGraficas()
+    _preparaGraficas( numIRs=len(IRs) )
 
     GDavgs = [] # los promedios de GD de cada impulso, para mostrarlos por separado
 
@@ -340,17 +346,18 @@ if __name__ == "__main__":
 
         axMagMsg = ''
 
-        fs, imp, fname = IR
+        imp, fs, fname = IR
         fny = fs/2.0
         lenimp = len(imp)
         peakOffsetms = np.round(abs(imp).argmax() / fs * 1000, 1) # en ms
 
-        resol_Hz = fs / lenimp
+        resol_Hz = int(np.ceil(fs / lenimp))
 
         isLinPha = False
-        if check_lin_pha(imp, lp_tolerance, fname):
-            isLinPha = True
-            resol_Hz /= 2
+        if check_lp:
+            if check_lin_pha(imp, lp_tolerance, fname):
+                isLinPha = True
+                resol_Hz /= 2
 
         if resol_Hz > minResHz:
             print(f'(!) Low frecuency resolution: {round(resol_Hz)} Hz ({fname})')
@@ -479,3 +486,16 @@ if __name__ == "__main__":
         fig.savefig(pdfName, bbox_inches='tight')
 
     print ("Bye!")
+
+
+if __name__ == "__main__":
+
+
+
+    if len(sys.argv) == 1:
+        print (__doc__)
+        sys.exit()
+
+    IRs = _lee_commandline(sys.argv[1:])
+
+    do_plots(IRs)
