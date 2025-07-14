@@ -9,7 +9,7 @@ It is included an Octave to Python/Scipy translation of **[rripio/DSD](https://g
 
     cd ~
     curl -LO https://raw.githubusercontent.com/Rsantct/audiotools/master/update-audiotools.sh
-    sh update-audiotools.sh master
+    sh update-audiotools.sh master Rsantct
 
 The script will update your `~/.profile` in order to append `$HOME/audiotools` to your $PATH environment.
 
