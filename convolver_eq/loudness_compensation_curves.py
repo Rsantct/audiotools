@@ -98,10 +98,15 @@ def doplot():
 
 
 def phase_from_mag(freqs, curves):
+
     phases = np.zeros( curves.shape )
+
     for i, curve in enumerate(curves):
-        _,_,pha = min_phase_from_real_mag( freqs, curve)
+
+        _,_,pha = min_phase_from_real_mag( freqs, curve, fs=fs)
+
         phases[i] = pha
+
     return phases
 
 
@@ -167,6 +172,7 @@ def make_curves():
     # Retrieving phase from mag
     print( '(equal_loudness) retrieving phase from relative magnitudes, will take a while ...' )
     loudcomp_pha = phase_from_mag( freqs, loudcomp_mag)
+
     print( '(equal_loudness) done.' )
 
 
