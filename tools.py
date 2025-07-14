@@ -3,16 +3,19 @@
     common use tools
 """
 import os.path
-import numpy as np
-from scipy.io import wavfile
-from scipy import signal
-from scipy.interpolate import interp1d
-from scipy.fftpack import fftfreq, fft, ifft
 import yaml
+import numpy as np
 
-# audiotools imports:
+# Any ifft tool (numpy, scipy) gives the same result,
+# but scipy is faster and does more.
+# (also notice that scipy.fftpack is legacy code)
+import scipy.fft
+from   scipy.io             import wavfile
+from   scipy                import signal
+from   scipy.interpolate    import interp1d, make_interp_spline
+
 import pydsd
-from q2bw import *
+from   q2bw import *
 
 
 def octaves(f1, f2):
@@ -208,7 +211,83 @@ def shelf2high(G, wc):
     return num, den
 
 
-def min_phase_from_real_mag(f, sp_real, dB=True, deg=True):
+def semihann(m):
+    """
+    Obtiene la mitad derecha de una ventana Hann de longitud m.
+    """
+    # generamos la ventana con tamaño 2*m
+    w = signal.hann(2*m)
+    # devolvemos la mitad derecha
+    return w[m:]
+
+
+def hann(m):
+    """
+    Obtiene una ventana Hann de longitud m.
+    """
+    return signal.hann(m)
+
+
+def fir_response(imp, fs, oversample=1, dB=True, deg=True, clean_phase_dBthr=None):
+    """
+        Calculate the frequency response (magnitude and phase) of an FIR
+
+        oversample:         Will smooth out the low frequency curve, e.g.: 4
+
+        dB:                 Magnitude in dB
+
+        deg:                Phase in degrees
+
+        clean_phase_dBthr:  Threshold of magnitude (dB) to discard phase values
+                            (outside the passband). Default is not to discard.
+
+        Returns a tuple:
+
+            ( frequencies,  magnitude,  phase )
+    """
+
+    # Default resolution
+    N = int( len(imp) / 2 )
+
+    if oversample > 1 and len(imp) <= fs:
+        N *= oversample
+        # Limit N <= fs (1 Hz max resolution)
+        N = int(min(N, fs))
+
+    try:
+        N = scipy.fft.next_fast_len(N)
+    except:
+        print(f"(i) Failed to run 'scipy.fft.next_fast_len'")
+
+    w, h = signal.freqz(imp, worN=N)
+
+    freqs = w * fs / (2 * np.pi)
+
+    mag = np.abs(h)
+
+    magdB = 20 * np.log10( mag )
+
+    if dB:
+        mag = magdB
+
+
+    # Unwrapped Phase:
+    pha = np.unwrap( np.angle(h) )
+
+    # in degrees (optional)
+    if deg:
+        pha *= 180 / (2 * np.pi)
+
+    # discard unrelevant phase values (optional)
+    if clean_phase_dBthr != None:
+        phaseClean  = np.full((len(pha)), np.nan)
+        mask = (magdB > MAG_THRESHOLD)
+        np.copyto(phaseClean, pha, where=mask)
+
+    return freqs, mag, pha
+
+
+def min_phase_from_real_mag(f, sp_real, dB=True, deg=True, fs=44100):
     """
     Input:
 
@@ -238,7 +317,7 @@ def min_phase_from_real_mag(f, sp_real, dB=True, deg=True):
 
     # From our custom spectrum to a full extended one by using
     # even spaced bins from 0 Hz to Nyquist.
-    f_ext, sp_real_ext = fft_spectrum(f, sp_real, fs=44100)
+    f_ext, sp_real_ext = fft_spectrum(f, sp_real, fs=fs)
 
     # Obtains the whole minimum phase spectrum
     # from our real valued specimen.
@@ -336,7 +415,7 @@ def fft_spectrum(freq, mag, fs=44100, wsize=2**12, make_whole=False):
     I = interp1d(freq, mag)
     Xtra = extrap1d( I )
 
-    ftmp = fftfreq(wsize)
+    ftmp = scipy.fft.fftfreq(wsize)
     ftmp = np.concatenate( ([ftmp[0]], -ftmp[wsize//2:][::-1]) )
     freq_new = fs * ftmp
     mag_new  = Xtra(freq_new)
@@ -366,17 +445,24 @@ def semispectrum2impulse(semisp, dB=True):
 
     # dBs --> linear
     if dB:
-        semisp = 10.0**(semisp/20.0)
+        semisp = 10.0 ** (semisp / 20.0)
 
     # (i) The IR is computed by doing the IFFT of the 'semisp' curve.
     #     'semisp' is an abstraction reduced to the magnitudes of positive
     #     frequencies, but IFFT needs a CAUSAL spectrum (with minimum phase)
     #     also a WHOLE one (having positive and negative frequencies).
-    wholesp = pydsd.minphsp( pydsd.wholespmp(semisp) ) # min-phase is addded
 
-    # freq. domain  --> time domain and windowing
+    # This adds negative and positive freq-bins (real values)
+    wholesp = pydsd.wholespmp(semisp)
+
+    # This adds the minimum phase (complex values)
+    wholesp_mp = pydsd.minphsp( wholesp )
+
+    # freq. domain  --> time domain
+    imp = np.real( scipy.fft.ifft( wholesp_mp ) )
+
+    # Apply a window
     taps = 2 * (len(semisp) - 1)                        # FIR taps
-    imp = np.real( np.fft.ifft( wholesp ) )
     imp = pydsd.semiblackmanharris(taps) * imp[:taps]
 
     return imp
@@ -409,6 +495,81 @@ def nearest_pow2(x):
             break
         n +=1
     return 2 ** n
+
+
+def interpolate_array(arr, new_length, kind=3):
+    """
+    (i) This uses the LEGACY 'interp1d' function, please use the spline alternative
+
+    Interpolates a 1D numpy array to a new length.
+
+    Args:
+        arr: The original 1D numpy array.
+
+        new_length: The desired length of the interpolated array.
+
+        kind:   kind of interpolation as a string
+                or as an integer specifying the order of the spline interpolator to use:
+
+
+                    Linear interpolation:
+                        ‘linear’
+
+                    spline interpolation (order):
+                        ‘zero’              0
+                        ‘slinear’           1
+                        ‘quadratic’         2
+                        ‘cubic’             3
+
+    Returns:
+        A new numpy array with the interpolated values, or None if input is invalid.
+        Raises ValueError if new_length is not greater than the original length.
+    """
+
+    print("This uses the LEGACY 'interp1d' function, please use the spline alternative")
+
+    if not isinstance(arr, np.ndarray) or arr.ndim != 1:
+        raise TypeError("Input must be a 1D numpy array.")
+
+    if not isinstance(new_length, int) or new_length <= len(arr) :
+        raise ValueError("new_length must be an integer greater than original length")
+
+    x = np.arange(len(arr))
+    f = interp1d(x, arr, kind=kind)
+    x_new = np.linspace(0, len(arr) - 1, new_length)
+    interpolated_arr = f(x_new)
+    return interpolated_arr
+
+
+def interpolate_array_spline(arr, new_length, k=3):
+    """Interpolates a 1D numpy array to a new length using make_interp_spline.
+
+    Args:
+        arr: The original 1D numpy array.
+        new_length: The desired length of the interpolated array.
+        k: Degree of the spline. Must be 1 <= k <= 5. Default is 3 (cubic).
+
+    Returns:
+        A new numpy array with the interpolated values, or None if input is invalid.
+    Raises:
+        ValueError: If new_length is not greater than the original length or if k is not in the correct range.
+        TypeError: If the input array is not a NumPy array or not 1D.
+    """
+
+    if not isinstance(arr, np.ndarray) or arr.ndim != 1:
+        raise TypeError("Input must be a 1D numpy array.")
+
+    if not isinstance(new_length, int) or new_length <= len(arr):
+        raise ValueError("new_length must be an integer greater than original length")
+
+    if not isinstance(k, int) or not (1 <= k <= 5):
+        raise ValueError("k must be an integer between 1 and 5 (inclusive).")
+
+    x = np.arange(len(arr))
+    spl = make_interp_spline(x, arr, k=k)
+    x_new = np.linspace(0, len(arr) - 1, new_length)
+    interpolated_arr = spl(x_new)
+    return interpolated_arr
 
 
 def extrap1d(interpolator):
@@ -595,7 +756,7 @@ def wholemag2LP(wholemag, windowed=True, kaiserBeta=3):
     """
 
     # Volvemos al dom de t, tomamos la parte real de IFFT
-    imp = np.real( np.fft.ifft( wholemag ) )
+    imp = np.real( scipy.fft.ifft( wholemag ) )
     # y shifteamos la IFFT para conformar el IR con el impulso centrado:
     imp = np.roll(imp, int(len(wholemag)/2))
 
@@ -745,14 +906,12 @@ def readWAV(fname):
 
             This function cannot read wav files with 24-bit data.
 
-            Common data types: [1]
-
-            WAV format              Min         Max             NumPy dtype
-            ----------              ---         ---             -----------
-            32-bit floating-point   -1.0        +1.0            float32
-            32-bit PCM              -2147483648 +2147483648     int32
-            16-bit PCM              -32768      +32767          int16
-            8-bit PCM               0           255             uint8
+            WAV format      Min         Max             NumPy dtype
+            ----------      ---         ---             -----------
+            32-bit float    -1.0        +1.0            float32
+            32-bit PCM      -2147483648 +2147483648     int32
+            16-bit PCM      -32768      +32767          int16
+            8-bit PCM       0           255             uint8
 
         Note that 8-bit PCM is unsigned.
 
@@ -778,18 +937,44 @@ def readWAV(fname):
     return fs, imp2.astype('float32')
 
 
-def saveWAV(fname, rate, data, bits=16):
-    """ stereo data must have shape (Nsamples, 2)
+def saveWAV(fname, rate, data, wav_dtype='int32'):
+    """
+        (i) stereo data must have shape (Nsamples, 2)
+
+        (i) WAV format      Min         Max             NumPy dtype
+            ----------      ---         ---             -----------
+            32-bit float    -1.0        +1.0            float32
+            32-bit PCM      -2147483648 +2147483647     int32
+            16-bit PCM      -32768      +32767          int16
     """
 
-    if bits == 16:
-        t='int16'
-    elif bits == 32:
-        t='float32'
-    else:
-        raise ValueError('tools.saveWAV use 16 or 32 bits depth')
+    if wav_dtype == 'int16':
 
-    wavfile.write(fname, rate, data.astype(t))
+        # Normally, data values will be float <= 1.0
+        if max(data) <= 1.0:
+            wavfile.write(fname, rate, (data * 32767).astype(wav_dtype))
+
+        else:
+            wavfile.write(fname, rate, data.astype(wav_dtype))
+
+    elif wav_dtype == 'int32':
+
+        # Normally, data values will be float <= 1.0
+        if max(data) <= 1.0:
+            wavfile.write(fname, rate, (data * 2147483647).astype(wav_dtype))
+
+        else:
+            wavfile.write(fname, rate, data.astype(wav_dtype))
+
+    elif wav_dtype == 'float32':
+        if max(data) <= 1.0:
+            wavfile.write(fname, rate, data.astype(wav_dtype))
+        else:
+            # Force normalization beacuse wav float32 max values are +/- 1.0
+            wavfile.write(fname, rate, (data / max(data)).astype(wav_dtype))
+
+    else:
+        raise ValueError("tools.saveWAV: 'wav_dtype' must be 'int16' 'int32' 'float32'")
 
 
 def readPCM(fname, dtype='float32'):
@@ -940,11 +1125,11 @@ def SoX_pcm2wav(pcmpath1=None, pcmpath2=None, fs=0, wavpath=None, bits=32):
     return True
 
 
-def pcm2stereowav(pcmpathL=None, pcmpathR=None, fs=0, wavpath=None, bits=32):
+def pcm2stereowav(pcmpathL=None, pcmpathR=None, fs=0, wavpath=None, wav_dtype='int32'):
     """ mixes regular audiotools pcm float 32 files to wav stereo
     """
 
-    if fs not in (44100, 48000, 96000):
+    if not fs in (44100, 48000, 88200, 96000):
         raise ValueError('(tools.pcm2stereowav) invalid rate')
 
     L = readPCM(pcmpathL)
@@ -952,5 +1137,5 @@ def pcm2stereowav(pcmpathL=None, pcmpathR=None, fs=0, wavpath=None, bits=32):
 
     LR = np.array( (L, R) ).transpose()
 
-    saveWAV(fname=wavpath, rate=fs, data=LR, bits=bits)
+    saveWAV(fname=wavpath, rate=fs, data=LR, wav_dtype=wav_dtype)
 

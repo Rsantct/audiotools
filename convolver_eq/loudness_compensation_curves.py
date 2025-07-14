@@ -22,7 +22,7 @@
         -ref=X,Y,..     comma separated values for desired listening reference SPLs
                         0 ... 90 phon ~ dBSPL (default: 83)
 
-        -fs=X           44100 | 48000 | 96000  sampling frequency Hz
+        -fs=X           44100 | 48000 | 88200| 96000  sampling frequency Hz
                         (default: 44100, upper limits RXX to 20000 Hz)
 
         --save          save curves to disk
@@ -98,10 +98,15 @@ def doplot():
 
 
 def phase_from_mag(freqs, curves):
+
     phases = np.zeros( curves.shape )
+
     for i, curve in enumerate(curves):
-        _,_,pha = min_phase_from_real_mag( freqs, curve)
+
+        _,_,pha = min_phase_from_real_mag( freqs, curve, fs=fs)
+
         phases[i] = pha
+
     return phases
 
 
@@ -167,6 +172,7 @@ def make_curves():
     # Retrieving phase from mag
     print( '(equal_loudness) retrieving phase from relative magnitudes, will take a while ...' )
     loudcomp_pha = phase_from_mag( freqs, loudcomp_mag)
+
     print( '(equal_loudness) done.' )
 
 
@@ -190,8 +196,11 @@ if __name__ == '__main__':
 
         elif opc[:4] == '-fs=':
             value = int(opc[4:])
-            if value in (44100, 48000, 96000):
+            if value in (44100, 48000, 88200, 96000):
                 fs = value
+            else:
+                print(__doc__)
+                sys.exit()
 
         elif '-p' in opc:
             plot = True

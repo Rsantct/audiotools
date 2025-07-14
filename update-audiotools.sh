@@ -7,7 +7,7 @@ if [ -z $1 ] ; then
     echo "usage:"
     echo "    update-audiotools.sh   master   [git_repo]"
     echo
-    echo "    (i) Default git_repo:                     'AudioHumLab'"
+    echo "    (i) Default git_repo:                     'Rsantct'"
     echo "        You can use another branch name than  'master' "
     echo
     exit 0
@@ -17,7 +17,7 @@ branch=$1
 if [ $2 ]; then
     gitsite="https://github.com/""$2"
 else
-    gitsite="https://github.com/AudioHumLab"
+    gitsite="https://github.com/Rsantct"
 fi
 
 echo

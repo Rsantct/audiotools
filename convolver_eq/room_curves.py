@@ -11,7 +11,7 @@
 
         -NXX:   overrides iso R series, then using 2**XX linspaced freq values
 
-        -fs=X   44100 | 48000 | 96000  sampling frequency Hz
+        -fs=X   44100 | 48000 | 88200 | 96000  sampling frequency Hz
                 (default: 44100, upper limits RXX to 20000 Hz)
 
         -loS=X  6 | 12  low shelf slope (default: X=6, 1st order 6 dB/oct)
@@ -138,7 +138,7 @@ def make_curves():
         for hi_gain in hi_gains:
             chi = make_high( fc=fc_high, gain=hi_gain )
             hc_mag = clo + chi
-            _,_,hc_pha = min_phase_from_real_mag( freqs, hc_mag)
+            _,_,hc_pha = min_phase_from_real_mag( freqs, hc_mag, fs=fs)
             lo_str = str(round(float(lo_gain), 1))
             hi_str = str(round(float(hi_gain), 1))
             hi_str = f'-{hi_str}'.replace('--', '-')
@@ -182,8 +182,11 @@ if __name__ == '__main__':
 
         elif opc[:4] == '-fs=':
             value = int(opc[4:])
-            if value in (44100, 48000, 96000):
+            if value in (44100, 48000, 88200, 96000):
                 fs = value
+            else:
+                print(__doc__)
+                sys.exit()
 
         elif '-loS=' in opc:
             value = int(opc[5:])
