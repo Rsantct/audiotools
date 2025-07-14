@@ -287,7 +287,7 @@ def fir_response(imp, fs, oversample=1, dB=True, deg=True, clean_phase_dBthr=Non
     return freqs, mag, pha
 
 
-def min_phase_from_real_mag(f, sp_real, dB=True, deg=True):
+def min_phase_from_real_mag(f, sp_real, dB=True, deg=True, fs=44100):
     """
     Input:
 
@@ -317,7 +317,7 @@ def min_phase_from_real_mag(f, sp_real, dB=True, deg=True):
 
     # From our custom spectrum to a full extended one by using
     # even spaced bins from 0 Hz to Nyquist.
-    f_ext, sp_real_ext = fft_spectrum(f, sp_real, fs=44100)
+    f_ext, sp_real_ext = fft_spectrum(f, sp_real, fs=fs)
 
     # Obtains the whole minimum phase spectrum
     # from our real valued specimen.
