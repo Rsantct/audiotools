@@ -17,7 +17,7 @@ branch=$1
 if [ $2 ]; then
     gitsite="https://github.com/""$2"
 else
-    gitsite="https://github.com/AudioHumLab"
+    gitsite="https://github.com/Rsantct"
 fi
 
 echo
