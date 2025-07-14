@@ -138,7 +138,7 @@ def make_curves():
         for hi_gain in hi_gains:
             chi = make_high( fc=fc_high, gain=hi_gain )
             hc_mag = clo + chi
-            _,_,hc_pha = min_phase_from_real_mag( freqs, hc_mag)
+            _,_,hc_pha = min_phase_from_real_mag( freqs, hc_mag, fs=fs)
             lo_str = str(round(float(lo_gain), 1))
             hi_str = str(round(float(hi_gain), 1))
             hi_str = f'-{hi_str}'.replace('--', '-')
