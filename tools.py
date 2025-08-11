@@ -49,7 +49,7 @@ def center_logspaced(f1, f2):
 
 
 def logspaced_gauss( fc=1000, wideOct=10, freq=np.geomspace(20, 20000, 2**10) ):
-    """ A logspaced gaussian curve rendered over a given freq array
+    r""" A logspaced gaussian curve rendered over a given freq array
         (the frequencies array can have an arbitrary freq point spacing)
 
                         ____
@@ -610,7 +610,7 @@ def extrap1d(interpolator):
 
 
 def logTransition(f, f0, speed="medium"):
-    """
+    r"""
     +1  _______
                \
                 \
