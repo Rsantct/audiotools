@@ -1,5 +1,4 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 """
     %%%%%%%%%%%%%%%%%%%%%%%%%%%  DSD  %%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Traslación a python/scipy de funciones del paquete DSD  %%
@@ -32,7 +31,7 @@
 # -----------------------------------------------------------
 
 import numpy as np
-from scipy import signal, interpolate, fft
+from scipy import signal, interpolate
 
 def biquad(fs, f0, Q, ftype, dBgain=0.0):
     """
@@ -301,7 +300,7 @@ def crossButterworthLP(fs=44100, m=32768, n=2, flp=0 , fhp=0):
     # %% imp = real( ifft( wholesplp(mag') ) );
     # %% imp = circshift(imp, m/2);
 
-    imp = np.real( fft.ifft( mag ) )
+    imp = np.real( np.fft.ifft( mag ) )
     # shifteamos la IFFT para conformar el IR con el impulso centrado
     imp = np.roll(imp, m/2)
 
@@ -362,16 +361,18 @@ def semiblackmanharris(m):
     %% m = Número de muestras.
     """
     # generamos la ventana con tamaño 2*m
-    w = signal.blackmanharris(2*m)
+    w = blackmanharris(2*m)
     # devolvemos la mitad derecha
     return w[m:]
 
 
 def blackmanharris(m):
     """
+       (alias de signal.windows.blackmanharris)
+
     %% Obtiene una ventana Blackman-Harris de longitud m.
     """
-    return signal.blackmanharris(m)
+    return signal.windows.blackmanharris(m)
 
 
 def minphsp(sp):
@@ -389,7 +390,7 @@ def minphsp(sp):
     if not sp.ndim == 1:
         raise ValueError("sp must be a vector")
 
-    return  np.exp( np.conj( signal.hilbert( np.log(np.abs(sp)) ) ) )
+    return np.exp( np.conj( signal.hilbert( np.log(np.abs(sp)) ) ) )
 
 
 def wholespmp(ssp):
@@ -402,7 +403,6 @@ def wholespmp(ssp):
 
     ssp: semiespectro de frecuencias positivas entre 0 y m/2,
          longitud impar, incluye DC (0Hz) y Nyquist (m/2)
-
     wsp: espectro completo longitud m, par.
     """
 
@@ -420,9 +420,7 @@ def wholespmp(ssp):
     # wsp = [ssp; nsp];
 
     nsp = np.flipud( np.conj( ssp[1:m-1] ) )  # freqs negativas
-
     wsp = np.concatenate([ssp, nsp])          # y ensamblamos
-
     return wsp
 
 
@@ -500,4 +498,3 @@ def lininterp(freq, mag, m, fs):
     newMag = I(newFreq)
 
     return newFreq, newMag
-
