@@ -292,7 +292,8 @@ class LU_meter(object):
 
                     # Stereo (M)omentary Loudness (divided by 2 channels)
                     if msqL or msqR:    # avoid log10(0)
-                        self.M = -0.691 + 20 * np.log10(msqL + msqR) / 2
+                        # use float to avoid delivery of numpy.float32 types
+                        self.M = -0.691 + 20 * float(np.log10(msqL + msqR)) / 2
                     else:
                         self.M = -100.0
 
