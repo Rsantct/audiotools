@@ -948,10 +948,13 @@ def saveWAV(fname, rate, data, wav_dtype='int32'):
             16-bit PCM      -32768      +32767          int16
     """
 
+    # Check for any value > 1.0 by creating a new array with the same shape
+    data_bool = data > 1.0
+
     if wav_dtype == 'int16':
 
         # Normally, data values will be float <= 1.0
-        if max(data) <= 1.0:
+        if not data_bool.any():
             wavfile.write(fname, rate, (data * 32767).astype(wav_dtype))
 
         else:
@@ -960,18 +963,19 @@ def saveWAV(fname, rate, data, wav_dtype='int32'):
     elif wav_dtype == 'int32':
 
         # Normally, data values will be float <= 1.0
-        if max(data) <= 1.0:
+        if not data_bool.any():
             wavfile.write(fname, rate, (data * 2147483647).astype(wav_dtype))
 
         else:
             wavfile.write(fname, rate, data.astype(wav_dtype))
 
     elif wav_dtype == 'float32':
-        if max(data) <= 1.0:
+
+        if not data_bool.any():
             wavfile.write(fname, rate, data.astype(wav_dtype))
         else:
             # Force normalization beacuse wav float32 max values are +/- 1.0
-            wavfile.write(fname, rate, (data / max(data)).astype(wav_dtype))
+            wavfile.write(fname, rate, (data / data.max()).astype(wav_dtype))
 
     else:
         raise ValueError("tools.saveWAV: 'wav_dtype' must be 'int16' 'int32' 'float32'")
