@@ -16,11 +16,15 @@
 
     FS              sampling frequency
 
+    -solomag        Muestra solamente la gráfica de la magnitud
+
     -f=min-max      Rango de frecuencias visualizado (Hz)
 
-    -dBrange=X      Rango de magnitudes visualizado (dB)
+    -dBrange=X      Rango de magnitudes visualizado (dB), por defecto 48 dB
 
     -dBtop=X        Límite superior de la visualización (dB)
+
+    -dBgain=X       Ganancia añadida
 
     -1              Muestra las gráficas de los impulsos en una fila única.
 
@@ -101,8 +105,9 @@ from matplotlib import gridspec             # customize subplots array
 import tools
 
 # Ajustes iniciales
+dBgain       = 0.0
 dBtop        = 5
-dBrange      = 65
+dBrange      = 48
 fmin         = 20
 fmax         = 20000
 
@@ -115,7 +120,8 @@ lp_tolerance = -60 # dB
 # Mínima resolución en Hz (se avisa si no se cumple)
 minResHz        = 10
 
-plotPha = False
+solomag         = False
+plotPha         = False
 oversample      = False
 nowarnings      = False
 plotIRsInOneRow = False
@@ -124,10 +130,11 @@ saveFRD         = False
 marker          = None
 
 
-def _lee_commandline(opcs):
+def _lee_commandline():
 
-    global fmin, fmax, plotPha, dBtop, dBrange, lp_tolerance, minResHz
-    global plotIRsInOneRow, oversample, nowarnings, generaPDF, saveFRD, marker
+    global fmin, fmax, plotPha, dBgain, dBtop, dBrange, lp_tolerance, minResHz, \
+        plotIRsInOneRow, oversample, nowarnings, generaPDF, saveFRD, marker, \
+        solomag
 
 
     # impulsos que devolverá esta función
@@ -136,7 +143,7 @@ def _lee_commandline(opcs):
     fnames = []
     fs = 0
 
-    for opc in opcs:
+    for opc in sys.argv[1:]:
 
         if opc in ("-h", "-help", "--help"):
             print (__doc__)
@@ -154,6 +161,9 @@ def _lee_commandline(opcs):
         elif '-no' in opc:
             nowarnings = True
 
+        elif '-solomag' in opc:
+            solomag = True
+
         elif opc.isdigit():
             fs = float(opc)
 
@@ -161,6 +171,9 @@ def _lee_commandline(opcs):
             fmin, fmax = opc.split("=")[-1].split("-")
             fmin = float(fmin)
             fmax = float(fmax)
+
+        elif 'dbgain=' in opc.lower():
+            dBgain = float(opc.split('=')[-1])
 
         elif opc[:7].lower() == "-dbtop=":
             dBtop = float(opc[7:])
@@ -251,7 +264,7 @@ def _preparaGraficas(numIRs=1):
     #-------------------------------------------------------------------------------
     # Preparamos el tamaño de las gráficas 'fig'
     #-------------------------------------------------------------------------------
-    if plotIRsInOneRow:
+    if plotIRsInOneRow or solomag:
         fig = plt.figure(figsize=(9, 6))
     else:
         fig = plt.figure(figsize=(9, 8 + numIRs))
@@ -271,10 +284,14 @@ def _preparaGraficas(numIRs=1):
     #   - en filas independientes de altura doble declaramos 5 + 2*numIRs filas.
     #-------------------------------------------------------------------------------
 
-    if plotIRsInOneRow:
-        grid = gridspec.GridSpec(nrows = 6, ncols = numIRs)
+    if solomag:
+        grid = gridspec.GridSpec(nrows = 1, ncols = 1)
+
     else:
-        grid = gridspec.GridSpec(nrows = 5 + 2*numIRs, ncols = 1)
+        if plotIRsInOneRow:
+            grid = gridspec.GridSpec(nrows = 6, ncols = numIRs)
+        else:
+            grid = gridspec.GridSpec(nrows = 5 + 2*numIRs, ncols = 1)
 
     # --- SUBPLOT para pintar las FRs (alto 3 filas, ancho todas las columnas)
     axMag = fig.add_subplot(grid[0:3, :])
@@ -283,6 +300,9 @@ def _preparaGraficas(numIRs=1):
     axMag.set_ylabel("magnitude (dB)")
     axMag.set_yticks(range(-210, 210, 3), minor=True)
     axMag.set_yticks(range(-210, 210, 6), minor=False)
+
+    if solomag:
+        return
 
     # --- SUBPLOT para pintar el GD (alto 2 filas, ancho todas las columnas)
     # comparte el eje X (twinx) con el de la phase
@@ -368,6 +388,9 @@ def do_plots(IRs, check_lp=False):
         else:
             freqs, magdB, phaseClean = tools.fir_response(imp, fs)
 
+        # Ganancia añadida:
+        magdB += dBgain
+
         # Group Delay:
         wgd, gd = signal.group_delay((imp, 1), w=len(freqs), whole=False)
         # Eliminamos (np.nan) los valores fuera de
@@ -417,50 +440,54 @@ def do_plots(IRs, check_lp=False):
             axMagMsgYcoord -= .05
 
         # Phase
-        if plotPha:
-            axPha.plot(freqs, phaseClean, "-", linewidth=1.0, color=color)
+        if not solomag:
+            if plotPha:
+                axPha.plot(freqs, phaseClean, "-", linewidth=1.0, color=color)
 
-        # Ploteo del GD con autoajuste del top
-        ymin = peakOffsetms - 25
-        ymax = peakOffsetms + 75
-        axGD.set_ylim(bottom = ymin, top = ymax)
-        axGD.plot(freqs, gdms, "--", linewidth=1.0, color=color)
+            # Ploteo del GD con autoajuste del top
+            ymin = peakOffsetms - 25
+            ymax = peakOffsetms + 75
+            axGD.set_ylim(bottom = ymin, top = ymax)
+            axGD.plot(freqs, gdms, "--", linewidth=1.0, color=color)
+
+            # Mostramos los valores de GD avg de cada impulso:
+            GDtitle = 'GD avg:    ' + '    '.join([str(x) for x in GDavgs]) + ' (ms)'
+            axGD.set_title(GDtitle)
 
         # Plot del IR
+        if not solomag:
 
-        # (i) Opcionalmente podemos pintar los impulsos en una sola fila
-        rotuloIR = str(lenimp) + " taps - pk offset " + str(peakOffsetms) + " ms"
-        if isLinPha:
-            rotuloIR += f'\nlinear phase (tolerance {lp_tolerance} dB)'
-        else:
-            rotuloIR += f'\nnot linear phase (tolerance {lp_tolerance} dB)'
-        if plotIRsInOneRow:
-            # Todos los IRs en una fila de altura simple, en columnas separadas:
-            axIR = fig.add_subplot(grid[5, IRnum]) # (i) grid[rangoVocupado, rangoHocupado]
-            # Rotulamos en el espacio de título:
-            axIR.set_title(rotuloIR)
-        else:
-            # Cada IR en una fila de altura doble:
-            axIR = fig.add_subplot(grid[5+2*IRnum:5+2*IRnum+2, :])
-            # Rotulamos dentro del axe:
-            axIR.annotate(rotuloIR, xy=(.6,.8), xycoords='axes fraction')
+            # (i) Opcionalmente podemos pintar los impulsos en una sola fila
+            rotuloIR = str(lenimp) + " taps - pk offset " + str(peakOffsetms) + " ms"
+            if isLinPha:
+                rotuloIR += f'\nlinear phase (tolerance {lp_tolerance} dB)'
+            else:
+                rotuloIR += f'\nnot linear phase (tolerance {lp_tolerance} dB)'
+            if plotIRsInOneRow:
+                # Todos los IRs en una fila de altura simple, en columnas separadas:
+                axIR = fig.add_subplot(grid[5, IRnum]) # (i) grid[rangoVocupado, rangoHocupado]
+                # Rotulamos en el espacio de título:
+                axIR.set_title(rotuloIR)
+            else:
+                # Cada IR en una fila de altura doble:
+                axIR = fig.add_subplot(grid[5+2*IRnum:5+2*IRnum+2, :])
+                # Rotulamos dentro del axe:
+                axIR.annotate(rotuloIR, xy=(.6,.8), xycoords='axes fraction')
+
+
+            # X ticks
+            if tools.isPowerOf2(lenimp) or (lenimp % 1000 == 0):
+                xticks_step = int( lenimp/4 )
+            else:
+                xticks_step = 1000
+            axIR.set_xticks( range(0, len(imp), xticks_step) )
+            axIR.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
+
+            # Plot
+            axIR.plot(imp, "-", linewidth=1.0, color=color, marker=marker)
 
         IRnum += 1
 
-        # X ticks
-        if tools.isPowerOf2(lenimp) or (lenimp % 1000 == 0):
-            xticks_step = int( lenimp/4 )
-        else:
-            xticks_step = 1000
-        axIR.set_xticks( range(0, len(imp), xticks_step) )
-        axIR.ticklabel_format(style="sci", axis="x", scilimits=(0,0))
-
-        # Plot
-        axIR.plot(imp, "-", linewidth=1.0, color=color, marker=marker)
-
-    # Mostramos los valores de GD avg de cada impulso:
-    GDtitle = 'GD avg:    ' + '    '.join([str(x) for x in GDavgs]) + ' (ms)'
-    axGD.set_title(GDtitle)
 
     # Leyenda con los nombres de los impulsos en el gráfico de magnitudes
     axMag.legend(loc='lower right', prop={'size':'small', 'family':'monospace'})
@@ -490,12 +517,10 @@ def do_plots(IRs, check_lp=False):
 
 if __name__ == "__main__":
 
-
-
-    if len(sys.argv) == 1:
+    if not sys.argv[1:]:
         print (__doc__)
         sys.exit()
 
-    IRs = _lee_commandline(sys.argv[1:])
+    IRs = _lee_commandline()
 
     do_plots(IRs)
