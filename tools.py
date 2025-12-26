@@ -14,8 +14,31 @@ from   scipy.io             import wavfile
 from   scipy                import signal
 from   scipy.interpolate    import interp1d, make_interp_spline
 
+from   fmt import Fmt
 import pydsd
 from   q2bw import *
+
+
+def get_avg_flat_region(frd, Hzmin=300, Hzmax=3000):
+    """
+        <frd>   a 2D array  [ Hz : dB ]
+
+        returns the avg flat region value in dB into the given freq range
+    """
+
+    # Create 500 log points from  `Hzmin` to `Hzmax`
+    hz_interp = np.geomspace(Hzmin, Hzmax, 100)
+
+    # Interpolate the dB values ​​for those new points
+    hz = frd[:,0]
+    db = frd[:,1]
+    db_interp = np.interp(hz_interp, hz, db)
+
+    # Average the interpolated values
+    avg = np.mean(db_interp)
+    print(f'{Fmt.BLUE}{Fmt.BOLD}Average MIC {avg:.2f} dB from {Hzmin} Hz to {Hzmax} Hz{Fmt.END}')
+
+    return avg
 
 
 def octaves(f1, f2):
