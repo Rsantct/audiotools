@@ -36,7 +36,6 @@ def get_avg_flat_region(frd, Hzmin=300, Hzmax=3000):
 
     # Average the interpolated values
     avg = np.mean(db_interp)
-    print(f'{Fmt.BLUE}{Fmt.BOLD}Average MIC {avg:.2f} dB from {Hzmin} Hz to {Hzmax} Hz{Fmt.END}')
 
     return avg
 
