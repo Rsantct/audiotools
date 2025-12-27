@@ -19,20 +19,20 @@ import pydsd
 from   q2bw import *
 
 
-def get_avg_flat_region(frd, Hzmin=300, Hzmax=3000):
+def get_avg_flat_region(frd, hz_ini=300, hz_end=3000):
     """
-        <frd>   a 2D array  [ Hz : dB ]
+        <frd>   a 2D columns array  [ Hz : dB ]
 
         returns the avg flat region value in dB into the given freq range
     """
 
-    # Create 500 log points from  `Hzmin` to `Hzmax`
-    hz_interp = np.geomspace(Hzmin, Hzmax, 100)
+    # Create 500 log points from  `hz_ini` to `hz_end`
+    hz_interp = np.geomspace(hz_ini, hz_end, 100)
 
     # Interpolate the dB values ​​for those new points
     hz = frd[:,0]
     db = frd[:,1]
-    db_interp = np.interp(hz_interp, hz, db)
+    db_interp = np.interp(np.log10(hz_interp), np.log10(hz), db)
 
     # Average the interpolated values
     avg = np.mean(db_interp)
