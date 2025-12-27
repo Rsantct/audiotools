@@ -32,6 +32,9 @@ def get_avg_flat_region(frd, hz_ini=300, hz_end=3000):
     # Interpolate the dB values ​​for those new points
     hz = frd[:,0]
     db = frd[:,1]
+
+    # As log spaced audio freq points can be widely separated, it is
+    # preferred to interpolate over the logarithm of the frequency.
     db_interp = np.interp(np.log10(hz_interp), np.log10(hz), db)
 
     # Average the interpolated values
