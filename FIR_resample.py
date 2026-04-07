@@ -4,17 +4,20 @@
 
     Usage:
 
-        Float 32 raw mode:  FIR_resample.py  filename  fs  new_fs   [--plot]
+        Float 32 raw mode:  FIR_resample.py  filename  fs  new_fs   [options...]
 
-        Wavefile mode:      FIR_resample.py  filename  new_fs       [--plot]
+        Wavefile mode:      FIR_resample.py  filename  new_fs       [options...]
 
+        options:
 
-        --plot              display frequency responses (can be slow)
-
+            -plot
+            -reco           full FFT reconstruction (default)
+            -poly           polyphase resampling
 """
 
 import  sys
-from    tools               import *
+import  tools
+import  numpy as np
 import  matplotlib.pyplot   as plt
 
 # Don't worry if Mac OS will show something like that garbage, after plt.show()
@@ -22,7 +25,29 @@ import  matplotlib.pyplot   as plt
 # 2025-01-29 23:10:26.477 Python[13014:1202800] +[IMKInputSession subclass]: chose IMKInputSession_Modern
 
 
-def resample_fir(fir, fs, fs_new):
+def resample_fir_polyphase(taps, f_in, f_out):
+    """
+        What resample_poly does:
+            - interpolates (freq up) x Num
+            - low-pass filter, to eliminate unwanted spectral images
+            - decimate (freq down) ÷ Den
+
+            The low pass filter will attenuate the resulted FIR in a few tenths of a dB
+    """
+
+    print('\nComputing polyphase ...')
+
+    up, down = tools.get_samplerate_ratio(f_in, f_out)
+
+    new_taps = tools.signal.resample_poly(taps, up, down)
+
+    print(f'original {len(taps)} taps fs={f_in}')
+    print(f'new      {len(new_taps)} taps fs={f_out}')
+
+    return new_taps
+
+
+def resample_fir_reconstruction(fir, fs, fs_new):
     """
         Resamples an FIR filter for a new sample rate.
         (helped by Google Gemini AI)
@@ -56,6 +81,9 @@ def resample_fir(fir, fs, fs_new):
 
     """
 
+    print('\nComputing reconstruction ...')
+
+
     N = len(fir)
 
     rate_ratio = fs_new / fs
@@ -72,7 +100,7 @@ def resample_fir(fir, fs, fs_new):
     M = int(np.ceil(N * rate_ratio))
 
     # Frequency response of the original filter
-    w, h = signal.freqz(fir, worN=2**15) #len(fir))
+    w, h = tools.signal.freqz(fir, worN=2**15) #len(fir))
 
     # Interpolate the frequency response to the new frequency range:
 
@@ -98,70 +126,121 @@ def resample_fir(fir, fs, fs_new):
     new_fir = np.fft.irfft(h_new)
 
     # Ensure the correct length (important due to irfft). Take the first M coefficients
-    new_fir = new_fir[:M] * pydsd.semiblackmanharris(M)
+    new_fir = new_fir[:M] * tools.pydsd.semiblackmanharris(M)
+
+    print(f'original {len(fir)} taps fs={fs}')
+    print(f'new      {len(new_fir)} taps fs={fs_new}')
 
     return new_fir
 
 
-def read_cmd_line():
+def filter_analyze(frd, N=1, threshold_dB=-3, normalize=False):
     """
-        Wavefile mode:      FIR_resample.py  filename  new_fs
-        Float 32 raw mode:  FIR_resample.py  filename  fs  new_fs
-
-        returns:
-
-            fname, fir, fs , new_fs
-
+    frd:        stack array [freq, dB]
+    N:          Octave fraction to detect passband (0.5, 1, 2, 3, 12, etc.)
+    threshold_dB:  Relative level to the maximum to consider the passband.
     """
+    freqs   = frd[:, 0]
+    mags_db = frd[:, 1]
 
-    global plot
+    # Avoid the log(0) error by ensuring the minimum frequency is > 0
+    # We use 1 Hz as the absolute minimum for octave calculations
+    f_min_safe = max(np.min(freqs), 1.0)
+    f_max_safe = np.max(freqs)
 
-    for arg in sys.argv[1:]:
+    if normalize:
+        mags_db = mags_db - np.max(mags_db)
 
-        if '-h' in arg:
-            print(__doc__)
-            sys.exit()
+    # oct/N center freqs
+    f_ref = 1000
+    k_min = int(np.floor(N * np.log2(f_min_safe / f_ref)))
+    k_max = int(np.ceil(N * np.log2(f_max_safe / f_ref)))
 
-        if '-plot' in arg:
-            plot = True
+    f_centers = f_ref * (2 ** (np.arange(k_min, k_max + 1) / N))
 
-    try:
+    # Filter centers existing in our data range
+    f_centers = f_centers[(f_centers >= f_min_safe) & (f_centers <= f_max_safe)]
 
-        fname = sys.argv[1]
+    # Filter centers out of our data range
+    f_centers = f_centers[(f_centers >= np.min(freqs)) & (f_centers <= np.max(freqs))]
 
-        # WAV file
-        if fname.endswith('wav'):
-            fs, fir = readWAV( fname )
-            new_fs  = int(sys.argv[2])
+    step = 2 ** (1 / (2 * N))
+    active_bands = []
 
-        # RAW float-32 file
+    # Classify by bands
+    for fc in f_centers:
+        f_inf, f_sup = fc / step, fc * step
+        indices = np.where((freqs >= f_inf) & (freqs < f_sup))[0]
+
+        if len(indices) > 0:
+            mean_band = np.mean(mags_db[indices])
+            active_bands.append(mean_band >= threshold_dB)
         else:
-            fs      = int(sys.argv[2])
-            fir     = readPCM32( fname )
-            new_fs  = int(sys.argv[3])
+            active_bands.append(False)
 
-        return fname, fir, fs , new_fs
+    active_bands = np.array(active_bands)
+    idx_on = np.where(active_bands)[0]
 
-    except:
-        print(__doc__)
-        sys.exit()
+    if len(idx_on) == 0:
+        return "Total Reject", (None, None)
+
+    # Evaluate filter type
+    first, last = idx_on[0], idx_on[-1]
+    n_bands = len(active_bands)
+    continuous = np.all(active_bands[first:last+1])
+
+    if continuous:
+
+        if first <= 1 and last >= n_bands - 2: # margin of error in a band
+            tipo = "All Pass"
+        elif first <= 1:
+            tipo = "Low Pass"
+        elif last >= n_bands - 2:
+            tipo = "High Pass"
+        else:
+            tipo = "Band Pass"
+    else:
+        tipo = "Multi-Band or Notch"
+
+    # estimated cut freq
+    f_low_cut = f_centers[first] / step
+    f_hi_cut = f_centers[last] * step
+
+    return tipo, (f_low_cut, f_hi_cut)
 
 
-def do_plot(ir_packs):
-    """ each ir_pack must be a tuple of: (fir, fs, plot_label)
+def do_plot(ir1, ir2):
+    """ ir_packs is a tuple of 2 tuples (ir, fs)
     """
+
+    flat_avgs = []
 
     plt.figure(figsize=(8, 5))
 
-    for ir_pack in ir_packs:
+    for irX in (ir1, ir2):
 
-        _fir, _fs, _label = ir_pack
+        ir, fs = irX
+        label = f'fs_{fs}'
 
-        print( f'computing magnitude to plot {_label} ...')
+        print( f'computing magnitude to plot {label} ...')
+        freqs, dB, _ = tools.fir_response( ir, fs )
 
-        freqs, mag_dB, _ = fir_response(_fir, _fs)
+        frd = tools.np.column_stack( (freqs, dB) )
 
-        plt.plot(freqs, mag_dB, label=_label)
+        curve_type, band = filter_analyze( frd, threshold_dB=-12 )
+        f_ini, f_end = band
+
+        print(f'curve type: {curve_type}')
+
+        flat_avgs.append( tools.get_avg_flat_region( frd, f_ini, f_end ) )
+
+        plt.plot( freqs, dB, label=label )
+
+    drop_info = ''
+    drop_dB = round(flat_avgs[0] - flat_avgs[1], 2)
+    if abs(drop_dB) > 0.09:
+        drop_info = f'(i) FIR resampled to {fs} drops {drop_dB} dB'
+        print(drop_info)
 
     plt.xscale('log')
     plt.xlim([20, 20000])
@@ -169,32 +248,83 @@ def do_plot(ir_packs):
     plt.yticks( range(-48, 18, 6) )
     plt.xlabel("Frequency (Hz)")
     plt.ylabel("Magnitude (dB)")
-    plt.title("Frequency Response")
+    if drop_info:
+        drop_info = '\n' + drop_info
+    plt.title(f"Freq. response ({method}) {drop_info}")
     plt.grid(True)
     plt.legend()
     plt.show()
 
 
+def read_cmd_line():
+    """
+        Wavefile mode:      FIR_resample.py  filename  fs_new
+        Float 32 raw mode:  FIR_resample.py  filename  fs  fs_new
+
+        returns:
+
+            fname, fir, fs , fs_new
+
+    """
+
+    global method, plot, fname, fir, fs , fs_new
+
+    for arg in sys.argv[1:]:
+
+        if '-h' in arg:
+            print(__doc__)
+            sys.exit()
+
+        elif '-plot' in arg:
+            plot = True
+
+        elif arg.startswith('-poly'):
+             method = 'polyphase'
+
+        elif arg.startswith('-reco'):
+             method = 'reconstruction'
+
+    try:
+
+        fname = sys.argv[1]
+
+        # WAV file
+        if fname.endswith('wav'):
+            fs, fir = tools.readWAV( fname )
+            fs_new  = int(sys.argv[2])
+
+        # RAW float-32 file
+        else:
+            fs      = int(sys.argv[2])
+            fir     = tools.readPCM32( fname )
+            fs_new  = int(sys.argv[3])
+
+    except Exception as e:
+        print(f'ERROR: {str(e)}')
+        print(__doc__)
+        sys.exit()
+
+
 if __name__ == "__main__":
 
+    method = 'reconstruction'
     plot = False
 
-    fname, fir, fs , new_fs = read_cmd_line()
+    read_cmd_line()
 
     # Compute the new FIR
-    new_fir = resample_fir(fir, fs, new_fs)
+    if method == 'polyphase':
+        new_fir = resample_fir_polyphase(fir, fs, fs_new)
+    elif method == 'reconstruction':
+        new_fir = resample_fir_reconstruction(fir, fs, fs_new)
 
     # Saving to file
-    new_fname = f'{fname[:-4]}_{new_fs}_Hz'
+    new_fname = f'{fname[:-4]}_{fs_new}_Hz_{method}'
     print('Saving to:', new_fname)
-    savePCM32(new_fir, f'{new_fname}.f32')
-    saveWAV(f'{new_fname}.wav', new_fs, new_fir, wav_dtype='int32')
+    tools.savePCM32(new_fir, f'{new_fname}.f32')
+    tools.saveWAV(f'{new_fname}.wav', fs_new, new_fir, wav_dtype='int32')
 
     # Plot the frequency responses
+    print('Preparing plot ...')
     if plot:
-        ir_packs = (
-            (fir,       fs,     f'{    fs} Hz'),
-            (new_fir,   new_fs, f'{new_fs} Hz')
-
-        )
-        do_plot( ir_packs )
+        do_plot( (fir, fs), (new_fir, fs_new) )
