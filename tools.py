@@ -13,10 +13,34 @@ import scipy.fft
 from   scipy.io             import wavfile
 from   scipy                import signal
 from   scipy.interpolate    import interp1d, make_interp_spline
+from   fractions            import Fraction
 
 from   fmt import Fmt
 import pydsd
 from   q2bw import *
+
+
+def get_samplerate_ratio(f_in, f_out, limit=1024):
+    """
+        Calculates the ratio for two sample rates, examples:
+
+            48000 ÷ 44100 ==>   160 ÷ 147
+            48000 ÷ 96000 ==>   1 ÷ 2
+
+        We must limit the fraction calculation to avoid huge numbres
+
+        128, 256    simple quality
+        512, 1024   HiFi
+        >2048       for extreme phase precission
+    """
+
+    aprox = Fraction(f_out / f_in).limit_denominator(limit)
+    up    = aprox.numerator
+    down  = aprox.denominator
+
+    print(f'Samplerate ratio: F.out {f_out} / F.in {f_in}  -->  {up} / {down}')
+
+    return up, down
 
 
 def get_avg_flat_region(frd, hz_ini=300, hz_end=3000):
@@ -35,7 +59,8 @@ def get_avg_flat_region(frd, hz_ini=300, hz_end=3000):
 
     # As log spaced audio freq points can be widely separated, it is
     # preferred to interpolate over the logarithm of the frequency.
-    db_interp = np.interp(np.log10(hz_interp), np.log10(hz), db)
+    # (+ 1e-15 to avoid divide by zero in log10)
+    db_interp  = np.interp(np.log10(hz_interp + 1e-15), np.log10(hz + 1e-15), db)
 
     # Average the interpolated values
     avg = np.mean(db_interp)
