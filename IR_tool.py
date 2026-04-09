@@ -64,10 +64,15 @@ def plot_filters(args):
 
     colors = ['cornflowerblue', 'darkorange', 'forestgreen', 'maroon']
     ppo = 400
-    f_log = np.logspace(np.log10(args.Fmin), np.log10(args.Fmax), int(ppo * np.log2(args.Fmax / args.Fmin)))
 
     for i, path in enumerate(args.files):
+
         h, fs = load_filter(path, args.fs, args.bits)
+
+        f_ini = 1
+        f_end = int(fs/2)
+        f_log = np.logspace(np.log10(f_ini), np.log10(f_end), int(ppo * np.log2(f_end / f_ini)))
+
         w_log = 2 * np.pi * f_log / fs
         w, resp = signal.freqz(h, worN=w_log)
         mag_db = 20 * np.log10(np.abs(resp) + 1e-12)
@@ -119,9 +124,9 @@ def plot_filters(args):
             ax_phase.set_yticks([-180, -90, 0, 90, 180])
 
     # Estética común Magnitud
-    ax_mag.set_xlim(args.Fmin, args.Fmax)
     ax_mag.xaxis.set_major_formatter(plt.FuncFormatter(format_freq_ticks))
     ax_mag.set_xticks([20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000])
+    ax_mag.set_xlim(args.Fini, args.Fend)
     ax_mag.grid(True, which='both', alpha=0.3)
     ax_mag.set_ylabel("Magnitud (dB)")
     ax_mag.set_ylim(args.dBmin, args.dBmax)
@@ -129,8 +134,9 @@ def plot_filters(args):
     ax_mag.legend(loc='lower right', fontsize='small')
 
     if not args.only_mag:
-        ax_gd.set_xlim(args.Fmin, args.Fmax)
         ax_gd.xaxis.set_major_formatter(plt.FuncFormatter(format_freq_ticks))
+        ax_gd.set_xticks([20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000])
+        ax_gd.set_xlim(args.Fini, args.Fend)
         ax_gd.grid(True, which='both', alpha=0.3)
         ax_gd.set_ylabel("GD (ms)")
         ax_gd.format_coord = lambda x, y: f"{int(x)} Hz    {y:.2f} ms"
@@ -147,8 +153,8 @@ def prepare_parser():
     parser.add_argument("files", nargs='+', help="Archivos de filtro")
     parser.add_argument("--fs", type=int, help="Samplerate para archivos raw")
     parser.add_argument("--bits", type=str, default='float32', choices=['int16', 'float32', 'float64'])
-    parser.add_argument("--Fmin", type=float, default=20)
-    parser.add_argument("--Fmax", type=float, default=20000)
+    parser.add_argument("--Fini", type=float, default=20, help='Frec inicial (20 Hz)')
+    parser.add_argument("--Fend", type=float, default=20000, help='Frec inicial (20 KHz)')
     parser.add_argument("--dBmin", type=float, default=-42)
     parser.add_argument("--dBmax", type=float, default=12)
     parser.add_argument("--gd_smooth", type=int, help="Suavizado octava para GD")
