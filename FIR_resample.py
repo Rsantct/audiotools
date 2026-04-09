@@ -13,19 +13,64 @@
             -plot
             -reco           full FFT reconstruction (default)
             -poly           polyphase resampling
+            -upfirdn        up-fir-down method
 """
 
 import  sys
 import  tools
-import  numpy as np
-import  matplotlib.pyplot   as plt
+import  numpy             as     np
+from    scipy             import signal
+import  matplotlib.pyplot as     plt
+from    math              import gcd
 
 # Don't worry if Mac OS will show something like that garbage, after plt.show()
 # 2025-01-29 23:10:26.477 Python[13014:1202800] +[IMKClient subclass]: chose IMKClient_Modern
 # 2025-01-29 23:10:26.477 Python[13014:1202800] +[IMKInputSession subclass]: chose IMKInputSession_Modern
 
 
-def resample_fir_polyphase(taps, f_in, f_out):
+def resample_fir_upfirdn(taps, f_in, f_out, correct_DC_gain=True):
+    """
+    Remuestrea un FIR usando upfirdn con un filtro de interpolación
+    de alta atenuación (Kaiser) para evitar leakage en graves.
+    """
+    # 1. Calcular los factores de upsampling (L) y downsampling (M)
+    common_gcd = gcd(int(f_in), int(f_out))
+    L = int(f_out // common_gcd)  # Para 48k -> 44.1k, L = 147
+    M = int(f_in // common_gcd)   # Para 48k -> 44.1k, M = 160
+
+    # 2. Diseñar el filtro de interpolación (LPF antialiasing)
+    # El ancho de banda debe ser el mínimo entre las dos frecuencias de Nyquist
+    nyquist_min = min(f_in / 2, f_out / 2)
+    cutoff = nyquist_min / (max(L, M) * (f_in / (2 * M))) # Normalizado
+
+    # Usamos una ventana de Kaiser para obtener >100dB de rechazo
+    # beta=14 es excelente para evitar el "suelo" de ruido que viste
+    num_taps_interp = 20 * max(L, M) # Longitud del filtro de interpolación
+    interp_filter = signal.firwin(num_taps_interp, 1/max(L, M),
+                                 window=('kaiser', 14))
+
+    # 3. Aplicar upfirdn
+    # upfirdn escala la amplitud, multiplicamos por L para compensar la ganancia de inserción
+    resampled_taps = signal.upfirdn(interp_filter, taps, up=L, down=M) * L
+
+    # 4. Gestión del retardo (Compensación de fase)
+    # El filtro de interpolación introduce un retraso de (len - 1) / 2
+    delay = (num_taps_interp - 1) / 2
+    # Ajustamos para que el pico del impulso coincida con el original proporcionalmente
+    start_idx = int(np.round(delay / M))
+    end_idx = start_idx + int(len(taps) * L / M)
+
+    final_fir = resampled_taps[start_idx:end_idx]
+
+    # 5. Ajuste final de precisión para HPF (Garantizar DC = 0)
+    # Esto elimina cualquier residuo plano en los graves profundos
+    if correct_DC_gain:
+        final_fir -= np.mean(final_fir)
+
+    return final_fir
+
+
+def resample_fir_polyphase(taps, f_in, f_out, correct_DC_gain=True):
     """
         What resample_poly does:
             - interpolates (freq up) x Num
@@ -39,7 +84,11 @@ def resample_fir_polyphase(taps, f_in, f_out):
 
     up, down = tools.get_samplerate_ratio(f_in, f_out)
 
-    new_taps = tools.signal.resample_poly(taps, up, down)
+    #new_taps = signal.resample_poly(taps, up, down, window=('kaiser', 14))
+    new_taps = signal.resample_poly(taps, up, down, window=('blackman',))
+
+    if correct_DC_gain:
+        new_taps -= np.mean(new_taps)
 
     print(f'original {len(taps)} taps fs={f_in}')
     print(f'new      {len(new_taps)} taps fs={f_out}')
@@ -100,7 +149,7 @@ def resample_fir_reconstruction(fir, fs, fs_new):
     M = int(np.ceil(N * rate_ratio))
 
     # Frequency response of the original filter
-    w, h = tools.signal.freqz(fir, worN=2**15) #len(fir))
+    w, h = signal.freqz(fir, worN=2**15) #len(fir))
 
     # Interpolate the frequency response to the new frequency range:
 
@@ -284,6 +333,9 @@ def read_cmd_line():
         elif arg.startswith('-reco'):
              method = 'reconstruction'
 
+        elif arg.startswith('-upfir'):
+             method = 'upfirdn'
+
     try:
 
         fname = sys.argv[1]
@@ -313,13 +365,20 @@ if __name__ == "__main__":
     read_cmd_line()
 
     # Compute the new FIR
+    print(f'\nResampling method: {method}')
+
     if method == 'polyphase':
         new_fir = resample_fir_polyphase(fir, fs, fs_new)
+
     elif method == 'reconstruction':
         new_fir = resample_fir_reconstruction(fir, fs, fs_new)
 
+    elif method == 'upfirdn':
+        new_fir = resample_fir_upfirdn(fir, fs, fs_new)
+
     # Saving to file
     new_fname = f'{fname[:-4]}_{fs_new}_Hz_{method}'
+
     print('Saving to:', new_fname)
     tools.savePCM32(new_fir, f'{new_fname}.f32')
     tools.saveWAV(f'{new_fname}.wav', fs_new, new_fir, wav_dtype='int32')
